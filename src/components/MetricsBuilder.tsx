@@ -378,10 +378,7 @@ export function MetricsBuilder() {
         },
         series: queryResult.values,
         labels: queryResult.labels,
-        colors: [
-          themeConfig.colors.primary,
-          ...themeConfig.seriesColors
-        ],
+        colors: themeConfig.seriesColors,
         legend: {
           labels: {
             colors: themeConfig.colors.text
@@ -389,7 +386,7 @@ export function MetricsBuilder() {
         },
         dataLabels: {
           style: {
-            colors: ['#fff']
+            colors: [themeConfig.seriesLabelColor]
           }
         }
       };

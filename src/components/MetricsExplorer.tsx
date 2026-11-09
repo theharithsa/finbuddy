@@ -531,9 +531,10 @@ export function MetricsExplorer({
         },
         series: metricData.values,
         labels: metricData.labels,
-        colors: getChartTheme(theme).seriesColors,
+        colors: themeConfig.seriesColors,
         dataLabels: {
           enabled: true,
+          style: { colors: [themeConfig.seriesLabelColor] },
           formatter: (val: number) => `${val.toFixed(1)}%`
         },
         legend: {

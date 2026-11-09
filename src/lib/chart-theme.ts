@@ -20,5 +20,6 @@ export function getChartTheme(theme: keyof typeof palettes) {
     colors,
     fontFamily: '"Roboto Variable", Roboto, system-ui, sans-serif',
     seriesColors: [colors.primary, colors.tertiary, colors.positive, colors.caution, colors.quaternary, colors.secondary],
+    seriesLabelColor: theme === 'dark' ? '#201732' : '#fff',
   };
 }
