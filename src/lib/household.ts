@@ -4,17 +4,18 @@ import { formatCurrency, type Expense } from '@/lib/types';
 
 const label = z.string().trim().min(1).max(80);
 const maxPaise = 100_000_000_000;
-const amountPaise = z.number().int().min(1).max(maxPaise);
+const nonnegativePaise = z.number().int().min(0).max(maxPaise);
+const positivePaise = nonnegativePaise.min(1);
 
 export const incomeSchema = z.object({
   name: label,
-  amountPaise,
+  amountPaise: positivePaise,
   date: z.iso.date(),
 });
 
 export const billSchema = z.object({
   name: label,
-  amountPaise,
+  amountPaise: positivePaise,
   dueDate: z.iso.date(),
   repeat: z.enum(['once', 'monthly', 'yearly']),
 });
@@ -22,7 +23,7 @@ export const billSchema = z.object({
 export const holdingKinds = ['Savings', 'Mutual fund / SIP', 'FD / RD', 'EPF / PPF / NPS', 'Gold', 'Shares', 'Other'] as const;
 export const holdingSchema = z.object({
   name: label,
-  amountPaise: amountPaise.min(0),
+  amountPaise: nonnegativePaise,
   kind: z.enum(holdingKinds),
   asOf: z.iso.date(),
 });

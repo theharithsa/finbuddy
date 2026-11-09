@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { billDateInMonth, billPaymentKey, listBillOccurrences, parsePaise, type Bill, type BillPayment } from '@/lib/household';
+import { billDateInMonth, billPaymentKey, holdingSchema, incomeSchema, listBillOccurrences, parsePaise, type Bill, type BillPayment } from '@/lib/household';
 import type { Expense } from '@/lib/types';
 
 describe('household amounts and due dates', () => {
@@ -10,6 +10,11 @@ describe('household amounts and due dates', () => {
     expect(parsePaise('10.005')).toBeUndefined();
     expect(parsePaise('0')).toBeUndefined();
     expect(parsePaise('0', true)).toBe(0);
+  });
+
+  it('stores a depleted holding and still requires positive income', () => {
+    expect(holdingSchema.safeParse({ name: 'Savings', kind: 'Savings', amountPaise: 0, asOf: '2026-11-09' }).success).toBe(true);
+    expect(incomeSchema.safeParse({ name: 'Salary', amountPaise: 0, date: '2026-11-09' }).success).toBe(false);
   });
 
   it('clamps recurring dates to the last day of shorter months', () => {
