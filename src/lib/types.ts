@@ -1,3 +1,5 @@
+import { localDate } from './finance-period';
+
 export interface Expense {
   id: string;
   amount: number;
@@ -179,7 +181,8 @@ export const formatCurrency = (amount: number): string => {
 };
 
 export const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('en-US', {
+  const local = /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T12:00:00` : date;
+  return new Date(local).toLocaleDateString('en-IN', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -187,7 +190,7 @@ export const formatDate = (date: string): string => {
 };
 
 export const getCurrentMonth = (): string => {
-  return new Date().toISOString().slice(0, 7); // YYYY-MM format
+  return localDate().slice(0, 7);
 };
 
 export const getMonthlyExpenses = (expenses: Expense[], month: string): Expense[] => {

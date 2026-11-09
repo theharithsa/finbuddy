@@ -1,3 +1,4 @@
+import { localDate } from '@/lib/finance-period';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,8 +30,8 @@ const getCurrentMonth = (): DateRange => {
   const to = new Date(year, month + 1, 0); // Last day of current month
   
   return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0]
+    from: localDate(from),
+    to: localDate(to)
   };
 };
 
@@ -43,8 +44,8 @@ const getLastMonth = (): DateRange => {
   const to = new Date(year, month, 0); // Last day of previous month
   
   return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0]
+    from: localDate(from),
+    to: localDate(to)
   };
 };
 
@@ -53,8 +54,8 @@ const getLast30Days = (): DateRange => {
   const from = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
   
   return {
-    from: from.toISOString().split('T')[0],
-    to: now.toISOString().split('T')[0]
+    from: localDate(from),
+    to: localDate(now)
   };
 };
 
@@ -63,8 +64,8 @@ const getLast90Days = (): DateRange => {
   const from = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
   
   return {
-    from: from.toISOString().split('T')[0],
-    to: now.toISOString().split('T')[0]
+    from: localDate(from),
+    to: localDate(now)
   };
 };
 
@@ -83,7 +84,7 @@ const getAllTime = (): DateRange => {
   
   return {
     from: '2020-01-01', // Reasonable start date
-    to: now.toISOString().split('T')[0]
+    to: localDate(now)
   };
 };
 

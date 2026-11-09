@@ -1,9 +1,10 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User, sendSignInLinkToEmail, signInWithEmailLink, isSignInWithEmailLink, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, increment, deleteField, Unsubscribe } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { localDate } from '@/lib/finance-period';
+import { initializeApp, FirebaseError } from 'firebase/app';
+import { getAuth, connectAuthEmulator, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User, sendSignInLinkToEmail, signInWithEmailLink, isSignInWithEmailLink, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, increment, deleteField, type FieldValue, Unsubscribe } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
-import { Person } from './types';
+import type { Budget, Expense, Person } from './types';
 // import { log } from './logger';
 
 // Firebase configuration - Replace with your Firebase project config
@@ -56,11 +57,22 @@ export const checkFirebaseReady = (user: any): boolean => {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const useEmulators = import.meta.env.DEV && import.meta.env.VITE_FIREBASE_EMULATORS === 'true';
+const app = initializeApp(useEmulators ? {
+  apiKey: 'demo-key',
+  projectId: 'demo-finbuddy',
+  authDomain: 'demo-finbuddy.firebaseapp.com',
+  storageBucket: 'demo-finbuddy.appspot.com',
+} : firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app);
+if (useEmulators) {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectStorageEmulator(storage, '127.0.0.1', 9199);
+}
 
 // Configure Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -84,7 +96,6 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading file:', error);
     throw new Error('Failed to upload file. Please try again.');
   }
 };
@@ -109,11 +120,21 @@ export const deleteFile = async (path: string): Promise<void> => {
  * @param fileName - The original file name
  * @returns A unique storage path
  */
-export const generateReceiptPath = (expenseId: string, fileName: string): string => {
-  const timestamp = Date.now();
-  const extension = fileName.split('.').pop();
-  return `receipts/${expenseId}_${timestamp}.${extension}`;
-};
+export function generateReceiptPath(userId: string, fileName: string): string {
+  const extension = fileName.match(/\.(jpe?g|png|webp|pdf)$/i)?.[1]?.toLowerCase() ?? 'bin';
+  return `receipts/${userId}/${crypto.randomUUID()}.${extension}`;
+}
+
+export async function deleteOwnedReceipt(userId: string, url: string): Promise<void> {
+  try {
+    const receipt = ref(storage, url);
+    if (receipt.bucket === app.options.storageBucket && receipt.fullPath.startsWith(`receipts/${userId}/`)) {
+      await deleteObject(receipt);
+    }
+  } catch {
+    // File cleanup is best effort after the expense write.
+  }
+}
 
 /**
  * Validate file type and size for receipt uploads
@@ -138,317 +159,96 @@ export const validateReceiptFile = (file: File): boolean => {
 export { storage, auth, db, functions };
 
 // Authentication functions
-export const signInWithGoogle = async (useRedirect: boolean = false): Promise<User> => {
-  const startTime = performance.now();
-  
-  // log.info('Firebase', 'Google sign-in initiated', { useRedirect });
-  
-  try {
-    if (useRedirect) {
-      // log.debug('Firebase', 'Using redirect authentication method');
-      // Use redirect method as fallback
-      await signInWithRedirect(auth, googleProvider);
-      // log.info('Firebase', 'Redirect sign-in initiated successfully');
-      // The result will be handled by checkRedirectResult
-      throw new Error('REDIRECT_IN_PROGRESS');
-    } else {
-      // log.debug('Firebase', 'Using popup authentication method');
-      
-      // Check if popup is blocked
-      const testPopup = window.open('', '_blank', 'width=1,height=1');
-      if (!testPopup || testPopup.closed || typeof testPopup.closed === 'undefined') {
-        // log.warn('Firebase', 'Popup blocked by browser');
-        throw new Error('POPUP_BLOCKED');
-      }
-      testPopup.close();
-      
-      const result = await signInWithPopup(auth, googleProvider);
-      
-      const duration = performance.now() - startTime;
-      // log.performance('GoogleSignInPopup', duration);
-      // log.info('Firebase', 'Google sign-in successful', { 
-      //   userId: result.user.uid,
-      //   email: result.user.email,
-      //   duration 
-      // });
-      
-      return result.user;
-    }
-  } catch (error: any) {
-    const duration = performance.now() - startTime;
-    
-    // log.error('Firebase', 'Google sign-in failed', {
-    //   error: error.message,
-    //   code: error.code,
-    //   useRedirect,
-    //   duration
-    // }, error);
-    
-    console.error('Error signing in with Google:', error);
-    
-    // Handle specific Firebase auth errors
-    if (error.message === 'POPUP_BLOCKED' || error.code === 'auth/popup-blocked') {
-      throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again, or use the redirect option.');
-    } else if (error.code === 'auth/popup-closed-by-user') {
-      throw new Error('Sign in was cancelled. Please try again.');
-    } else if (error.code === 'auth/unauthorized-domain') {
-      throw new Error('This domain is not authorized for authentication. Please contact support.');
-    } else if (error.code === 'auth/operation-not-allowed') {
-      throw new Error('Google sign-in is not enabled. Please contact support.');
-    } else if (error.code === 'auth/cancelled-popup-request') {
-      throw new Error('Another sign-in popup is already open.');
-    } else if (error.message === 'REDIRECT_IN_PROGRESS') {
-      throw error; // Re-throw to handle in component
-    } else if (error.message?.includes('Popup blocked')) {
-      throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
-    } else {
-      throw new Error(error.message || 'Failed to sign in with Google. Please try again.');
-    }
-  }
-};
+export async function signInWithGoogle(useRedirect = false): Promise<User> {
+  if (useRedirect) await signInWithRedirect(auth, googleProvider);
+  return (await signInWithPopup(auth, googleProvider)).user;
+}
 
-// Check for redirect result on app load
-export const checkRedirectResult = async (): Promise<User | null> => {
-  // log.debug('Firebase', 'Checking redirect result');
-  
-  try {
-    const result = await getRedirectResult(auth);
-    
-    if (result?.user) {
-      // log.info('Firebase', 'Redirect sign-in completed successfully', {
-      //   userId: result.user.uid,
-      //   email: result.user.email
-      // });
-    } else {
-      // log.debug('Firebase', 'No redirect result found');
-    }
-    
-    return result?.user || null;
-  } catch (error: any) {
-    // log.error('Firebase', 'Error checking redirect result', {
-    //   error: error.message,
-    //   code: error.code
-    // }, error);
-    
-    console.error('Error checking redirect result:', error);
-    throw new Error(error.message || 'Failed to complete sign in.');
-  }
-};
+export async function checkRedirectResult(): Promise<User | null> {
+  return (await getRedirectResult(auth))?.user ?? null;
+}
 
-export const logOut = async (): Promise<void> => {
-  // log.info('Firebase', 'Sign out initiated');
-  
-  try {
-    await signOut(auth);
-    // log.info('Firebase', 'Sign out completed successfully');
-  } catch (error: any) {
-    // log.error('Firebase', 'Sign out failed', {
-    //   error: error.message,
-    //   code: error.code
-    // }, error);
-    
-    console.error('Error signing out:', error);
-    throw new Error('Failed to sign out. Please try again.');
-  }
-};
+export const logOut = () => signOut(auth);
+export const onAuthChange = (callback: (user: User | null) => void) => onAuthStateChanged(auth, callback);
 
-export const onAuthChange = (callback: (user: User | null) => void) => {
-  return onAuthStateChanged(auth, callback);
-};
+export async function signUpWithEmail(email: string, password: string, displayName: string): Promise<User> {
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) await updateProfile(user, { displayName });
+  return user;
+}
 
-// Email/Password Authentication
-export const signUpWithEmail = async (email: string, password: string, displayName: string): Promise<User> => {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Update the user's display name
-    await updateProfile(result.user, {
-      displayName: displayName
-    });
-    
-    return result.user;
-  } catch (error: any) {
-    console.error('❌ Email signup failed:', error);
-    throw new Error(error.message || 'Failed to create account');
-  }
-};
+export async function signInWithEmail(email: string, password: string): Promise<User> {
+  return (await signInWithEmailAndPassword(auth, email, password)).user;
+}
 
-export const signInWithEmail = async (email: string, password: string): Promise<User> => {
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
-  } catch (error: any) {
-    console.error('❌ Email sign-in failed:', error);
-    throw new Error(error.message || 'Failed to sign in');
-  }
-};
-
-export const resetPassword = async (email: string): Promise<void> => {
+export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
-  } catch (error: any) {
-    console.error('❌ Password reset failed:', error);
-    throw new Error(error.message || 'Failed to send password reset email');
+  } catch (error) {
+    if (!(error instanceof FirebaseError) || error.code !== 'auth/user-not-found') throw error;
   }
-};
+}
 
-// Passwordless Authentication (Magic Link)
-export const sendMagicLink = async (email: string): Promise<void> => {
-  try {
-    const actionCodeSettings = {
-      // URL where the user will be redirected after clicking the link
-      url: window.location.origin,
-      // This must be true for email link sign-in
-      handleCodeInApp: true,
-    };
-    
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    
-    // Save the email locally so you can use it to complete the sign-in
-    localStorage.setItem('emailForSignIn', email);
-    
-  } catch (error: any) {
-    console.error('❌ Failed to send magic link:', error);
-    throw new Error(error.message || 'Failed to send magic link');
-  }
-};
+export async function sendMagicLink(email: string): Promise<void> {
+  await sendSignInLinkToEmail(auth, email, { url: window.location.origin, handleCodeInApp: true });
+  localStorage.setItem('emailForSignIn', email);
+}
 
-export const signInWithMagicLink = async (email?: string): Promise<User> => {
-  try {
-    // Check if the current URL is a sign-in link
-    if (!isSignInWithEmailLink(auth, window.location.href)) {
-      throw new Error('Invalid sign-in link');
-    }
-    
-    // Get the email if not provided
-    let emailAddress = email;
-    if (!emailAddress) {
-      emailAddress = localStorage.getItem('emailForSignIn') || undefined;
-      if (!emailAddress) {
-        emailAddress = window.prompt('Please provide your email for confirmation') || undefined;
-      }
-    }
-    
-    if (!emailAddress) {
-      throw new Error('Email is required to complete sign-in');
-    }
-    
-    // Sign in the user
-    const result = await signInWithEmailLink(auth, emailAddress, window.location.href);
-    
-    // Clear the saved email
-    localStorage.removeItem('emailForSignIn');
-    
-    console.log('✅ Magic link sign-in successful:', result.user.uid);
-    return result.user;
-  } catch (error: any) {
-    console.error('❌ Magic link sign-in failed:', error);
-    throw new Error(error.message || 'Failed to sign in with magic link');
-  }
-};
+export async function signInWithMagicLink(email?: string): Promise<User> {
+  const address = email || localStorage.getItem('emailForSignIn') || window.prompt('Confirm your email address');
+  if (!address) throw new Error('Email is required to complete sign-in');
+  const { user } = await signInWithEmailLink(auth, address, window.location.href);
+  localStorage.removeItem('emailForSignIn');
+  return user;
+}
 
 export const checkMagicLinkOnLoad = (): boolean => {
   return isSignInWithEmailLink(auth, window.location.href);
 };
 
 // Firestore data functions
-export const addExpenseToFirestore = async (userId: string, expense: any): Promise<string> => {
-  try {
-    if (!userId) {
-      throw new Error('User ID is required to save expense');
-    }
-    
-    // Check if Firebase is ready
-    if (!checkFirebaseReady({ uid: userId })) {
-      throw new Error('Firebase is not properly initialized');
-    }
-    
-    // Ensure all required fields are present and handle null/undefined values
-    const expenseData: any = {
-      amount: Number(expense.amount),
-      category: expense.category || '',
-      description: expense.description || 'No description',
-      date: expense.date || new Date().toISOString().split('T')[0],
-      createdAt: expense.createdAt || new Date().toISOString(),
-    };
-    
-    // Only include receiptUrl and receiptFileName if they have actual non-empty values
-    if (expense.receiptUrl && expense.receiptUrl.trim() !== '') {
-      expenseData.receiptUrl = expense.receiptUrl;
-    }
-    if (expense.receiptFileName && expense.receiptFileName.trim() !== '') {
-      expenseData.receiptFileName = expense.receiptFileName;
-    }
-    
-    // Include peopleIds if they exist and are not empty
-    if (expense.peopleIds && expense.peopleIds.length > 0) {
-      expenseData.peopleIds = expense.peopleIds;
-      console.log('✅ Including peopleIds in expense data:', expense.peopleIds);
-    } else {
-      console.log('ℹ️ No peopleIds provided or empty array');
-    }
-    
-    console.log('📝 Final expense data to be saved:', expenseData);
-    
-    const docRef = await addDoc(collection(db, 'users', userId, 'expenses'), expenseData);
-    return docRef.id;
-  } catch (error: any) {
-    console.error('Detailed error adding expense:', {
-      error: error.message,
-      code: error.code,
-      stack: error.stack,
-      userId,
-      expense
-    });
-    
-    // Provide more specific error messages
-    if (error.code === 'permission-denied') {
-      throw new Error('Permission denied. Please make sure you are signed in and try again.');
-    } else if (error.code === 'unavailable') {
-      throw new Error('Service is temporarily unavailable. Please try again in a moment.');
-    } else if (error.code === 'unauthenticated') {
-      throw new Error('You must be signed in to add expenses.');
-    } else if (error.message?.includes('User ID is required')) {
-      throw new Error('Authentication error. Please sign out and sign in again.');
-    } else if (error.message?.includes('Firebase is not properly initialized')) {
-      throw new Error('Application initialization error. Please refresh the page and try again.');
-    } else {
-      throw new Error(error.message || 'Failed to save expense. Please try again.');
-    }
-  }
-};
+type NewExpense = Omit<Expense, 'id' | 'createdAt'> & { createdAt?: string };
+export type ExpenseUpdate = Partial<Expense> & { _removeReceipt?: boolean };
 
-export const updateExpenseInFirestore = async (userId: string, expenseId: string, expense: any): Promise<void> => {
-  try {
-    // Filter out undefined values as Firebase doesn't allow them
-    const cleanExpense = Object.fromEntries(
-      Object.entries(expense).filter(([_, value]) => value !== undefined)
-    );
-    
-    // Handle field removal
-    if ((expense as any)._removeReceipt) {
-      cleanExpense.receiptUrl = deleteField();
-      cleanExpense.receiptFileName = deleteField();
-      delete cleanExpense._removeReceipt;
-    }
-    
-    const docRef = doc(db, 'users', userId, 'expenses', expenseId);
-    await updateDoc(docRef, cleanExpense);
-  } catch (error) {
-    console.error('Error updating expense:', error);
-    throw new Error('Failed to update expense. Please try again.');
+function validateExpenseAmount(amount: number) {
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(Math.round(amount * 100))) {
+    throw new FirebaseError('invalid-argument', 'Enter a valid positive amount');
   }
-};
+}
 
-export const deleteExpenseFromFirestore = async (userId: string, expenseId: string): Promise<void> => {
-  try {
-    const docRef = doc(db, 'users', userId, 'expenses', expenseId);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error('Error deleting expense:', error);
-    throw new Error('Failed to delete expense. Please try again.');
+export async function addExpenseToFirestore(userId: string, expense: NewExpense): Promise<string> {
+  validateExpenseAmount(expense.amount);
+  const data = {
+    amount: expense.amount,
+    category: expense.category || '',
+    description: expense.description || 'No description',
+    date: expense.date || localDate(),
+    createdAt: expense.createdAt || new Date().toISOString(),
+    ...(expense.app && { app: expense.app }),
+    ...(expense.receiptUrl && { receiptUrl: expense.receiptUrl }),
+    ...(expense.receiptFileName && { receiptFileName: expense.receiptFileName }),
+    ...(expense.peopleIds?.length && { peopleIds: expense.peopleIds }),
+  };
+  const created = await addDoc(collection(db, 'users', userId, 'expenses'), data);
+  return created.id;
+}
+
+export async function updateExpenseInFirestore(userId: string, expenseId: string, expense: ExpenseUpdate): Promise<void> {
+  const { _removeReceipt, id: _id, ...fields } = expense;
+  if (fields.amount !== undefined) validateExpenseAmount(fields.amount);
+  const updates: Record<string, string | number | string[] | FieldValue> = Object.fromEntries(
+    Object.entries(fields).filter(([, value]) => value !== undefined),
+  );
+  if (_removeReceipt) {
+    updates.receiptUrl = deleteField();
+    updates.receiptFileName = deleteField();
   }
-};
+  await updateDoc(doc(db, 'users', userId, 'expenses', expenseId), updates);
+}
+
+export function deleteExpenseFromFirestore(userId: string, expenseId: string): Promise<void> {
+  return deleteDoc(doc(db, 'users', userId, 'expenses', expenseId));
+}
 
 export const getExpensesFromFirestore = async (userId: string): Promise<any[]> => {
   try {
@@ -464,45 +264,15 @@ export const getExpensesFromFirestore = async (userId: string): Promise<any[]> =
   }
 };
 
-export const subscribeToExpenses = (userId: string, callback: (expenses: any[]) => void) => {
-  try {
-    if (!userId || !db) {
-      console.error('Invalid userId or database not initialized');
-      callback([]);
-      return () => {};
-    }
-
-    const q = query(
-      collection(db, 'users', userId, 'expenses'),
-      orderBy('date', 'desc')
-    );
-    
-    return onSnapshot(q, 
-      (querySnapshot) => {
-        try {
-          const expenses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          callback(expenses);
-        } catch (error) {
-          console.error('Error processing expenses data:', error);
-          callback([]);
-        }
-      },
-      (error) => {
-        // Only log permission errors if they're not the common harmless ones
-        if (error.code === 'permission-denied') {
-          console.warn('Permission denied for expenses subscription. User may not be fully authenticated yet.');
-        } else {
-          console.error('Error in expenses subscription:', error);
-        }
-        callback([]);
-      }
-    );
-  } catch (error) {
-    console.error('Error setting up expenses subscription:', error);
-    callback([]);
-    return () => {};
-  }
-};
+export function subscribeToExpenses(
+  userId: string,
+  callback: (expenses: Expense[]) => void,
+  onError: (error: Error) => void = () => callback([]),
+): Unsubscribe {
+  return onSnapshot(query(collection(db, 'users', userId, 'expenses'), orderBy('date', 'desc')), (snapshot) => {
+    callback(snapshot.docs.map((document) => ({ ...document.data(), id: document.id } as Expense)));
+  }, onError);
+}
 
 export const addBudgetToFirestore = async (userId: string, budget: any): Promise<string> => {
   try {
@@ -539,41 +309,15 @@ export const deleteBudgetFromFirestore = async (userId: string, budgetId: string
   }
 };
 
-export const subscribeToBudgets = (userId: string, callback: (budgets: any[]) => void) => {
-  try {
-    if (!userId || !db) {
-      console.error('Invalid userId or database not initialized');
-      callback([]);
-      return () => {};
-    }
-
-    const q = query(collection(db, 'users', userId, 'budgets'));
-    
-    return onSnapshot(q, 
-      (querySnapshot) => {
-        try {
-          const budgets = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          callback(budgets);
-        } catch (error) {
-          console.error('Error processing budgets data:', error);
-          callback([]);
-        }
-      },
-      (error) => {
-        if (error.code === 'permission-denied') {
-          console.warn('Permission denied for budgets subscription. User may not be fully authenticated yet.');
-        } else {
-          console.error('Error in budgets subscription:', error);
-        }
-        callback([]);
-      }
-    );
-  } catch (error) {
-    console.error('Error setting up budgets subscription:', error);
-    callback([]);
-    return () => {};
-  }
-};
+export function subscribeToBudgets(
+  userId: string,
+  callback: (budgets: Budget[]) => void,
+  onError: (error: Error) => void = () => callback([]),
+): Unsubscribe {
+  return onSnapshot(collection(db, 'users', userId, 'budgets'), (snapshot) => {
+    callback(snapshot.docs.map((document) => ({ ...document.data(), id: document.id } as Budget)));
+  }, onError);
+}
 
 export const addTemplateToFirestore = async (userId: string, template: any): Promise<string> => {
   try {
@@ -1238,10 +982,7 @@ export const subscribeToPublicPeople = (callback: (people: Person[]) => void): U
       ...doc.data()
     } as Person));
     callback(people);
-  }, (error) => {
-    console.error('Error listening to public people:', error);
-    callback([]);
-  });
+  }, () => callback([]));
 };
 
 export const adoptPublicPerson = async (userId: string, publicPerson: Person): Promise<string> => {

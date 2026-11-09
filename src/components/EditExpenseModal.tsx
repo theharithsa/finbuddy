@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { X, Upload, FileText, Camera, Eye, Trash2 } from 'lucide-react';
 import { type Expense, type CustomCategory, type Person, DEFAULT_CATEGORIES, getAllCategories, getAllPeople, getAllApps, getAppsByCategory, type AppOption } from '@/lib/types';
-import { uploadFile, generateReceiptPath, validateReceiptFile, deleteFile } from '@/lib/firebase';
+import { uploadFile, deleteOwnedReceipt, type ExpenseUpdate, generateReceiptPath, validateReceiptFile, deleteFile } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ interface EditExpenseModalProps {
   expense: Expense;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (expenseId: string, expenseData: Partial<Expense>) => Promise<void>;
+  onUpdate: (expenseId: string, expenseData: ExpenseUpdate) => Promise<void>;
   customCategories?: CustomCategory[];
   customPeople?: Person[];
   publicPeople?: Person[];
@@ -87,14 +87,14 @@ export function EditExpenseModal({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    toast.success('Receipt removed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
+    if (loading || isUploading) return;
+    const numAmount = Number(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
@@ -112,81 +112,39 @@ export function EditExpenseModal({
     setLoading(true);
     setIsUploading(true);
 
+    let uploadedPath: string | undefined;
     try {
-      let newReceiptUrl: string | undefined = currentReceiptUrl;
-      let newReceiptFileName: string | undefined = currentReceiptFileName;
-      let shouldRemoveReceipt = false;
+      let newReceiptUrl = currentReceiptUrl;
+      let newReceiptFileName = currentReceiptFileName;
 
-      // Handle receipt upload if a new file is selected
       if (receiptFile) {
-        if (!user) {
-          toast.error('User not authenticated');
-          return;
-        }
-
-        console.log('Uploading new receipt file...');
+        if (!user) throw new Error('Sign in to attach receipts');
         const receiptPath = generateReceiptPath(user.uid, receiptFile.name);
         newReceiptUrl = await uploadFile(receiptFile, receiptPath);
+        uploadedPath = receiptPath;
         newReceiptFileName = receiptFile.name;
-        console.log('New receipt uploaded successfully:', newReceiptUrl);
-
-        // Delete old receipt if it exists
-        if (expense.receiptUrl && expense.receiptUrl !== newReceiptUrl) {
-          try {
-            // Extract path from old receipt URL for deletion
-            const oldPath = expense.receiptUrl.split('/').pop()?.split('?')[0];
-            if (oldPath) {
-              await deleteFile(`receipts/${user.uid}/${oldPath}`);
-              console.log('Old receipt deleted successfully');
-            }
-          } catch (deleteError) {
-            console.warn('Failed to delete old receipt:', deleteError);
-            // Don't block the update if old file deletion fails
-          }
-        }
       }
 
-      // Handle receipt removal (if currentReceiptUrl is undefined and there was an original receipt)
-      if (!currentReceiptUrl && !receiptFile && expense.receiptUrl) {
-        if (user) {
-          try {
-            const oldPath = expense.receiptUrl.split('/').pop()?.split('?')[0];
-            if (oldPath) {
-              await deleteFile(`receipts/${user.uid}/${oldPath}`);
-              console.log('Receipt deleted successfully');
-            }
-          } catch (deleteError) {
-            console.warn('Failed to delete receipt:', deleteError);
-          }
-        }
-        newReceiptUrl = undefined;
-        newReceiptFileName = undefined;
-        shouldRemoveReceipt = true;
-      }
-
-      const updateData: Partial<Expense> = {
+      const updateData: ExpenseUpdate = {
         amount: numAmount,
         category,
         description: description.trim(),
         date,
-        app: app || 'Cash', // Include app field in update
-        // Only include fields that have actual values or need to be removed
-        ...(selectedPeople.length > 0 && { peopleIds: selectedPeople }),
-        ...(newReceiptUrl !== undefined && { receiptUrl: newReceiptUrl }),
-        ...(newReceiptFileName !== undefined && { receiptFileName: newReceiptFileName })
+        app: app || 'Cash',
+        peopleIds: selectedPeople,
+        ...(newReceiptUrl && { receiptUrl: newReceiptUrl }),
+        ...(newReceiptFileName && { receiptFileName: newReceiptFileName }),
+        _removeReceipt: Boolean(expense.receiptUrl && !newReceiptUrl),
       };
-
-      // Add special marker for field removal
-      if (shouldRemoveReceipt) {
-        (updateData as any)._removeReceipt = true;
-      }
-
       await onUpdate(expense.id, updateData);
-      toast.success('Expense updated successfully!');
+      if (user && expense.receiptUrl && expense.receiptUrl !== newReceiptUrl) {
+        void deleteOwnedReceipt(user.uid, expense.receiptUrl);
+      }
+      toast.success('Expense updated');
       onClose();
-    } catch (error) {
-      console.error('Error updating expense:', error);
-      toast.error('Failed to update expense');
+    } catch {
+      if (uploadedPath) await deleteFile(uploadedPath);
+      toast.error('Could not update the expense. Try again.');
     } finally {
       setLoading(false);
       setIsUploading(false);
@@ -246,7 +204,7 @@ export function EditExpenseModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(next) => { if (!next && !loading) onClose(); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Expense</DialogTitle>

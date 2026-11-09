@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.0] - Unreleased
+
+- Rebuilt sign-in, the monthly overview, expense ledger and mobile navigation.
+- Preserved Firebase account and document paths. Restored platform labels on new expense writes.
+- Connected KautilyaAI to the existing deployed callable.
+- Adopted App Launchpad v1.9.0 and added emulator-backed browser and Hosting revision checks.
+
+
 All notable changes to FinBuddy will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).

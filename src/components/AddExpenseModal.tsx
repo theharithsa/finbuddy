@@ -16,9 +16,9 @@ import {
   FileImage as File
 } from 'lucide-react';
 import { DEFAULT_CATEGORIES, DEFAULT_RECURRING_TEMPLATES, getAllCategories, getAllPeople, getAllApps, getAppsByCategory, type Expense, type RecurringTemplate, type CustomCategory, type Person, type AppOption, formatCurrency } from '@/lib/types';
-import { uploadFile, generateReceiptPath, validateReceiptFile } from '@/lib/firebase';
+import { deleteFile, uploadFile, generateReceiptPath, validateReceiptFile } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { useComponentTracking, useMonitoredFirebase } from '@/hooks/useDynatraceMonitoring';
+import { localDate } from '@/lib/finance-period';
 import { toast } from 'sonner';
 
 interface AddExpenseModalProps {
@@ -46,8 +46,6 @@ export function AddExpenseModal({
   initialDescription = ''
 }: AddExpenseModalProps) {
   const { user } = useAuth();
-  const { trackComponentEvent } = useComponentTracking('AddExpenseModal');
-  const { trackOperation } = useMonitoredFirebase();
 
   const templates = DEFAULT_RECURRING_TEMPLATES;
   const [open, setOpen] = useState(isOpen);
@@ -73,7 +71,7 @@ export function AddExpenseModal({
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(localDate());
   const [app, setApp] = useState('Cash'); // Default to Cash
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -85,13 +83,10 @@ export function AddExpenseModal({
   const allPeople = getAllPeople([...customPeople, ...publicPeople]);
 
   const handlePeopleToggle = (personId: string) => {
-    console.log('People toggle clicked for ID:', personId);
     setSelectedPeople(prev => {
       const newSelection = prev.includes(personId)
         ? prev.filter(id => id !== personId)
         : [...prev, personId];
-      console.log('Previous selection:', prev);
-      console.log('New selection:', newSelection);
       return newSelection;
     });
   };
@@ -143,35 +138,23 @@ export function AddExpenseModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const numAmount = parseFloat(amount);
-    if (!numAmount || numAmount <= 0) {
+    if (isUploading) return;
+    const numAmount = Number(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
       toast.error('Please enter a valid amount');
-      trackComponentEvent('Form Validation Failed', { field: 'amount', value: amount });
       return;
     }
 
     if (!category) {
       toast.error('Please select a category');
-      trackComponentEvent('Form Validation Failed', { field: 'category' });
       return;
     }
 
-    console.log('Starting expense submission...');
-    console.log('Selected people at submission:', selectedPeople);
-    console.log('Selected people length:', selectedPeople.length);
 
     setIsUploading(true);
 
-    trackComponentEvent('Expense Form Submission Started', {
-      amount: numAmount,
-      category,
-      hasDescription: Boolean(description),
-      hasReceipt: Boolean(receiptFile),
-      peopleCount: selectedPeople.length,
-      receiptFileSize: receiptFile?.size || 0,
-      receiptFileType: receiptFile?.type || 'none'
-    });
 
+    let uploadedPath: string | undefined;
     try {
       let receiptUrl: string | undefined;
       let receiptFileName: string | undefined;
@@ -180,20 +163,14 @@ export function AddExpenseModal({
       if (receiptFile) {
         if (!user) {
           toast.error('User not authenticated');
-          trackComponentEvent('Receipt Upload Failed', { reason: 'User not authenticated' });
           return;
         }
 
-        trackOperation('upload', 'storage', true, { fileName: receiptFile.name, fileSize: receiptFile.size });
         const receiptPath = generateReceiptPath(user.uid, receiptFile.name);
         receiptUrl = await uploadFile(receiptFile, receiptPath);
+        uploadedPath = receiptPath;
         receiptFileName = receiptFile.name;
 
-        trackComponentEvent('Receipt Upload Completed', {
-          fileName: receiptFileName,
-          fileSize: receiptFile.size,
-          fileType: receiptFile.type
-        });
       }
 
       const expenseData: Omit<Expense, 'id' | 'createdAt'> = {
@@ -207,22 +184,16 @@ export function AddExpenseModal({
         peopleIds: selectedPeople.length > 0 ? selectedPeople : undefined,
       };
 
-      console.log('Complete expense data being submitted:', expenseData);
 
       await onAddExpense(expenseData);
+      uploadedPath = undefined;
 
-      trackComponentEvent('Expense Form Submission Successful', {
-        amount: numAmount,
-        category,
-        hasReceipt: Boolean(receiptUrl),
-        peopleCount: selectedPeople.length
-      });
 
       // Reset form
       setAmount('');
       setCategory('');
       setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(localDate());
       setApp('Cash'); // Reset to default Cash
       setSelectedPeople([]);
       setReceiptFile(null);
@@ -241,7 +212,7 @@ export function AddExpenseModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => { if (!isUploading) handleOpenChange(next); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>

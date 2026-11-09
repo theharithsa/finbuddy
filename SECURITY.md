@@ -387,9 +387,9 @@ npm run security:check    # Complete security check
 - **[TypeScript Security](https://blog.logrocket.com/security-typescript/)**
 
 ### **Internal Documentation**
-- **[Firebase Setup Guide](./FIREBASE_SETUP.md)** - Secure Firebase configuration
-- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Secure deployment practices
-- **[Observability Guide](./OBSERVABILITY_GUIDE.md)** - Security monitoring setup
+- **[Firebase Setup Guide](./docs/testing.md)** - Secure Firebase configuration
+- **[Deployment Guide](./docs/release-plan.md)** - Secure deployment practices
+- **[Observability Guide](./docs/observability.md)** - Security monitoring setup
 
 ## 📜 Compliance & Standards
 

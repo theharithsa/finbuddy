@@ -140,7 +140,7 @@ export function Dashboard({
       : 0;
 
     // Daily spending for last 7 days
-    const dailySpending = [];
+    const dailySpending: { day: string; amount: number }[] = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -155,7 +155,7 @@ export function Dashboard({
     }
 
     // Monthly trend for last 6 months
-    const monthlyTrend = [];
+    const monthlyTrend: { month: string; amount: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);

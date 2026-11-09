@@ -61,12 +61,12 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
   }, [customAmounts]);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ name: string; amount: string; category: string; description: string; frequency: RecurringTemplate['frequency'] }>({
     name: '',
     amount: '',
     category: '',
     description: '',
-    frequency: 'monthly' as const
+    frequency: 'monthly'
   });
 
   // Subscribe to user templates from Firebase

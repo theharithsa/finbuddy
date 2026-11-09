@@ -50,7 +50,7 @@ export const DeleteExpenseSchema = z.object({
 export async function listExpenses(params: z.infer<typeof ListExpensesSchema>) {
   const uid = resolveUserId(params.userId);
   const ref = userExpensesRef(uid);
-  let query = ref.orderBy(params.sortBy, params.sortOrder);
+  const query = ref.orderBy(params.sortBy, params.sortOrder);
 
   const snapshot = await query.get();
   let expenses: Expense[] = snapshot.docs.map((doc) => ({

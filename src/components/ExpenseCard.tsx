@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Trash2 as Trash, Calendar, Tag, Receipt, Eye, Users, Edit } from 'lucide-react';
 import { type Expense, type Person, DEFAULT_CATEGORIES, getAllPeople, getAllApps, formatCurrency, formatDate } from '@/lib/types';
-import { useComponentTracking } from '@/hooks/useDynatraceMonitoring';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -15,7 +14,6 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, onDelete, onEdit, customPeople = [], viewMode = 'grid' }: ExpenseCardProps) {
-  const { trackComponentEvent } = useComponentTracking('ExpenseCard');
   
   const category = DEFAULT_CATEGORIES.find(cat => cat.name === expense.category);
   const allPeople = getAllPeople(customPeople); // customPeople already includes both custom + public
@@ -42,11 +40,6 @@ export function ExpenseCard({ expense, onDelete, onEdit, customPeople = [], view
             size="sm" 
             className="text-primary border-primary/20 hover:bg-primary/5 hover:border-primary/40"
             onClick={() => {
-              trackComponentEvent('Receipt Viewer Opened', {
-                expenseId: expense.id,
-                receiptType: expense.receiptFileName?.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Image',
-                hasFileName: Boolean(expense.receiptFileName)
-              });
             }}
           >
             <Eye className="w-4 h-4 mr-2" />
@@ -156,12 +149,6 @@ export function ExpenseCard({ expense, onDelete, onEdit, customPeople = [], view
                   size="icon"
                   className="h-8 w-8 text-primary hover:text-primary/80 hover:bg-primary/10"
                   onClick={() => {
-                    trackComponentEvent('Edit Button Clicked', {
-                      expenseId: expense.id,
-                      category: expense.category,
-                      amount: expense.amount,
-                      viewMode
-                    });
                     onEdit();
                   }}
                   aria-label="Edit expense"
@@ -174,12 +161,6 @@ export function ExpenseCard({ expense, onDelete, onEdit, customPeople = [], view
                 size="icon"
                 className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                 onClick={() => {
-                  trackComponentEvent('Delete Button Clicked', {
-                    expenseId: expense.id,
-                    category: expense.category,
-                    amount: expense.amount,
-                    viewMode
-                  });
                   onDelete(expense.id);
                 }}
                 aria-label="Delete expense"

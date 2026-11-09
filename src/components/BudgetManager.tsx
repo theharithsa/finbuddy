@@ -38,11 +38,10 @@ interface BudgetManagerProps {
   expenses: Expense[];
   budgetTemplates?: BudgetTemplate[];
   publicBudgetTemplates?: BudgetTemplate[];
-  onUpdateBudgets: (budgets: Budget[]) => void;
   onAddBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
   onUpdateBudget: (budgetId: string, budget: Partial<Budget>) => Promise<void>;
   onDeleteBudget: (budgetId: string) => Promise<void>;
-  onAddBudgetTemplate?: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
+  onAddBudgetTemplate?: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId' | 'createdBy'>) => Promise<void>;
   onUpdateBudgetTemplate?: (templateId: string, template: Partial<BudgetTemplate>) => Promise<void>;
   onDeleteBudgetTemplate?: (templateId: string) => Promise<void>;
   onAdoptBudgetTemplate?: (template: BudgetTemplate) => Promise<void>;
@@ -54,7 +53,6 @@ export function BudgetManager({
   expenses,
   budgetTemplates = [],
   publicBudgetTemplates = [],
-  onUpdateBudgets, 
   onAddBudget, 
   onUpdateBudget, 
   onDeleteBudget,

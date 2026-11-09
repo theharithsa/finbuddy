@@ -131,7 +131,7 @@ export function MetricsBuilder() {
                 return filter.operator === 'equals' 
                   ? expense.category === filter.value
                   : expense.category.toLowerCase().includes(filter.value.toLowerCase());
-              case 'amount':
+              case 'amount': {
                 const amount = expense.amount || 0;
                 const filterValue = parseFloat(filter.value);
                 if (isNaN(filterValue)) return true;
@@ -140,7 +140,8 @@ export function MetricsBuilder() {
                   case 'less_than': return amount < filterValue;
                   default: return true;
                 }
-              case 'person':
+              }
+              case 'person': {
                 if (!expense.peopleIds || expense.peopleIds.length === 0) {
                   return filter.value === 'Personal';
                 }
@@ -151,6 +152,7 @@ export function MetricsBuilder() {
                 return filter.operator === 'equals'
                   ? personNames.includes(filter.value)
                   : personNames.some(name => name.toLowerCase().includes(filter.value.toLowerCase()));
+              }
               default:
                 return true;
             }

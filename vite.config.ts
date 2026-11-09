@@ -1,6 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
-import { defineConfig, PluginOption } from "vite";
+import { defineConfig } from "vite";
 
 import { resolve } from 'path'
 import packageJson from './package.json';
@@ -13,6 +13,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  esbuild: { pure: ['console.log', 'console.debug', 'console.info'] },
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
     __APP_NAME__: JSON.stringify(packageJson.name),
@@ -30,7 +31,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select']
         }

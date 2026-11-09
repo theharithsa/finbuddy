@@ -269,7 +269,7 @@ export function MetricsExplorer({
     }, {} as Record<string, number>);
 
     filteredExpenses.forEach(expense => {
-      if (categorySpend.hasOwnProperty(expense.category)) {
+      if (Object.prototype.hasOwnProperty.call(categorySpend, expense.category)) {
         categorySpend[expense.category] += expense.amount;
       }
     });

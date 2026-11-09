@@ -1,141 +1,36 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from 'firebase/auth';
-import { onAuthChange, checkRedirectResult } from '@/lib/firebase';
-import { dynatraceMonitor } from '@/lib/dynatrace-monitor';
-// import { log } from '@/lib/logger';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { User } from 'firebase/auth';
+import { checkRedirectResult, onAuthChange } from '@/lib/firebase';
 
-interface AuthContextType {
+interface AuthState {
   user: User | null;
   loading: boolean;
+  redirectError: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-});
+const AuthContext = createContext<AuthState>({ user: null, loading: true, redirectError: false });
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    // log.error('Auth', 'useAuth must be used within an AuthProvider');
-    console.error('Auth: useAuth must be used within an AuthProvider');
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: React.ReactNode;
+export function useAuth(): AuthState {
+  return useContext(AuthContext);
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [redirectError, setRedirectError] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-
-    // log.info('Auth', 'Initializing authentication context');
-
-    // Check for redirect result first
-    checkRedirectResult()
-      .then((redirectUser) => {
-        if (isMounted) {
-          if (redirectUser) {
-            // log.info('Auth', 'User authenticated via redirect', {
-            //   userId: redirectUser.uid,
-            //   email: redirectUser.email,
-            //   provider: redirectUser.providerData[0]?.providerId
-            // });
-            console.log('✅ Auth: User authenticated via redirect:', {
-              userId: redirectUser.uid,
-              email: redirectUser.email,
-              displayName: redirectUser.displayName
-            });
-            
-            // Set Dynatrace user context
-            if (redirectUser.email) {
-              dynatraceMonitor.setUserContext(redirectUser.uid, {
-                email: redirectUser.email,
-                displayName: redirectUser.displayName,
-                provider: redirectUser.providerData[0]?.providerId,
-                emailVerified: redirectUser.emailVerified,
-                authMethod: 'redirect'
-              });
-              console.log('🔍 Dynatrace: User identified via redirect:', redirectUser.email);
-            }
-            
-            setUser(redirectUser);
-            setLoading(false);
-            // Set user context in logger
-            // log.setUser(redirectUser.uid);
-          } else {
-            // No redirect result found, proceeding with auth state listener
-          }
-        }
-      })
-      .catch((error) => {
-        if (isMounted) {
-          // log.error('Auth', 'Redirect result error', { error: error.message }, error);
-          console.error('❌ Auth: Redirect result error:', error);
-          console.error('❌ Auth: Error details:', {
-            code: error.code,
-            message: error.message
-          });
-        }
-      });
-
-    // Set up auth state listener
-    const unsubscribe = onAuthChange((user) => {
-      if (isMounted) {
-        if (user) {
-          // log.info('Auth', 'User authentication state changed - signed in', {
-          //   userId: user.uid,
-          //   email: user.email,
-          //   displayName: user.displayName,
-          //   emailVerified: user.emailVerified,
-          //   provider: user.providerData[0]?.providerId
-          // });
-          
-          // Set Dynatrace user context when user signs in
-          if (user.email) {
-            dynatraceMonitor.setUserContext(user.uid, {
-              email: user.email,
-              displayName: user.displayName,
-              provider: user.providerData[0]?.providerId,
-              emailVerified: user.emailVerified,
-              authMethod: 'state_change'
-            });
-            console.log('🔍 Dynatrace: User identified via auth state change:', user.email);
-          }
-          
-          // Set user context in logger
-          // log.setUser(user.uid);
-        } else {
-          // log.info('Auth', 'User authentication state changed - signed out');
-          console.log('🔍 Dynatrace: User signed out - clearing user context');
-        }
-        
-        setUser(user);
-        setLoading(false);
-      }
+    let active = true;
+    const unsubscribe = onAuthChange((next) => {
+      setUser(next);
+      setLoading(false);
     });
-
+    void checkRedirectResult().catch(() => { if (active) setRedirectError(true); });
     return () => {
-      isMounted = false;
-      // log.debug('Auth', 'Cleaning up authentication context');
+      active = false;
       unsubscribe();
     };
   }, []);
 
-  const value = {
-    user,
-    loading,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={{ user, loading, redirectError }}>{children}</AuthContext.Provider>;
+}

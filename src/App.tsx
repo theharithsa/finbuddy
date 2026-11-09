@@ -1,768 +1,151 @@
-import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Toaster } from '@/components/ui/sonner';
+import { lazy, Suspense, useState } from 'react';
+import type { User } from 'firebase/auth';
+import { ArrowRight, ChartNoAxesCombined, CircleHelp, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Users, Wallet, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
-import { ExpenseCard } from '@/components/ExpenseCard';
-import { TimeframePicker, type DateRange } from '@/components/TimeframePicker';
-import { Dashboard } from '@/components/Dashboard';
-import { BudgetManager } from '@/components/BudgetManager';
-import { RecurringTemplates } from '@/components/RecurringTemplates';
-import { CategoryManager } from '@/components/CategoryManager';
-import { PeopleManager } from '@/components/PeopleManager';
-import { MetricsExplorer } from '@/components/MetricsExplorer';
-import { AIChatPage } from '@/components/AIChatPage';
-
-import { ComingSoon } from '@/components/ComingSoon';
-import { LoginPage } from '@/components/LoginPage';
-import { AppHeader } from '@/components/AppHeader';
-import { Navigation } from '@/components/Navigation';
-import { BottomNavigation } from '@/components/BottomNavigation';
-import { Footer } from '@/components/Footer';
-import { PWAInstallPrompt, PWAUpdatePrompt, PWAConnectionStatus } from '@/components/PWAComponents';
-import { UpdateNotification } from '@/components/UpdateNotification';
-import { CookieBanner } from '@/components/CookieBanner';
-import { DailySpendingChart } from '@/components/DailySpendingChart';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useFirestoreData } from '@/hooks/useFirestoreData';
-import {
-  useMonitoredUserContext,
-  usePageTracking,
-  useTabTracking,
-  useMonitoredBusiness,
-  useComponentTracking
-} from '@/hooks/useDynatraceMonitoring';
-import {
-  Search as MagnifyingGlass,
-  Receipt,
-  List,
-  Grid3x3,
-  LayoutGrid
-} from 'lucide-react';
-import { type Expense, type Budget, DEFAULT_CATEGORIES, getAllCategories, getAllPeople, formatCurrency, getCurrentMonth, getMonthlyExpenses, getExpensesByDateRange, calculateCategorySpending } from '@/lib/types';
-import { toast } from 'sonner';
-import { PWAManager } from '@/lib/pwa';
+import { deleteOwnedReceipt, logOut } from '@/lib/firebase';
+import { getAllCategories, type Expense } from '@/lib/types';
+import { APP_VERSION_DISPLAY } from '@/lib/version';
+import { UsageAnalytics } from '@/features/account/UsageAnalytics';
+import { LoginPage, Wordmark } from '@/features/account/LoginPage';
+import { Ledger } from '@/features/workspace/Ledger';
+import { Overview } from '@/features/workspace/Overview';
+import { localDate, monthRange, periodExpenses } from '@/lib/finance-period';
 
-function FinanceApp() {
-  const { user, loading: authLoading } = useAuth();
-  const {
-    expenses,
-    budgets,
-    templates,
-    customCategories,
-    publicCategories,
-    customPeople,
-    publicPeople,
-    budgetTemplates,
-    publicBudgetTemplates,
-    loading: dataLoading,
-    addExpense,
-    deleteExpense,
-    updateExpense,
-    addBudget,
-    deleteBudget,
-    updateBudget,
-    addTemplate,
-    deleteTemplate,
-    addCustomCategory,
-    updateCustomCategory,
-    deleteCustomCategory,
-    adoptCategory,
-    addPerson,
-    deletePerson,
-    adoptPerson,
-    updatePerson,
-    addBudgetTemplate,
-    updateBudgetTemplate,
-    deleteBudgetTemplate,
-    adoptBudgetTemplate,
-  } = useFirestoreData();
+const BudgetManager = lazy(() => import('@/components/BudgetManager').then(({ BudgetManager }) => ({ default: BudgetManager })));
+const RecurringTemplates = lazy(() => import('@/components/RecurringTemplates').then(({ RecurringTemplates }) => ({ default: RecurringTemplates })));
+const CategoryManager = lazy(() => import('@/components/CategoryManager').then(({ CategoryManager }) => ({ default: CategoryManager })));
+const PeopleManager = lazy(() => import('@/components/PeopleManager').then(({ PeopleManager }) => ({ default: PeopleManager })));
+const MetricsExplorer = lazy(() => import('@/components/MetricsExplorer').then(({ MetricsExplorer }) => ({ default: MetricsExplorer })));
+const AIChatPage = lazy(() => import('@/components/AIChatPage').then(({ AIChatPage }) => ({ default: AIChatPage })));
 
-  // Dynatrace monitoring hooks
-  const { setUserContext, setBudgetContext, setExpenseContext } = useMonitoredUserContext();
-  const trackTab = useTabTracking();
-  const { trackUserJourney, trackFinancialEvent } = useMonitoredBusiness();
-  const { trackComponentEvent } = useComponentTracking('FinanceApp');
+const pages = [
+  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+  { id: 'expenses', label: 'Expenses', icon: ReceiptText },
+  { id: 'budgets', label: 'Budgets', icon: Wallet },
+  { id: 'templates', label: 'Recurring', icon: Repeat2 },
+  { id: 'categories', label: 'Categories', icon: Shapes },
+  { id: 'people', label: 'People', icon: Users },
+  { id: 'explorer', label: 'Metrics Explorer', icon: ChartNoAxesCombined },
+  { id: 'ai-chat', label: 'KautilyaAI', icon: Sparkles },
+] as const;
 
-  // Page tracking
-  usePageTracking('FinBuddy App', 'main-application');
+type Page = (typeof pages)[number]['id'];
 
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [showAddExpense, setShowAddExpense] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [peopleFilter, setPeopleFilter] = useState('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+function Workspace({ user }: { user: User }) {
+  const data = useFirestoreData();
+  const shortcut = new URLSearchParams(location.search).get('action');
+  const [page, setPage] = useState<Page>(shortcut === 'view-budget' ? 'budgets' : 'dashboard');
+  const [menu, setMenu] = useState(false);
+  const [adding, setAdding] = useState(shortcut === 'add-expense');
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [month, setMonth] = useState(() => localDate().slice(0, 7));
+  const [range, setRange] = useState(() => monthRange(month));
+  const [signingOut, setSigningOut] = useState(false);
+  const people = [...data.customPeople, ...data.publicPeople];
+  const name = user.displayName || user.email || 'Your account';
+  const currentPage = pages.find(({ id }) => id === page)?.label;
 
-  // Initialize view mode with localStorage persistence
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
-    const saved = localStorage.getItem('finbuddy-view-mode');
-    return (saved as 'list' | 'grid') || 'grid';
-  });
-
-  // Save view mode to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('finbuddy-view-mode', viewMode);
-    trackComponentEvent('View Mode Changed', { viewMode });
-  }, [viewMode, trackComponentEvent]);
-
-  // Initialize date range to current month
-  // Initialize date range to current month
-  const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return {
-      from: start.toISOString().split('T')[0],
-      to: end.toISOString().split('T')[0]
-    };
-  });
-
-  // Set user context when user is available
-  useEffect(() => {
-    if (user) {
-      // Immediate user identification for Dynatrace (even if no expenses loaded yet)
-      setUserContext(user.uid, {
-        email: user.email,
-        displayName: user.displayName,
-        isAnonymous: user.isAnonymous,
-        provider: user.providerData[0]?.providerId,
-        emailVerified: user.emailVerified,
-        creationTime: user.metadata.creationTime,
-        lastSignInTime: user.metadata.lastSignInTime
-      });
-
-      if (expenses.length > 0) {
-        const monthlyExpenses = getMonthlyExpenses(expenses, getCurrentMonth());
-        const totalSpent = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-
-        // Update context with financial data
-        setExpenseContext(expenses.length, totalSpent);
-        setBudgetContext(budgets.length, budgets.filter(b => (b as any).isActive !== false).length);
-
-        trackUserJourney('User Session Started', {
-          totalExpenses: expenses.length,
-          totalBudgets: budgets.length,
-          monthlySpend: totalSpent
-        });
-      } else {
-        // Track initial session even without expenses
-        trackUserJourney('User Session Started', {
-          hasData: false,
-          newUser: expenses.length === 0 && budgets.length === 0
-        });
-      }
-    }
-  }, [user, expenses, budgets, setUserContext, setExpenseContext, setBudgetContext, trackUserJourney]);
-
-  // Enhanced tab change handler with monitoring
-  const handleTabChange = (newTab: string) => {
-    trackTab(activeTab, newTab);
-    trackComponentEvent('Tab Changed', {
-      fromTab: activeTab,
-      toTab: newTab,
-      timestamp: new Date().toISOString()
-    });
-    setActiveTab(newTab);
-  };
-
-  // Enhanced handlers with monitoring
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    if (value.length > 2) {
-      trackComponentEvent('Search Performed', {
-        query: value.substring(0, 50), // Limit stored query length
-        queryLength: value.length
-      });
-    } else if (value === '') {
-      trackComponentEvent('Search Cleared');
-    }
-  };
-
-  const handleCategoryFilterChange = (value: string) => {
-    setCategoryFilter(value);
-    trackComponentEvent('Category Filter Changed', {
-      previousFilter: categoryFilter,
-      newFilter: value
-    });
-  };
-
-  const handlePeopleFilterChange = (value: string) => {
-    setPeopleFilter(value);
-    trackComponentEvent('People Filter Changed', {
-      previousFilter: peopleFilter,
-      newFilter: value
-    });
-  };
-
-  const handleSortChange = (value: 'date' | 'amount' | 'category') => {
-    setSortBy(value);
-    trackComponentEvent('Sort Changed', {
-      previousSort: sortBy,
-      newSort: value
-    });
-  };
-
-  const handleDateRangeChange = (newDateRange: DateRange) => {
-    setDateRange(newDateRange);
-    trackComponentEvent('Date Range Changed', {
-      from: newDateRange.from,
-      to: newDateRange.to,
-      daysDifference: Math.ceil((new Date(newDateRange.to).getTime() - new Date(newDateRange.from).getTime()) / (1000 * 60 * 60 * 24))
-    });
-  };
-
-  const handleViewModeChange = (newViewMode: 'list' | 'grid') => {
-    setViewMode(newViewMode);
-    trackComponentEvent('View Mode Changed', {
-      previousMode: viewMode,
-      newMode: newViewMode
-    });
-  };
-
-  const handleAddExpenseClick = () => {
-    setShowAddExpense(true);
-    trackComponentEvent('Add Expense Modal Opened');
-  };
-
-  const handleAddExpenseModalClose = () => {
-    setShowAddExpense(false);
-    trackComponentEvent('Add Expense Modal Closed');
-  };
-
-  const handleEditExpenseModalClose = () => {
-    setEditingExpense(null);
-    trackComponentEvent('Edit Expense Modal Closed');
-  };
-
-  const handleEditExpenseClick = (expense: Expense) => {
-    setEditingExpense(expense);
-    trackComponentEvent('Edit Expense Modal Opened', {
-      expenseId: expense.id,
-      category: expense.category,
-      amount: expense.amount
-    });
-  };
-
-  const handleAddExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
-    try {
-      const result = await addExpense(expenseData);
-
-      setShowAddExpense(false);
-      toast.success('Expense added successfully!');
-
-      // Track successful expense addition
-      trackFinancialEvent('Expense Added', expenseData.amount, expenseData.category);
-
-      trackComponentEvent('Expense Added Successfully', {
-        category: expenseData.category,
-        amount: expenseData.amount,
-        hasReceipt: Boolean(expenseData.receiptUrl),
-        hasPeople: Boolean(expenseData.peopleIds?.length),
-        peopleCount: expenseData.peopleIds?.length || 0
-      });
-
-      return result;
-
-    } catch (error) {
-      console.error('❌ App.tsx - Error adding expense:', error);
-      toast.error('Failed to add expense');
-
-      // Track error
-      trackComponentEvent('Expense Add Failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        category: expenseData.category,
-        amount: expenseData.amount
-      });
-
-      throw error;
-    }
-  };
-
-  // Wrapper for components that expect void return
-  const handleAddExpenseVoid = async (expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<void> => {
-    await handleAddExpense(expenseData);
-  };
-
-  const handleUpdateExpense = async (expenseId: string, expenseData: Partial<Expense>) => {
-    try {
-      await updateExpense(expenseId, expenseData);
-      setEditingExpense(null);
-      toast.success('Expense updated successfully!');
-
-      // Track successful expense update
-      trackFinancialEvent('Expense Updated', expenseData.amount, expenseData.category);
-
-      trackComponentEvent('Expense Updated Successfully', {
-        expenseId,
-        fieldsUpdated: Object.keys(expenseData).length,
-        updatedFields: Object.keys(expenseData)
-      });
-
-    } catch (error) {
-      console.error('Error updating expense:', error);
-      toast.error('Failed to update expense');
-
-      // Track error
-      trackComponentEvent('Expense Update Failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        expenseId
-      });
-    }
-  };
-
-  const handleDeleteExpense = async (expenseId: string) => {
-    try {
-      await deleteExpense(expenseId);
-      toast.success('Expense deleted successfully!');
-
-      // Track successful expense deletion
-      trackFinancialEvent('Expense Deleted');
-
-      trackComponentEvent('Expense Deleted Successfully', {
-        expenseId
-      });
-
-    } catch (error) {
-      console.error('Error deleting expense:', error);
-      toast.error('Failed to delete expense');
-
-      // Track error
-      trackComponentEvent('Expense Delete Failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        expenseId
-      });
-    }
-  };
-
-  const handleUpdateBudgets = (budgets: Budget[]) => {
-    // This is a placeholder for bulk budget updates
-  };
-
-  const handleQuickAdd = (templateData: any) => {
-    // The component will call the appropriate Firebase functions
-  };
-
-  // Show loading spinner while authentication is loading
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+  function navigate(next: Page) {
+    setPage(next);
+    setMenu(false);
+    window.scrollTo(0, 0);
   }
 
-  // Show login page if user is not authenticated
-  if (!user) {
-    return <LoginPage />;
+  async function addExpense(values: Omit<Expense, 'id' | 'createdAt'>) {
+    await data.addExpense(values);
+    toast.success('Expense added');
   }
 
-  // Filter and sort expenses
-  const filteredAndSortedExpenses = expenses
-    .filter(expense => {
-      const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expense.category.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
-
-      // Check if expense includes the selected person
-      const matchesPeople = peopleFilter === 'all' ||
-        (expense.peopleIds && expense.peopleIds.includes(peopleFilter));
-
-      // Check if expense date falls within the selected date range
-      const expenseDate = expense.date;
-      const matchesDateRange = expenseDate >= dateRange.from && expenseDate <= dateRange.to;
-
-      return matchesSearch && matchesCategory && matchesPeople && matchesDateRange;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'amount':
-          return b.amount - a.amount;
-        case 'category':
-          return a.category.localeCompare(b.category);
-        case 'date':
-        default:
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }
-    });
-
-  const currentMonth = getCurrentMonth();
-  const monthlyExpenses = getMonthlyExpenses(expenses, currentMonth);
-
-  // Calculate total spent for the selected date range
-  const totalSpent = filteredAndSortedExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const totalBudget = budgets.reduce((sum, budget) => sum + budget.limit, 0);
-
-  // Helper function to get display label for date range
-  const getDateRangeLabel = () => {
-    const now = new Date();
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-
-    if (dateRange.from === currentMonthStart && dateRange.to === currentMonthEnd) {
-      return "This Month Spent";
+  async function deleteExpense(expense: Expense) {
+    if (!window.confirm('Delete this expense?')) return;
+    try {
+      await data.deleteExpense(expense.id);
+      if (expense.receiptUrl) void deleteOwnedReceipt(user.uid, expense.receiptUrl);
+      toast.success('Expense deleted');
+    } catch {
+      toast.error('Could not delete the expense. Try again.');
     }
+  }
 
-    const fromDate = new Date(dateRange.from + 'T00:00:00');
-    const toDate = new Date(dateRange.to + 'T00:00:00');
-
-    if (dateRange.from === dateRange.to) {
-      return `Spent on ${fromDate.toLocaleDateString()}`;
+  async function signOut() {
+    setSigningOut(true);
+    try {
+      await logOut();
+    } catch {
+      toast.error('Could not sign out. Try again.');
+    } finally {
+      setSigningOut(false);
     }
-
-    return `Spent ${fromDate.toLocaleDateString()} - ${toDate.toLocaleDateString()}`;
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar Navigation */}
-      <Navigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onSidebarToggle={setSidebarCollapsed}
-      />
-
-      {/* Main Content Area - with dynamic left margin for desktop sidebar */}
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'
-        }`}>
-        {/* Header */}
-        <AppHeader activeTab={activeTab} onTabChange={handleTabChange} />
-
-        {/* Content with proper spacing and bottom padding for mobile nav */}
-        <div className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full pb-20 md:pb-6">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            {/* Hidden TabsList for functionality only */}
-            <TabsList className="hidden">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
-              <TabsTrigger value="budgets">Budgets</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="categories">Categories</TabsTrigger>
-              <TabsTrigger value="people">People</TabsTrigger>
-              <TabsTrigger value="explorer">Metrics Explorer</TabsTrigger>
-              <TabsTrigger value="ai-chat">KautilyaAI Co-Pilot</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard">
-              <Dashboard
-                expenses={expenses}
-                budgets={budgets}
-                customCategories={customCategories}
-                customPeople={customPeople}
-                publicPeople={publicPeople}
-                onNavigate={handleTabChange}
-                onAddExpense={() => setShowAddExpense(true)}
-              />
-            </TabsContent>
-
-            <TabsContent value="expenses" className="space-y-6">
-              {/* Page Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Receipt className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-bold">Expenses</h2>
-                </div>
-              </div>
-
-              {/* Daily Spending Trend Chart */}
-              <DailySpendingChart
-                expenses={filteredAndSortedExpenses}
-                dateRange={dateRange}
-              />
-
-              {/* Filters Section */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                  {/* Primary Filters Row */}
-                  <div className="flex flex-col sm:flex-row gap-3 flex-1 min-w-0">
-                    <div className="relative flex-1 max-w-sm">
-                      <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search expenses..."
-                        value={searchTerm}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    <TimeframePicker
-                      dateRange={dateRange}
-                      onDateRangeChange={handleDateRangeChange}
-                      className="w-60"
-                    />
-                  </div>
-
-                  {/* View Controls */}
-                  <div className="flex gap-2 items-center">
-                    {/* View Mode Toggle */}
-                    <div className="flex bg-background rounded-lg p-1 border">
-                      <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleViewModeChange('list')}
-                        className="h-8 px-3"
-                      >
-                        <List className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleViewModeChange('grid')}
-                        className="h-8 px-3"
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <Button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleAddExpenseClick();
-                      }}
-                      className="shrink-0"
-                    >
-                      Add Expense
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Secondary Filters Row */}
-                <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-border/50">
-                  <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {getAllCategories(customCategories).map((category) => (
-                        <SelectItem key={category.name} value={category.name}>
-                          <div className="flex items-center gap-2">
-                            <span>{category.icon}</span>
-                            {category.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={peopleFilter} onValueChange={handlePeopleFilterChange}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by person" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All People</SelectItem>
-                      {getAllPeople([...customPeople, ...publicPeople]).map((person) => (
-                        <SelectItem key={person.id} value={person.id!}>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-4 h-4 rounded-full flex items-center justify-center text-xs"
-                              style={{ backgroundColor: person.color }}
-                            >
-                              {person.icon}
-                            </span>
-                            {person.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={sortBy} onValueChange={handleSortChange}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date">
-                        <div className="flex items-center gap-2">
-                          <List className="w-4 h-4" />
-                          Date
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="amount">Amount</SelectItem>
-                      <SelectItem value="category">Category</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div
-                className={viewMode === 'grid' ? "gap-4" : "space-y-4"}
-                style={viewMode === 'grid' ? {
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                  gap: '1rem'
-                } : {}}
-              >
-                {filteredAndSortedExpenses.length > 0 ? (
-                  filteredAndSortedExpenses.map((expense) => (
-                    <ExpenseCard
-                      key={expense.id}
-                      expense={expense}
-                      onDelete={() => handleDeleteExpense(expense.id)}
-                      onEdit={() => handleEditExpenseClick(expense)}
-                      customPeople={[...customPeople, ...publicPeople]}
-                      viewMode={viewMode}
-                    />
-                  ))
-                ) : (
-                  <div className={viewMode === 'grid' ? "col-span-full" : ""}>
-                    <Card className="p-8 text-center">
-                      <Receipt className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No expenses found</h3>
-                      <p className="text-muted-foreground mb-4">
-                        {searchTerm || categoryFilter !== 'all'
-                          ? 'Try adjusting your search or filter criteria'
-                          : 'Start by adding your first expense'
-                        }
-                      </p>
-                      {(!searchTerm && categoryFilter === 'all') && (
-                        <Button onClick={handleAddExpenseClick}>
-                          Add Your First Expense
-                        </Button>
-                      )}
-                    </Card>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="budgets">
-              <BudgetManager
-                budgets={budgets}
-                expenses={expenses}
-                onAddBudget={addBudget}
-                onDeleteBudget={deleteBudget}
-                onUpdateBudget={updateBudget}
-                onUpdateBudgets={handleUpdateBudgets}
-                customCategories={customCategories}
-                budgetTemplates={budgetTemplates}
-                publicBudgetTemplates={publicBudgetTemplates}
-                onAdoptBudgetTemplate={adoptBudgetTemplate}
-                onAddBudgetTemplate={addBudgetTemplate}
-                onUpdateBudgetTemplate={updateBudgetTemplate}
-                onDeleteBudgetTemplate={deleteBudgetTemplate}
-              />
-            </TabsContent>
-
-            <TabsContent value="templates">
-              <RecurringTemplates
-                onAddExpense={handleAddExpenseVoid}
-                onAddTemplate={addTemplate}
-                onDeleteTemplate={deleteTemplate}
-                customCategories={customCategories}
-                customPeople={customPeople}
-                publicPeople={publicPeople}
-              />
-            </TabsContent>
-
-            <TabsContent value="categories">
-              <CategoryManager
-                customCategories={customCategories}
-                publicCategories={publicCategories}
-                onAddCategory={addCustomCategory}
-                onUpdateCategory={updateCustomCategory}
-                onDeleteCategory={deleteCustomCategory}
-                onAdoptCategory={adoptCategory}
-              />
-            </TabsContent>
-
-            <TabsContent value="people">
-              <PeopleManager
-                user={user}
-                customPeople={customPeople}
-                publicPeople={publicPeople}
-                onAddPerson={addPerson}
-                onUpdatePerson={updatePerson}
-                onDeletePerson={deletePerson}
-                onAdoptPerson={adoptPerson}
-              />
-            </TabsContent>
-
-            <TabsContent value="explorer">
-              <MetricsExplorer
-                expenses={filteredAndSortedExpenses}
-                budgets={budgets}
-                customCategories={customCategories}
-                customPeople={customPeople}
-                publicPeople={publicPeople}
-              />
-            </TabsContent>
-
-            <TabsContent value="ai-chat" className="h-full">
-              <AIChatPage />
-            </TabsContent>
-
-
-          </Tabs>
+    <div className="fb-shell">
+      <a className="fb-skip" href="#workspace">Skip to workspace</a>
+      <aside className="fb-sidebar" data-open={menu} id="workspace-nav" onKeyDown={(event) => { if (event.key === 'Escape') setMenu(false); }}>
+        <div className="fb-sidebar-brand"><Wordmark /><button className="fb-menu-close fb-icon-button" aria-label="Close navigation" onClick={() => setMenu(false)}><X size={20} /></button></div>
+        <p className="fb-nav-label">WORKSPACE</p>
+        <nav aria-label="Workspace">
+          {pages.map(({ id, label, icon: Icon }, index) => (
+            <div key={id}>
+              {index === 6 && <p className="fb-nav-label fb-nav-divider">INSIGHTS</p>}
+              <button aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={18} />{label}</button>
+            </div>
+          ))}
+        </nav>
+        <div className="fb-sidebar-foot">
+          <a href="/docs/"><CircleHelp size={17} />Help center <ArrowRight size={14} /></a>
+          <div className="fb-account"><span className="fb-avatar" aria-hidden="true">{name.trim().slice(0, 1).toUpperCase()}</span><div><strong title={name}>{name}</strong><small>Personal workspace</small></div><button className="fb-icon-button" aria-label="Sign out" title="Sign out" disabled={signingOut} onClick={signOut}><LogOut size={16} /></button></div>
         </div>
+      </aside>
+      {menu && <button className="fb-scrim" aria-label="Dismiss navigation" onClick={() => setMenu(false)} />}
+
+      <div className="fb-main">
+        <header className="fb-topbar">
+          <div className="fb-crumb"><button className="fb-menu-open fb-icon-button" aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-nav" onClick={() => setMenu(true)}><Menu size={21} /></button><span>Workspace</span><span aria-hidden="true">/</span><strong>{currentPage}</strong></div>
+          <div className="fb-top-actions"><ThemeToggle /><button className="fb-button fb-primary" onClick={() => setAdding(true)} disabled={data.loading || Boolean(data.error)}><Plus size={17} />Add expense</button></div>
+        </header>
+
+        <main id="workspace" className="fb-workspace" tabIndex={-1}>
+          {data.error ? <section className="fb-panel fb-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><button className="fb-button fb-secondary" onClick={() => location.reload()}>Reload workspace</button></section> :
+            data.loading ? <div className="fb-loading" role="status">Loading your workspace…</div> : (
+              <Suspense fallback={<div className="fb-loading" role="status">Loading {currentPage}…</div>}>
+                {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={getAllCategories(data.customCategories)} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
+                {page === 'expenses' && <Ledger expenses={data.expenses} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={deleteExpense} />}
+                {page === 'budgets' && <BudgetManager budgets={data.budgets} expenses={data.expenses} onAddBudget={data.addBudget} onDeleteBudget={data.deleteBudget} onUpdateBudget={data.updateBudget} customCategories={data.customCategories} budgetTemplates={data.budgetTemplates} publicBudgetTemplates={data.publicBudgetTemplates} onAdoptBudgetTemplate={data.adoptBudgetTemplate} onAddBudgetTemplate={data.addBudgetTemplate} onUpdateBudgetTemplate={data.updateBudgetTemplate} onDeleteBudgetTemplate={data.deleteBudgetTemplate} />}
+                {page === 'templates' && <RecurringTemplates onAddExpense={addExpense} onAddTemplate={data.addTemplate} onDeleteTemplate={data.deleteTemplate} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+                {page === 'categories' && <CategoryManager customCategories={data.customCategories} publicCategories={data.publicCategories} onAddCategory={data.addCustomCategory} onUpdateCategory={data.updateCustomCategory} onDeleteCategory={data.deleteCustomCategory} onAdoptCategory={data.adoptCategory} />}
+                {page === 'people' && <PeopleManager user={user} customPeople={data.customPeople} publicPeople={data.publicPeople} onAddPerson={data.addPerson} onUpdatePerson={data.updatePerson} onDeletePerson={data.deletePerson} onAdoptPerson={data.adoptPerson} />}
+                {page === 'explorer' && <MetricsExplorer expenses={periodExpenses(data.expenses, range.from, range.to)} budgets={data.budgets} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+                {page === 'ai-chat' && <AIChatPage />}
+              </Suspense>
+            )}
+          <footer className="fb-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><UsageAnalytics /></footer>
+        </main>
       </div>
 
-      {/* PWA Components */}
-      <PWAInstallPrompt />
-      <PWAUpdatePrompt />
-      <PWAConnectionStatus />
-      <UpdateNotification />
+      <nav className="fb-bottom-nav" aria-label="Quick navigation">
+        {pages.slice(0, 3).map(({ id, label, icon: Icon }) => <button key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} />{label}</button>)}
+        <button aria-expanded={menu} aria-controls="workspace-nav" onClick={() => setMenu(!menu)}><Menu size={20} />More</button>
+      </nav>
 
-      {/* Bottom Navigation for Mobile - Hidden on Dashboard */}
-      <BottomNavigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        isVisible={activeTab !== 'dashboard'}
-      />
-
-      <Toaster position="top-right" />
-
-      {/* Add Expense Modal */}
-      <AddExpenseModal
-        isOpen={showAddExpense}
-        onClose={handleAddExpenseModalClose}
-        onAddExpense={handleAddExpenseVoid}
-        customCategories={customCategories}
-        customPeople={customPeople}
-        publicPeople={publicPeople}
-      />
-
-      {/* Edit Expense Modal */}
-      {editingExpense && (
-        <EditExpenseModal
-          expense={editingExpense}
-          isOpen={!!editingExpense}
-          onClose={handleEditExpenseModalClose}
-          onUpdate={handleUpdateExpense}
-          customCategories={customCategories}
-          customPeople={customPeople}
-          publicPeople={publicPeople}
-        />
-      )}
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Cookie Banner */}
-      <CookieBanner
-        onAccept={() => toast.success("Cookie preferences saved")}
-        onDecline={() => toast.info("Cookies declined - some features may be limited")}
-      />
+      {adding && !data.loading && !data.error && <AddExpenseModal isOpen onClose={() => setAdding(false)} onAddExpense={addExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+      {editing && <EditExpenseModal expense={editing} isOpen onClose={() => setEditing(null)} onUpdate={data.updateExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
     </div>
   );
 }
 
-function App() {
-  return (
-    <AuthProvider>
-      <FinanceApp />
-    </AuthProvider>
-  );
+function AppContent() {
+  const { user, loading, redirectError } = useAuth();
+  if (loading) return <div className="fb-loading fb-fullscreen" role="status">Opening FinBuddy…</div>;
+  return user ? <Workspace key={user.uid} user={user} /> : <LoginPage redirectError={redirectError} />;
 }
 
-export default App;
+export default function App() {
+  return <AuthProvider><AppContent /><Toaster position="top-right" /></AuthProvider>;
+}

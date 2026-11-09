@@ -27,7 +27,7 @@ interface BudgetCommunityProps {
   budgetTemplates: BudgetTemplate[];
   publicBudgetTemplates: BudgetTemplate[];
   customCategories: CustomCategory[];
-  onAddTemplate: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
+  onAddTemplate: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId' | 'createdBy'>) => Promise<void>;
   onUpdateTemplate: (templateId: string, template: Partial<BudgetTemplate>) => Promise<void>;
   onDeleteTemplate: (templateId: string) => Promise<void>;
   onAdoptTemplate: (template: BudgetTemplate) => Promise<void>;
