@@ -1,3 +1,4 @@
+import { observeOperation } from '@/lib/operation-monitoring';
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from './ui/button';
@@ -24,7 +25,6 @@ import { httpsCallable } from 'firebase/functions';
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDocs, serverTimestamp, where, limit, updateDoc } from 'firebase/firestore';
 import { functions, db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { useFirestoreData } from '../hooks/useFirestoreData';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 
@@ -58,21 +58,6 @@ interface ChatSession {
 
 export const AIChatPage: React.FC = () => {
   const { user } = useAuth();
-  const { 
-    expenses, 
-    budgets, 
-    customPeople, 
-    publicPeople,
-    addExpense,
-    updateExpense,
-    deleteExpense,
-    addBudget,
-    updateBudget,
-    deleteBudget,
-    addCustomCategory,
-    updateCustomCategory,
-    deleteCustomCategory
-  } = useFirestoreData();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +79,6 @@ export const AIChatPage: React.FC = () => {
 
     // Timeout fallback to ensure loading doesn't hang forever
     const loadingTimeout = setTimeout(() => {
-      console.log('Loading timeout reached, setting loadingHistory to false');
       setLoadingHistory(false);
     }, 10000); // 10 second timeout
 
@@ -104,7 +88,6 @@ export const AIChatPage: React.FC = () => {
     
     const unsubscribeSessions = onSnapshot(q, async (snapshot) => {
       try {
-        console.log('Sessions updated, loading new data...');
         const loadedSessions: ChatSession[] = [];
         snapshot.docs.forEach(doc => {
           const data = doc.data();
@@ -118,23 +101,18 @@ export const AIChatPage: React.FC = () => {
           });
         });
 
-        console.log('Real-time sessions update:', loadedSessions.length);
         setSessions(loadedSessions);
 
         // Set current session (most recent or create new)
         if (loadedSessions.length > 0 && !currentSessionId) {
-          console.log('Setting current session to:', loadedSessions[0].id);
           setCurrentSessionId(loadedSessions[0].id);
         } else if (loadedSessions.length === 0 && !currentSessionId) {
           // Create new session
-          console.log('Creating new session');
           const newSessionId = await createNewSession();
-          console.log('Created new session:', newSessionId);
           if (newSessionId) {
             setCurrentSessionId(newSessionId);
           } else {
             // If session creation fails, just proceed without sessions
-            console.log('Session creation failed, proceeding without sessions');
             setLoadingHistory(false);
           }
         }
@@ -142,12 +120,10 @@ export const AIChatPage: React.FC = () => {
         clearTimeout(loadingTimeout);
         setLoadingHistory(false);
       } catch (error) {
-        console.error('Error in sessions listener:', error);
         clearTimeout(loadingTimeout);
         setLoadingHistory(false);
       }
     }, (error) => {
-      console.error('Sessions listener error:', error);
       clearTimeout(loadingTimeout);
       setLoadingHistory(false);
     });
@@ -166,7 +142,6 @@ export const AIChatPage: React.FC = () => {
       return;
     }
 
-    console.log('Loading messages for session:', currentSessionId);
 
     const conversationRef = collection(db, `users/${user.uid}/conversations`);
     // Use only the where clause to avoid index requirements, then sort in memory
@@ -176,7 +151,6 @@ export const AIChatPage: React.FC = () => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log('Messages snapshot received, docs:', snapshot.docs.length);
       const loadedMessages: ChatMessage[] = [];
       
       snapshot.docs.forEach(doc => {
@@ -208,9 +182,9 @@ I'm **KautilyaAI**, your intelligent financial advisor for Budget Buddy. Named a
 I can help you:
 
 - **Analyze your spending patterns** 📊
-- **Track and categorize expenses** 💰
-- **Manage shared expenses with people** 👥
-- **Create and manage budgets** 📈
+- **Review your expense categories** 💰
+- **Understand shared expenses** 👥
+- **Review your category budgets** 📈
 - **Get personalized financial advice** 💡
 - **Answer questions about your finances** ❓
 - **Understand the People module and relationships** 🏠
@@ -230,9 +204,7 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
 
       setMessages(loadedMessages);
       setLoadingHistory(false);
-      console.log('Messages loaded successfully, loadingHistory set to false');
     }, (error) => {
-      console.error('Error loading messages:', error);
       setLoadingHistory(false);
       toast.error('Failed to load chat history');
     });
@@ -260,7 +232,6 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
 
       return newSession.id;
     } catch (error) {
-      console.error('Error creating new session:', error);
       return '';
     }
   };
@@ -275,8 +246,8 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
         lastActivity: serverTimestamp(),
         messageCount: messages.filter(m => m.id !== 'welcome').length + 1,
       });
-    } catch (error) {
-      console.error('Error updating session:', error);
+    } catch {
+      toast.error("Couldn’t save chat history.");
     }
   };
 
@@ -312,8 +283,8 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
       if (message.sessionId) {
         await updateSessionActivity(message.sessionId, message.content);
       }
-    } catch (error) {
-      console.error('Error saving message:', error);
+    } catch {
+      toast.error("Couldn’t save chat history.");
     }
   };
 
@@ -336,135 +307,25 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
     await saveMessageToHistory(userMessage);
 
     try {
-      // Debug user authentication
-      console.log('🔍 AIChatPage - Current user:', user?.uid);
-      console.log('🔍 AIChatPage - User email:', user?.email);
-      console.log('🔍 AIChatPage - Sending message:', message.trim());
-      
-      const chatFunction = httpsCallable(functions, 'chatWithGemini');
-      console.log('🚀 AIChatPage - Calling chatWithGemini Firebase Function (ML coming soon)...');
-      
-      const result = await chatFunction({
-        userId: user.uid,
-        message: message.trim(),
-        context: {
-          recentExpenses: expenses.slice(0, 20),
-          activeBudgets: budgets.filter(b => (b as any).isActive !== false),
-          customPeople: customPeople.slice(0, 50), // Limit for performance
-          publicPeople: publicPeople.slice(0, 20)   // Limit for performance
-        }
-      });
+      const chat = httpsCallable<{ userId: string; message: string }, unknown>(functions, 'chatWithKautilya');
+      const { data } = await observeOperation('ai.ask', () => chat({ userId: user.uid, message: message.trim() }));
 
-      console.log('📥 AIChatPage - Firebase Function result:', result);
-
-      const data = result.data as any;
-      console.log('🏢 AIChatPage - Firebase Function response:', data);
-      
-      if (data.response) {
-        // Handle executed actions (CRUD operations) first
-        if (data.executedActions && data.executedActions.length > 0) {
-          console.log('🔧 AIChatPage - Processing executed actions:', data.executedActions);
-          for (const action of data.executedActions) {
-            console.log('⚡ Processing action:', action);
-            if (action.success) {
-              
-              // Execute frontend CRUD operations to update UI state
-              if (action.type === 'add_expense' && action.data && addExpense) {
-                try {
-                  console.log('📝 AIChatPage - Adding expense:', action.data);
-                  const expenseData = {
-                    amount: action.data.amount,
-                    category: action.data.category,
-                    description: action.data.description,
-                    date: action.data.date,
-                    // Optional fields that may or may not be present
-                    ...(action.data.receiptUrl && { receiptUrl: action.data.receiptUrl }),
-                    ...(action.data.receiptFileName && { receiptFileName: action.data.receiptFileName }),
-                    ...(action.data.peopleIds && { peopleIds: action.data.peopleIds })
-                  };
-                  
-                  await addExpense(expenseData);
-                  toast.success(`✅ Expense added: ${formatCurrency(action.data.amount)} for ${action.data.category}`, {
-                    description: `${action.data.description}`,
-                    duration: 5000
-                  });
-                } catch (error) {
-                  console.error('❌ AIChatPage - Error adding expense:', error);
-                  toast.error(`❌ Failed to add expense: ${error.message}`);
-                }
-              } 
-              
-              else if (action.type === 'add_budget' && action.data && addBudget) {
-                try {
-                  await addBudget(action.data);
-                  toast.success(`✅ Budget created: ${formatCurrency(action.data.limit)} for ${action.data.category}`);
-                } catch (error) {
-                  toast.error(`❌ Failed to sync budget to UI`);
-                }
-              } 
-              
-              else if (action.type === 'update_budget' && action.data && updateBudget) {
-                try {
-                  await updateBudget(action.data.id, action.data);
-                  toast.success(`✅ Budget updated: ${formatCurrency(action.data.limit)} for ${action.data.category}`);
-                } catch (error) {
-                  toast.error(`❌ Failed to sync budget update to UI`);
-                }
-              } 
-              
-              else if (action.type === 'delete_expense' && action.data && deleteExpense) {
-                try {
-                  await deleteExpense(action.data.id);
-                  toast.success(`✅ Expense deleted successfully`);
-                } catch (error) {
-                  toast.error(`❌ Failed to sync expense deletion to UI`);
-                }
-              } 
-              
-              else if (action.type === 'delete_budget' && action.data && deleteBudget) {
-                try {
-                  await deleteBudget(action.data.id);
-                  toast.success(`✅ Budget deleted successfully`);
-                } catch (error) {
-                  toast.error(`❌ Failed to sync budget deletion to UI`);
-                }
-              }
-              
-              else if (action.type === 'update_expense' && action.data && updateExpense) {
-                try {
-                  await updateExpense(action.data.id, action.data);
-                  toast.success(`✅ Expense updated successfully`);
-                } catch (error) {
-                  toast.error(`❌ Failed to sync expense update to UI`);
-                }
-              }
-            } else {
-              console.warn('⚠️ Action failed:', action);
-            }
-          }
-        }
-
+      if (data && typeof data === 'object' && 'response' in data && typeof data.response === 'string' && data.response.trim()) {
         const aiMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: data.response,
           timestamp: new Date(),
           sessionId: currentSessionId,
-          actionItems: data.context,
-          // Enhanced ML metadata
-          ...(data.metadata && { metadata: data.metadata }),
-          ...(data.intentType && { intentType: data.intentType }),
-          ...(data.responseFormat && { responseFormat: data.responseFormat })
         };
 
         setMessages(prev => [...prev, aiMessage]);
         await saveMessageToHistory(aiMessage);
       } else {
-        throw new Error(data.error || 'Failed to get response');
+        throw new Error('KautilyaAI returned an empty response');
       }
       
     } catch (error) {
-      console.error('Chat error:', error);
       
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -516,7 +377,6 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
       
       toast.success('Chat session deleted');
     } catch (error) {
-      console.error('Error deleting session:', error);
       toast.error('Failed to delete session');
     }
   };
@@ -540,7 +400,6 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
       
       toast.success('Session renamed');
     } catch (error) {
-      console.error('Error renaming session:', error);
       toast.error('Failed to rename session');
     }
   };
@@ -569,7 +428,6 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
       
       toast.success('Session deleted');
     } catch (error) {
-      console.error('Error deleting session:', error);
       toast.error('Failed to delete session');
     }
   };
@@ -591,38 +449,21 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
-      <Card className="mb-4 shadow-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-xl font-semibold">
-                    KautilyaAI Co-Pilot
-                  </CardTitle>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-0 text-xs px-2 py-0.5 font-medium">
-                    BETA
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your intelligent financial advisor - bringing ancient wisdom to modern wealth
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Sparkles size={22} /></span>
+          <div><h1>KautilyaAI</h1><p>Ask questions about your spending and budgets.</p></div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
               {/* Chat Sessions */}
               <Sheet open={showSessions} onOpenChange={setShowSessions}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="shadow-md hover:shadow-lg transition-shadow border-0">
+                  <Button variant="outline" size="sm" aria-label="Chat history">
                     <History className="h-4 w-4" />
                     <span className="hidden sm:ml-1 sm:inline">Chat History</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-80 backdrop-blur-md bg-background/95 shadow-2xl border-0">
+                <SheetContent side="right" className="w-80 max-w-full overflow-y-auto rounded-l-3xl">
                   <SheetHeader className="pb-4">
                     <SheetTitle className="flex items-center space-x-2 text-lg">
                       <div className="p-2 bg-primary/10 rounded-lg shadow-sm">
@@ -636,7 +477,7 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                     <div className="flex justify-center px-2">
                       <Button 
                         onClick={createNewChatSession} 
-                        className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-shadow px-6 py-2 rounded-lg font-medium text-sm border-0" 
+                        className="px-6"
                         size="sm"
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -726,7 +567,7 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                                   e.stopPropagation();
                                   deleteSession(session.id);
                                 }}
-                                className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-error-container transition-colors opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -757,67 +598,21 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                 variant="outline"
                 size="sm"
                 onClick={deleteCurrentSession}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 shadow-md hover:shadow-lg transition-all border-0"
+                aria-label="Delete chat"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="hidden sm:ml-1 sm:inline">Delete Chat</span>
               </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+        </div>
+      </header>
 
       {/* Chat Messages */}
       <Card className="flex-1 flex flex-col min-h-0 shadow-sm max-w-5xl mx-auto w-full">
-        <CardContent className="flex-1 flex flex-col p-6 min-h-0">
-          {/* Header with Title and Disclaimer */}
-          <div className="mb-4 pb-4 border-b border-border/50">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white">
-                      <Bot className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h1 className="text-lg font-semibold text-foreground">KautilyaAI Co-Pilot</h1>
-                    <p className="text-sm text-muted-foreground">Your Intelligent Financial Assistant</p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-0 text-xs px-2 py-0.5 font-medium">
-                  BETA
-                </Badge>
-              </div>
-            </div>
-            
-            {/* Disclaimer */}
-            <div className="border rounded-lg p-3" style={{
-              backgroundColor: 'var(--disclaimer-bg)',
-              borderColor: 'var(--disclaimer-border)',
-            }}>
-              <div className="flex items-start space-x-2">
-                <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0" style={{
-                  color: 'var(--disclaimer-icon)'
-                }} />
-                <div className="text-sm">
-                  <p className="font-medium mb-1" style={{
-                    color: 'var(--disclaimer-title)'
-                  }}>
-                    AI Assistant Disclaimer
-                  </p>
-                  <p className="text-xs leading-relaxed" style={{
-                    color: 'var(--disclaimer-text)'
-                  }}>
-                    KautilyaAI is here to help you make informed financial decisions, but please remember that AI can make mistakes. 
-                    Always verify important financial information and consult with qualified professionals for major financial decisions. 
-                    Kautilya is designed to support and guide you, not to replace your judgment or cause emotional distress.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
+        <CardContent className="flex-1 flex flex-col p-3 sm:p-6 min-h-0">
+          <p className="mb-4 flex items-start gap-2 rounded-xl bg-tertiary-container p-3 text-sm text-on-tertiary-container">
+            <Sparkles className="mt-0.5 size-4 shrink-0" /> AI responses can be wrong. Verify important figures and consult a qualified professional for major decisions.
+          </p>
+
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
               {messages.map((message) => (
@@ -831,7 +626,7 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                     message.role === 'user' ? 'flex-row-reverse' : ''
                   }`}>
                     <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarFallback className={message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-primary text-primary-foreground'}>
+                      <AvatarFallback className={message.role === 'user' ? 'bg-primary-container text-on-primary-container' : 'bg-primary text-primary-foreground'}>
                         {message.role === 'user' ? (
                           <User className="h-4 w-4" />
                         ) : (
@@ -841,12 +636,12 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <div className={`p-3 rounded-lg shadow-sm ${
+                      <div className={`p-3 m3-chat-bubble ${
                         message.role === 'user'
-                          ? 'bg-blue-500 text-white'
+                          ? 'm3-chat-bubble-user'
                           : message.isError
-                          ? 'bg-red-50 border border-red-200 text-red-800 dark:bg-red-950/20 dark:border-red-800 dark:text-red-200'
-                          : 'bg-muted text-foreground border'
+                          ? 'm3-chat-bubble-error'
+                          : ''
                       }`}>
                       {message.role === 'assistant' && !message.isError ? (
                         <div className="prose prose-sm max-w-none dark:prose-invert">
@@ -856,9 +651,9 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                               ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1 text-sm">{children}</ul>,
                               ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1 text-sm">{children}</ol>,
                               li: ({ children }) => <li className="leading-relaxed text-sm">{children}</li>,
-                              strong: ({ children }) => <strong className="font-semibold text-blue-600 dark:text-blue-400">{children}</strong>,
-                              em: ({ children }) => <em className="italic text-purple-600 dark:text-purple-400">{children}</em>,
-                              code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">{children}</code>,
+                              strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
+                              em: ({ children }) => <em className="italic text-primary">{children}</em>,
+                              code: ({ children }) => <code className="bg-accent px-1 py-0.5 rounded text-xs">{children}</code>,
                               h2: ({ children }) => <h2 className="text-base font-semibold mb-2 mt-3 first:mt-0">{children}</h2>,
                               h3: ({ children }) => <h3 className="text-sm font-medium mb-1 mt-2 first:mt-0">{children}</h3>,
                             }}
@@ -872,7 +667,7 @@ Let's start managing your finances with ancient wisdom and modern AI! 🚀`,
                       </div>
                       
                       <p className={`text-xs mt-1 ${
-                        message.role === 'user' ? 'text-right text-blue-200' : 'text-muted-foreground'
+                        message.role === 'user' ? 'text-right text-muted-foreground' : 'text-muted-foreground'
                       }`}>
                         {formatTime(message.timestamp)}
                       </p>

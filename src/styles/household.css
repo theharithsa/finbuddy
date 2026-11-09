@@ -1,0 +1,104 @@
+.money-period {
+  display: inline-flex; align-items: center; flex-shrink: 0; gap: 4px; border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--m3-shape-full); background: var(--m3-surface-low); font: var(--m3-body-medium); white-space: nowrap;
+}
+.money-home-heading h1 { font-size: clamp(2.35rem, 6.2vw, 4.45rem); }
+.money-kicker-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.money-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1.13fr) minmax(0, 1fr); align-items: center;
+  gap: clamp(16px, 4vw, 62px); padding: clamp(20px, 4.3vw, 50px);
+  border-radius: var(--m3-shape-xl); background: var(--m3-feature-deep);
+  color: var(--m3-feature-ink);
+}
+.money-hero::before {
+  position: absolute; z-index: -1; inset: 8px; content: ''; pointer-events: none;
+  border: 1px solid var(--m3-feature-outline); border-radius: calc(var(--m3-shape-xl) - 8px);
+}
+.money-hero-balance { display: grid; gap: 9px; align-content: start; min-width: 0; }
+.money-hero-label { display: flex; align-items: center; gap: 8px; font: var(--m3-body-medium); font-weight: 650; }
+.money-hero-amount { font-size: clamp(2.4rem, 6.2vw, 4.9rem); line-height: 1.02; font-weight: 550; letter-spacing: -.045em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.money-hero-balance p { max-width: 40ch; color: #fffd; font: var(--m3-body-medium); }
+.money-hero-action[data-slot="button"] { justify-self: start; margin-top: 7px; background: #fff; color: var(--m3-feature-deep); }
+.money-hero-action[data-slot="button"]:hover { background: #eee; color: var(--m3-feature-deep); }
+.money-hero :where(button):focus-visible { outline-color: #fff; }
+.money-metrics { display: grid; gap: 0; padding: 14px clamp(10px, 2vw, 20px); border: 1px solid var(--m3-feature-outline); border-radius: var(--m3-shape-large); min-width: 0; }
+.money-metrics-title { padding: 5px 8px 8px; color: #fffd; font: var(--m3-body-medium); font-weight: 650; }
+.money-metrics > :is(div, button) {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 16px; gap: 7px;
+  align-items: center; min-height: 46px; padding: 7px 8px; border-top: 1px solid #fff3; text-align: start;
+  font: var(--m3-body-medium);
+}
+.money-metrics > button { transition: background-color var(--m3-motion-fast) var(--m3-motion-ease); }
+.money-metrics > button:hover { background: #ffffff19; }
+.money-metrics > button:focus-visible { outline-offset: -2px; }
+.money-metrics strong { font-weight: 650; font-variant-numeric: tabular-nums; text-align: end; overflow-wrap: anywhere; }
+.money-metrics svg { color: #fffd; }
+.money-home-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(20px, 4.7vw, 55px); align-items: start; }
+.money-home-bills, .money-savings-note { display: grid; align-content: start; gap: 16px; min-width: 0; }
+.money-home-bills { padding-block: clamp(9px, 2vw, 18px); }
+.money-home-empty { padding-block: 16px; border-block: 1px solid var(--m3-outline-variant); }
+.money-savings-note {
+  gap: 10px; padding: clamp(18px, 3.25vw, 32px); border-radius: var(--m3-shape-xl);
+  background: color-mix(in srgb, var(--m3-secondary-container) 64%, var(--m3-surface));
+}
+.money-savings-title h2 { font: var(--m3-headline-small); overflow-wrap: anywhere; }
+.money-savings-title .m3-page-kicker { margin-bottom: 5px; }
+.money-savings-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; }
+.money-savings-mark { width: clamp(56px, 7.2vw, 86px); color: var(--m3-primary); }
+.money-income-list { border-block: 1px solid var(--m3-outline-variant); padding: 10px 2px; }
+.money-disclosure-arrow { transition: transform var(--m3-motion-fast) var(--m3-motion-ease); }
+.money-list-panel[open] .money-disclosure-arrow { transform: rotate(90deg); }
+.money-page-list { display: grid; gap: 14px; padding: 12px 0; border-block: 1px solid var(--m3-outline-variant); min-width: 0; }
+.money-panel-heading { display: flex; align-items: start; gap: 10px; }
+.money-panel-heading h2 { font: var(--m3-title-large); }
+.money-panel-heading p, .money-quiet { color: var(--m3-on-surface-variant); font: var(--m3-body-medium); }
+.money-panel-heading p { margin-top: 3px; }
+.money-panel-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; }
+.money-panel-actions [data-slot="button"] { white-space: normal; text-align: left; }
+.money-compact-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0,max-content); gap: 8px; align-items: center; padding-block: 9px; border-top: 1px solid var(--m3-outline-variant); }
+.money-compact-list li > div, .money-held, .money-bill-label, .money-record-list :is(button, .money-record-row) > span { display: grid; gap: 3px; min-width: 0; }
+.money-compact-list strong, .money-bill-row strong, .money-record-list strong { font: var(--m3-title-medium); overflow-wrap: anywhere; }
+.money-compact-list small, .money-held small, .money-bill-label small, .money-record-list small { font: var(--m3-body-medium); color: var(--m3-on-surface-variant); overflow-wrap: anywhere; }
+.money-compact-list .money-overdue { color: var(--m3-error); }
+.money-held > strong { font: var(--m3-headline-small); }
+.money-list-panel summary { display: flex; align-items: center; gap: 8px; cursor: pointer; font: var(--m3-title-medium); min-height: 34px; }
+.money-list-panel summary::-webkit-details-marker { display: none; }
+.money-list-panel summary small { margin-left: auto; color: var(--m3-on-surface-variant); font: var(--m3-body-medium); }
+.money-list-panel[open] summary { margin-bottom: 10px; }
+.money-record-list > li + li, .money-bill-list > li + li { border-top: 1px solid var(--m3-outline-variant); }
+.money-record-list :is(button, .money-record-row) { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 18px; gap: 10px; align-items: center; text-align: left; padding: 10px 4px; min-height: 60px; border-radius: 8px; }
+.money-record-list .money-record-row { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+.money-record-list button:hover { background: var(--m3-surface-high); }
+.money-bill-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,max-content) auto; align-items: center; gap: 10px; padding: 10px 0; }
+.money-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.money-paid { display: inline-flex; gap: 5px; align-items: center; padding: 5px 9px; border-radius: 8px; background: var(--m3-positive-container); color: var(--m3-on-positive-container); font: var(--m3-body-medium); }
+.money-form, .money-form > fieldset { display: grid; min-width: 0; gap: 12px; }
+.money-form .m3-expense-actions { align-items: center; }
+.money-form .money-remove { margin-right: auto; color: var(--m3-error); }
+.money-amount-field > div { display: flex; align-items: center; gap: 7px; padding-left: 12px; background: var(--m3-surface-low); border: 1px solid var(--m3-outline); border-radius: var(--m3-shape-small); }
+.money-amount-field > div:focus-within { outline: 2px solid var(--m3-primary); outline-offset: 1px; }
+.money-amount-field input { border: 0; padding-left: 0; outline: none; font-variant-numeric: tabular-nums; }
+.money-amount-field input:focus-visible { outline: none; }
+.money-amount-field > div > span { color: var(--m3-primary); }
+.money-details { border-radius: var(--m3-shape-medium); padding: 5px 10px; background: var(--m3-secondary-container); color: var(--m3-on-secondary-container); }
+.money-details summary { padding: 7px 1px; cursor: pointer; font: var(--m3-body-medium); }
+.money-details > label { margin: 6px 0 9px; }
+.money-details small { font-size: .72rem; }
+
+@media (max-width: 760px) {
+  .money-home-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .money-home-heading { gap: 13px; }
+  .money-home-heading p { margin-top: 6px; }
+  .money-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 18px; }
+  .money-hero-balance { gap: 6px; }
+  .money-hero-action[data-slot="button"] { margin-top: 3px; }
+  .money-metrics { padding-block: 6px; }
+  .money-metrics > :is(div, button) { min-height: 37px; padding-block: 5px; }
+  .money-metrics > button { min-height: 44px; }
+  .money-bill-row { grid-template-columns: minmax(0,1fr) minmax(0,max-content); gap: 6px; }
+  .money-bill-actions { grid-column: 1/-1; justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .money-disclosure-arrow, .money-metrics > button { transition: none; }
+}

@@ -1,3 +1,4 @@
+import { getChartTheme } from '@/lib/chart-theme';
 import React, { useState, useEffect, useRef } from 'react';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { useTheme } from '../contexts/ThemeContext';
@@ -31,8 +32,8 @@ import {
   Database,
   Target,
   Clock,
-  DollarSign
-} from 'lucide-react';
+  Rupee
+} from '@/components/brand/Icons';
 import ApexCharts from 'apexcharts';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { getAllPeople, formatCurrency } from '../lib/types';
@@ -75,7 +76,7 @@ const AVAILABLE_DIMENSIONS = [
 
 export function MetricsBuilder() {
   const { expenses, budgets, customPeople, publicPeople } = useFirestoreData();
-  const { theme } = useTheme();
+  const { theme, font, palette } = useTheme();
   const isMobile = useIsMobile();
   
   // State management
@@ -131,7 +132,7 @@ export function MetricsBuilder() {
                 return filter.operator === 'equals' 
                   ? expense.category === filter.value
                   : expense.category.toLowerCase().includes(filter.value.toLowerCase());
-              case 'amount':
+              case 'amount': {
                 const amount = expense.amount || 0;
                 const filterValue = parseFloat(filter.value);
                 if (isNaN(filterValue)) return true;
@@ -140,7 +141,8 @@ export function MetricsBuilder() {
                   case 'less_than': return amount < filterValue;
                   default: return true;
                 }
-              case 'person':
+              }
+              case 'person': {
                 if (!expense.peopleIds || expense.peopleIds.length === 0) {
                   return filter.value === 'Personal';
                 }
@@ -151,6 +153,7 @@ export function MetricsBuilder() {
                 return filter.operator === 'equals'
                   ? personNames.includes(filter.value)
                   : personNames.some(name => name.toLowerCase().includes(filter.value.toLowerCase()));
+              }
               default:
                 return true;
             }
@@ -300,19 +303,8 @@ export function MetricsBuilder() {
   const queryResult = currentQuery ? executeQuery(currentQuery) : null;
   
   // Theme configuration
-  const getThemeConfig = () => {
-    const isDark = theme === 'dark';
-    return {
-      colors: {
-        primary: isDark ? '#3b82f6' : '#2563eb',
-        text: isDark ? '#f1f5f9' : '#0f172a',
-        textMuted: isDark ? '#94a3b8' : '#64748b',
-        grid: isDark ? '#334155' : '#e2e8f0'
-      },
-      fontFamily: '"Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-    };
-  };
-  
+  const getThemeConfig = () => getChartTheme(theme);
+
   // Render chart
   useEffect(() => {
     if (!currentQuery || !queryResult || !chartRefs.current[selectedQuery]) return;
@@ -386,14 +378,7 @@ export function MetricsBuilder() {
         },
         series: queryResult.values,
         labels: queryResult.labels,
-        colors: [
-          themeConfig.colors.primary,
-          '#10b981',
-          '#f59e0b',
-          '#ef4444',
-          '#8b5cf6',
-          '#06b6d4'
-        ],
+        colors: themeConfig.seriesColors,
         legend: {
           labels: {
             colors: themeConfig.colors.text
@@ -401,7 +386,7 @@ export function MetricsBuilder() {
         },
         dataLabels: {
           style: {
-            colors: ['#fff']
+            colors: [themeConfig.seriesLabelColor]
           }
         }
       };
@@ -416,16 +401,16 @@ export function MetricsBuilder() {
         chartInstances.current[selectedQuery] = null;
       }
     };
-  }, [currentQuery, queryResult, selectedQuery, theme]);
+  }, [currentQuery, queryResult, selectedQuery, theme, font, palette]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="m3-feature-heading">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Metrics Builder</h1>
+          <h2>Query builder</h2>
           <p className="text-muted-foreground mt-1">
-            Build custom metrics with Dynatrace-style query interface
+            Choose your data, filters, and chart.
           </p>
         </div>
         <Button onClick={addQuery} className="gap-2">
@@ -464,6 +449,7 @@ export function MetricsBuilder() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={"Remove " + query.name}
                 onClick={() => removeQuery(query.id)}
                 className="h-8 w-8 p-0"
               >
@@ -511,7 +497,7 @@ export function MetricsBuilder() {
                       {AVAILABLE_METRICS.map(metric => (
                         <SelectItem key={metric.id} value={metric.id}>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" />
+                            <Rupee className="h-4 w-4" />
                             {metric.name}
                           </div>
                         </SelectItem>

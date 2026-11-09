@@ -1,3 +1,5 @@
+import { localDate } from './finance-period';
+
 export interface Expense {
   id: string;
   amount: number;
@@ -5,6 +7,7 @@ export interface Expense {
   description: string;
   date: string;
   createdAt: string;
+  billPaymentKey?: string;
   receiptUrl?: string;
   receiptFileName?: string;
   peopleIds?: string[]; // IDs of people this expense was spent for
@@ -179,7 +182,8 @@ export const formatCurrency = (amount: number): string => {
 };
 
 export const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('en-US', {
+  const local = /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T12:00:00` : date;
+  return new Date(local).toLocaleDateString('en-IN', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -187,7 +191,7 @@ export const formatDate = (date: string): string => {
 };
 
 export const getCurrentMonth = (): string => {
-  return new Date().toISOString().slice(0, 7); // YYYY-MM format
+  return localDate().slice(0, 7);
 };
 
 export const getMonthlyExpenses = (expenses: Expense[], month: string): Expense[] => {
@@ -552,7 +556,7 @@ export const getAllCategories = (customCategories: CustomCategory[] = []): Categ
 };
 
 // Helper function to get all available people (default + custom)
-export const getAllPeople = (allPeople: Person[] = []): { name: string; color: string; icon: string; id?: string; relationship?: string }[] => {
+export const getAllPeople = (allPeople: Person[] = []): { name: string; color: string; icon: string; id: string; relationship?: string }[] => {
   const defaultPeople = DEFAULT_PEOPLE.map((person, index) => ({
     ...person,
     id: `default-${index}`

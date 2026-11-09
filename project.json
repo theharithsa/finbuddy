@@ -1,0 +1,42 @@
+{
+  "$schema": "schemas/project.schema.json",
+  "schemaVersion": 1,
+  "name": "FinBuddy",
+  "template": {
+    "repository": "theharithsa/app-launchpad-template",
+    "revision": "f04c042a9e000f606982863518fa7bb9cfbb7d85",
+    "version": "1.9.0"
+  },
+  "decisions": {
+    "product": {
+      "status": "approved",
+      "value": "Material 3 INR household workspace with a monthly money check-in, quick expenses, bills and EMIs, and dated savings and investment values",
+      "approval": "Revival, Material 3 and household tracking requests, tracked in issue 111"
+    },
+    "stack": {
+      "status": "approved",
+      "value": "React, Vite, TypeScript and existing Firebase SDK services",
+      "approval": "User requested TypeScript and supplied the existing Firebase app"
+    },
+    "hosting": {
+      "status": "approved",
+      "value": "Firebase Hosting site finbuddy-2025",
+      "approval": "Existing project configuration and user deployment request"
+    },
+    "privacy": {
+      "status": "approved",
+      "value": "Existing owner-scoped account paths; RUM off by default, opt-in after review",
+      "approval": "Existing Firebase identity and release privacy boundary"
+    },
+    "observability": {
+      "status": "approved",
+      "value": "Dynatrace instrumentation with bounded browser actions and distinct evidence states",
+      "approval": "User requested dt-obs"
+    },
+    "license": {
+      "status": "approved",
+      "value": "Existing repository MIT license plus inherited template notices",
+      "approval": "Existing repository LICENSE"
+    }
+  }
+}

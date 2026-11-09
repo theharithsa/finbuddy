@@ -9,20 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Edit2, Trash2, Share2, Download, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, Share2, Download, AlertCircle, Eye, EyeOff } from '@/components/brand/Icons';
+import { ItemIcon, ItemIconPicker, personIcons } from '@/components/brand/ItemIcon';
 import { Person, getAllPeople, DEFAULT_PEOPLE } from '@/lib/types';
 import { adoptPublicPerson } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-const PERSON_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-  '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
-];
-
-const PERSON_ICONS = [
-  '👤', '👨', '👩', '👧', '👦', '👴', '👵', '👨‍💼', '👩‍💼', '👨‍🎓', 
-  '👩‍🎓', '👨‍⚕️', '👩‍⚕️', '👨‍🔧', '👩‍🔧', '👨‍🍳', '👩‍🍳', '👨‍🎨', '👩‍🎨', '🧑‍💻'
-];
+const DEFAULT_RECORD_COLOR = '#FF6B6B';
 
 const RELATIONSHIP_OPTIONS = [
   'Self', 'Family', 'Friend', 'Colleague', 'Partner', 'Child', 
@@ -57,8 +50,8 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
 
   const [formData, setFormData] = useState({
     name: '',
-    color: PERSON_COLORS[0],
-    icon: PERSON_ICONS[0],
+    color: DEFAULT_RECORD_COLOR,
+    icon: 'person',
     relationship: 'Friend',
     isPublic: false
   });
@@ -69,8 +62,8 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
   const resetForm = () => {
     setFormData({
       name: '',
-      color: PERSON_COLORS[0],
-      icon: PERSON_ICONS[0],
+      color: DEFAULT_RECORD_COLOR,
+      icon: 'person',
       relationship: 'Friend',
       isPublic: false
     });
@@ -207,12 +200,12 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold tracking-tight">Manage People</h2>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Users size={22} /></span>
+          <div><h1>People</h1><p>Keep track of whom you spent money for.</p></div>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
@@ -261,40 +254,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                 </Select>
               </div>
 
-              <div>
-                <Label>Icon</Label>
-                <div className="grid grid-cols-10 gap-2 mt-2">
-                  {PERSON_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={`p-2 text-lg rounded border transition-colors ${
-                        formData.icon === icon ? 'bg-primary/10 border-primary' : 'bg-muted hover:bg-muted/80 border-border'
-                      }`}
-                      onClick={() => setFormData(prev => ({ ...prev, icon }))}
-                    >
-                      {icon}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label>Color</Label>
-                <div className="grid grid-cols-5 gap-2 mt-2">
-                  {PERSON_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        formData.color === color ? 'border-gray-800' : 'border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    />
-                  ))}
-                </div>
-              </div>
+              <ItemIconPicker value={formData.icon} options={personIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
 
               <div className="flex items-center space-x-2">
                 <Switch
@@ -330,10 +290,10 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 text-green-800">
+        <Alert className="border-transparent bg-positive-container text-on-positive-container">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{success}</AlertDescription>
         </Alert>
@@ -351,12 +311,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {DEFAULT_PEOPLE.map((person, index) => (
               <div key={`default-${index}`} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    {person.icon}
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (
@@ -374,12 +329,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {customPeople.map((person) => (
               <div key={person.id} className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    {person.icon}
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (
@@ -407,6 +357,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                   <Button
                     size="sm"
                     variant="outline"
+                    aria-label="Edit person"
                     onClick={() => handleEdit(person)}
                     disabled={loading}
                   >
@@ -415,6 +366,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                   <Button
                     size="sm"
                     variant="destructive"
+                    aria-label="Delete person"
                     onClick={() => handleDelete(person)}
                     disabled={loading}
                   >
@@ -439,12 +391,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {publicPeople.map((person) => (
               <div key={person.id} className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    {person.icon}
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (

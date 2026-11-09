@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import {
   Tag, 
   TrendingUp as TrendUp, 
   Wallet 
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type BudgetTemplate, type Budget, type CustomCategory, formatCurrency, getAllCategories } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -27,7 +28,7 @@ interface BudgetCommunityProps {
   budgetTemplates: BudgetTemplate[];
   publicBudgetTemplates: BudgetTemplate[];
   customCategories: CustomCategory[];
-  onAddTemplate: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
+  onAddTemplate: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId' | 'createdBy'>) => Promise<void>;
   onUpdateTemplate: (templateId: string, template: Partial<BudgetTemplate>) => Promise<void>;
   onDeleteTemplate: (templateId: string) => Promise<void>;
   onAdoptTemplate: (template: BudgetTemplate) => Promise<void>;
@@ -265,7 +266,7 @@ export function BudgetCommunity({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Budget Templates</h2>
+          <h2 className="text-xl font-medium">Budget templates</h2>
           <p className="text-muted-foreground">
             Create budget templates and share them with the community
           </p>
@@ -359,7 +360,7 @@ export function BudgetCommunity({
                           {allCategories.map((category) => (
                             <SelectItem key={category.name} value={category.name}>
                               <div className="flex items-center gap-2">
-                                <span>{category.icon}</span>
+                                <span><ItemIcon value={category.icon} size={17} /></span>
                                 {category.name}
                               </div>
                             </SelectItem>

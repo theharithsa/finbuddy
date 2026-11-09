@@ -16,7 +16,8 @@ import {
   Trash, 
   Download, 
   Search as MagnifyingGlass 
-} from 'lucide-react';
+} from '@/components/brand/Icons';
+import { ItemIcon, ItemIconPicker, categoryIcons } from '@/components/brand/ItemIcon';
 import { type CustomCategory, DEFAULT_CATEGORIES } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -29,35 +30,7 @@ interface CategoryManagerProps {
   onAdoptCategory: (category: CustomCategory) => Promise<void>;
 }
 
-// Predefined color palette
-const COLOR_PALETTE = [
-  'oklch(0.65 0.2 40)',   // Orange
-  'oklch(0.6 0.25 220)',  // Blue
-  'oklch(0.7 0.2 300)',   // Purple
-  'oklch(0.65 0.25 330)', // Pink
-  'oklch(0.5 0.15 20)',   // Red
-  'oklch(0.6 0.2 140)',   // Green
-  'oklch(0.55 0.2 260)',  // Indigo
-  'oklch(0.65 0.2 180)',  // Cyan
-  'oklch(0.6 0.1 240)',   // Gray
-  'oklch(0.7 0.25 60)',   // Yellow
-  'oklch(0.55 0.2 120)',  // Lime
-  'oklch(0.6 0.2 350)',   // Rose
-];
-
-// Common emoji categories for quick selection
-const EMOJI_CATEGORIES = [
-  { name: 'Food & Drink', emojis: ['🍽️', '🍕', '🍔', '🍜', '🍱', '🥗', '🍰', '☕', '🍺', '🥤'] },
-  { name: 'Transportation', emojis: ['🚗', '🚌', '🚊', '🚲', '🛵', '✈️', '🚂', '🚕', '⛽', '🚁'] },
-  { name: 'Shopping', emojis: ['🛍️', '👔', '👕', '👗', '👠', '💄', '📱', '💻', '🎮', '📚'] },
-  { name: 'Home & Bills', emojis: ['🏠', '⚡', '💡', '🔧', '🚿', '📺', '📞', '💳', '📊', '📋'] },
-  { name: 'Health & Fitness', emojis: ['🏥', '💊', '🏋️', '🧘', '🦷', '👓', '💉', '🩺', '🏃', '🚴'] },
-  { name: 'Entertainment', emojis: ['🎬', '🎮', '🎵', '🎭', '🎨', '📖', '🎪', '🎯', '🎲', '🎸'] },
-  { name: 'Education', emojis: ['📚', '🎓', '✏️', '🖊️', '📝', '💻', '🔬', '🌐', '📐', '🧮'] },
-  { name: 'Travel', emojis: ['✈️', '🏖️', '🗺️', '🧳', '🏨', '📷', '🎒', '🚢', '🏔️', '🌴'] },
-  { name: 'Finance', emojis: ['💰', '💳', '🏦', '💸', '📊', '💎', '🪙', '💵', '📈', '💴'] },
-  { name: 'Other', emojis: ['📝', '⭐', '🔍', '🎯', '💡', '⚙️', '📌', '🔔', '❓', '✨'] },
-];
+const DEFAULT_RECORD_COLOR = 'oklch(0.65 0.2 40)';
 
 export function CategoryManager({
   customCategories,
@@ -75,16 +48,16 @@ export function CategoryManager({
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    color: COLOR_PALETTE[0],
-    icon: '📝',
+    color: DEFAULT_RECORD_COLOR,
+    icon: 'note',
     isPublic: false
   });
 
   const resetForm = () => {
     setFormData({
       name: '',
-      color: COLOR_PALETTE[0],
-      icon: '📝',
+      color: DEFAULT_RECORD_COLOR,
+      icon: 'note',
       isPublic: false
     });
   };
@@ -222,17 +195,12 @@ export function CategoryManager({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Swatches className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Category Manager</h2>
-          </div>
-          <p className="text-muted-foreground">
-            Create custom categories and share them with the community
-          </p>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Swatches size={22} /></span>
+          <div><h1>Categories</h1><p>Choose how to group your expenses.</p></div>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
@@ -256,57 +224,8 @@ export function CategoryManager({
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium">Icon *</label>
-                <div className="space-y-3">
-                  <Input
-                    placeholder="🐾"
-                    value={formData.icon}
-                    onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                    className="text-center text-lg"
-                  />
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {EMOJI_CATEGORIES.map((category) => (
-                      <div key={category.name}>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">{category.name}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {category.emojis.map((emoji) => (
-                            <Button
-                              key={emoji}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                              onClick={() => setFormData(prev => ({ ...prev, icon: emoji }))}
-                            >
-                              {emoji}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Color *</label>
-                <div className="grid grid-cols-6 gap-2 mt-2">
-                  {COLOR_PALETTE.map((color) => (
-                    <Button
-                      key={color}
-                      size="sm"
-                      variant="outline"
-                      className="h-10 w-full p-0 border-2"
-                      style={{ 
-                        backgroundColor: color,
-                        borderColor: formData.color === color ? '#000' : 'transparent'
-                      }}
-                      onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    />
-                  ))}
-                </div>
-              </div>
-              
+              <ItemIconPicker value={formData.icon} options={categoryIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
+
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium">Share with community</label>
@@ -333,7 +252,7 @@ export function CategoryManager({
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       <Tabs defaultValue="my-categories" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
@@ -356,12 +275,7 @@ export function CategoryManager({
                 <Card key={category.name} className="shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        {category.icon}
-                      </div>
+                      <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                       <CardTitle className="text-sm">{category.name}</CardTitle>
                       <Badge variant="secondary" className="ml-auto text-xs">Default</Badge>
                     </div>
@@ -382,12 +296,7 @@ export function CategoryManager({
                     <Card key={category.id} className="relative group shadow-sm hover:shadow-md transition-shadow">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                            style={{ backgroundColor: category.color }}
-                          >
-                            {category.icon}
-                          </div>
+                          <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                           <div className="flex-1">
                             <CardTitle className="text-sm">{category.name}</CardTitle>
                             <div className="flex items-center gap-2 mt-1">
@@ -470,12 +379,7 @@ export function CategoryManager({
                 <Card key={category.id} className="shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        {category.icon}
-                      </div>
+                      <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                       <div className="flex-1">
                         <CardTitle className="text-sm">{category.name}</CardTitle>
                         <p className="text-xs text-muted-foreground">by {category.createdBy}</p>

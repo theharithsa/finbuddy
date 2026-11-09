@@ -35,3 +35,7 @@ packages
 
 # Firebase service account keys (security)
 **/service-account.json
+
+__pycache__/
+test-results/
+playwright-report/

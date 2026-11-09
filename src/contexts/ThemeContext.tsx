@@ -1,72 +1,115 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import {
+  defaultFont, defaultPalette, fonts, isAppearanceOption, loadAppearanceFont, palettes,
+  type DisplayMode, type Font, type Palette, type Theme,
+} from '@/lib/appearance';
 
-type Theme = 'dark' | 'light';
-
-type ThemeProviderProps = {
-  children: React.ReactNode;
+interface ThemeProviderProps {
+  children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
-};
+}
 
-type ThemeProviderState = {
+interface ThemeState {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  displayMode: DisplayMode;
+  font: Font;
+  palette: Palette;
+  setTheme: (mode: DisplayMode) => void;
+  setFont: (font: Font) => void;
+  setPalette: (palette: Palette) => void;
   toggleTheme: () => void;
-};
+  resetAppearance: () => void;
+}
 
-const initialState: ThemeProviderState = {
-  theme: 'light',
-  setTheme: () => null,
-  toggleTheme: () => null,
-};
+const ThemeContext = createContext<ThemeState | null>(null);
+const darkPreference = '(prefers-color-scheme: dark)';
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+function readSetting(key: string) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
 
-export function ThemeProvider({
-  children,
-  defaultTheme = 'light',
-  storageKey = 'finbuddy-ui-theme',
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+function storeSetting(key: string, value: string) {
+  try { localStorage.setItem(key, value); } catch { /* Apply the change for this session. */ }
+}
+
+function systemPrefersDark() {
+  return window.matchMedia?.(darkPreference).matches ?? false;
+}
+
+export function ThemeProvider({ children, defaultTheme = 'light', storageKey = 'finbuddy-ui-theme' }: ThemeProviderProps) {
+  const fontKey = storageKey + '-font';
+  const paletteKey = storageKey + '-palette';
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(() => {
+    const saved = readSetting(storageKey);
+    return saved === 'dark' || saved === 'light' || saved === 'system' ? saved : defaultTheme;
+  });
+  const [font, setFont] = useState<Font>(() => {
+    const saved = readSetting(fontKey);
+    return isAppearanceOption(fonts, saved) ? saved : defaultFont;
+  });
+  const [palette, setPalette] = useState<Palette>(() => {
+    const saved = readSetting(paletteKey);
+    return isAppearanceOption(palettes, saved) ? saved : defaultPalette;
+  });
+  const [systemDark, setSystemDark] = useState(systemPrefersDark);
+  const theme = displayMode === 'system' ? systemDark ? 'dark' : 'light' : displayMode;
 
   useEffect(() => {
-    const root = window.document.documentElement;
+    const preference = window.matchMedia?.(darkPreference);
+    const onChange = (event: MediaQueryListEvent) => setSystemDark(event.matches);
+    preference?.addEventListener('change', onChange);
+    return () => preference?.removeEventListener('change', onChange);
+  }, []);
 
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-  }, [theme]);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    root.classList.toggle('light', theme === 'light');
+    root.dataset.palette = palette;
+    root.style.setProperty('--app-font', fonts[font].family);
+    const surface = getComputedStyle(root).getPropertyValue('--m3-surface').trim();
+    if (surface) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surface);
+  }, [font, palette, theme]);
 
-  const updateTheme = (newTheme: Theme) => {
-    localStorage.setItem(storageKey, newTheme);
-    setTheme(newTheme);
-  };
+  useEffect(() => {
+    void loadAppearanceFont(font).catch(() => { /* The font stack includes a local fallback. */ });
+  }, [font]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    updateTheme(newTheme);
-  };
+  function updateTheme(mode: DisplayMode) {
+    setDisplayMode(mode);
+    storeSetting(storageKey, mode);
+  }
 
-  const value = {
-    theme,
-    setTheme: updateTheme,
-    toggleTheme,
-  };
+  function updateFont(value: Font) {
+    setFont(value);
+    storeSetting(fontKey, value);
+  }
+
+  function updatePalette(value: Palette) {
+    setPalette(value);
+    storeSetting(paletteKey, value);
+  }
+
+  function resetAppearance() {
+    updateTheme(defaultTheme);
+    updateFont(defaultFont);
+    updatePalette(defaultPalette);
+  }
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeContext.Provider value={{
+      theme, displayMode, font, palette, setTheme: updateTheme, setFont: updateFont, setPalette: updatePalette,
+      toggleTheme: () => updateTheme(theme === 'dark' ? 'light' : 'dark'),
+      resetAppearance,
+    }}>
       {children}
-    </ThemeProviderContext.Provider>
+    </ThemeContext.Provider>
   );
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider');
-
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within a ThemeProvider');
   return context;
-};
+}

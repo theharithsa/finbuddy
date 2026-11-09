@@ -1,3 +1,4 @@
+import { ItemIcon, type ItemIconName } from '@/components/brand/ItemIcon';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import {
   Clock,
   Search,
   Check
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type RecurringTemplate, type Expense, type CustomCategory, type Person, DEFAULT_CATEGORIES, getAllCategories, DEFAULT_RECURRING_TEMPLATES, formatCurrency } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { subscribeToTemplates } from '@/lib/firebase';
@@ -31,7 +32,40 @@ interface RecurringTemplatesProps {
   publicPeople?: Person[];
 }
 
+const starterTemplateIcons: Readonly<Record<string, ItemIconName | undefined>> = {
+  rent: 'home',
+  electricity: 'utilities',
+  water: 'water',
+  gas: 'flame',
+  maintenance: 'tools',
+  phone: 'phone',
+  internet: 'wifi',
+  dth: 'tv',
+  netflix: 'entertainment',
+  hotstar: 'entertainment',
+  prime: 'entertainment',
+  spotify: 'music',
+  youtube: 'entertainment',
+  gym: 'fitness',
+  'health-insurance': 'shield',
+  petrol: 'fuel',
+  'car-emi': 'transport',
+  'bike-emi': 'bike',
+  'vehicle-insurance': 'shield',
+  'school-fees': 'education',
+  tuition: 'education',
+  milk: 'milk',
+  'grocery-delivery': 'groceries',
+  'home-loan': 'home',
+  'personal-loan': 'money',
+  'credit-card': 'card',
+  'property-tax': 'receipt',
+  'life-insurance': 'shield',
+  'income-tax': 'receipt',
+};
+
 export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTemplate, customCategories = [], customPeople = [], publicPeople = [] }: RecurringTemplatesProps) {
+  const allCategories = getAllCategories(customCategories);
   const { user } = useAuth();
   const [templates, setTemplates] = useState<RecurringTemplate[]>(DEFAULT_RECURRING_TEMPLATES);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -61,12 +95,12 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
   }, [customAmounts]);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ name: string; amount: string; category: string; description: string; frequency: RecurringTemplate['frequency'] }>({
     name: '',
     amount: '',
     category: '',
     description: '',
-    frequency: 'monthly' as const
+    frequency: 'monthly'
   });
 
   // Subscribe to user templates from Firebase
@@ -261,15 +295,10 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <ArrowsClockwise className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Recurring Templates</h2>
-          </div>
-          <p className="text-muted-foreground">
-            Quick templates for recurring bills and subscriptions
-          </p>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><ArrowsClockwise size={22} /></span>
+          <div><h1>Recurring templates</h1><p>Reuse details for bills and subscriptions.</p></div>
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose}>
@@ -313,10 +342,10 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getAllCategories(customCategories).map((category) => (
+                    {allCategories.map((category) => (
                       <SelectItem key={category.name} value={category.name}>
                         <div className="flex items-center gap-2">
-                          <span>{category.icon}</span>
+                          <span><ItemIcon value={category.icon} size={17} /></span>
                           {category.name}
                         </div>
                       </SelectItem>
@@ -365,13 +394,13 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       {/* Quick Tips */}
       <Card className="bg-accent/10 shadow-sm hover:shadow-md transition-shadow">
         <CardContent className="pt-4">
           <div className="flex items-start gap-3">
-            <div className="text-accent">💡</div>
+            <span className="m3-row-icon"><ItemIcon value="calendar" size={20} /></span>
             <div className="space-y-1">
               <h4 className="font-medium text-sm">Smart Bill Management</h4>
               <p className="text-xs text-muted-foreground">
@@ -393,7 +422,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} fallback="receipt" size={18} />{template.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={getFrequencyBadgeVariant(template.frequency)}>
                           <Clock className="w-3 h-3 mr-1" />
@@ -494,17 +523,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 >
                   {/* Template Name */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${template.frequency === 'yearly' ? 'bg-purple-100 dark:bg-purple-900/30' :
-                        template.frequency === 'quarterly' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                          'bg-blue-100 dark:bg-blue-900/30'
-                      }`}>
-                      {template.category === 'Food & Dining' ? '🍽️' :
-                        template.category === 'Transportation' ? '🚗' :
-                          template.category === 'Entertainment' ? '🎬' :
-                            template.category === 'Healthcare' ? '🏥' :
-                              template.category === 'Education' ? '📚' :
-                                template.category === 'Bills & Utilities' ? '⚡' : '📝'}
-                    </div>
+                    <span className="m3-row-icon"><ItemIcon value={starterTemplateIcons[template.id]} fallback="receipt" /></span>
                     <div>
                       <div className="font-medium">{template.name}</div>
                       <div className="text-xs text-muted-foreground">{template.description.slice(0, 30)}...</div>
@@ -537,7 +556,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                           className="h-8 w-8"
                           onClick={() => saveCustomAmount(template.id)}
                         >
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-4 h-4 text-positive" />
                         </Button>
                       </div>
                     ) : (
@@ -554,13 +573,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
 
                   {/* Frequency Badge */}
                   <div className="col-span-2 text-center">
-                    <Badge
-                      variant="secondary"
-                      className={`${template.frequency === 'yearly' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                          template.frequency === 'quarterly' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                        }`}
-                    >
+                    <Badge variant="secondary">
                       {template.frequency}
                     </Badge>
                   </div>

@@ -1,0 +1,23 @@
+{
+  "$schema": "../schemas/evidence.schema.json",
+  "schemaVersion": 1,
+  "application": "FinBuddy",
+  "revision": null,
+  "release": null,
+  "checks": [],
+  "limits": [
+    "See the linked PR for current-head CI and Hosting evidence.",
+    "Production release awaits the repository-required approving review.",
+    "Live Auth, callable response and Dynatrace tenant signals are separate checks."
+  ],
+  "lifecycle": {
+    "issueUrl": "https://github.com/theharithsa/budget-buddy/issues/111",
+    "pullRequestUrl": null,
+    "checkedHeadSha": null,
+    "mergeSha": null,
+    "issueResolution": null,
+    "deploymentId": null,
+    "artifactDigest": null,
+    "sdlcEvidence": []
+  }
+}

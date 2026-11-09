@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.0.0] - Unreleased
+
+- Applied Material 3 to sign-in, all workspace destinations, shared controls, dialogs, and charts.
+- Reworked the app bar and monthly check-in, refreshed the sign-in and empty states, and added brief transitions that respect reduced motion.
+- Flattened the feature surfaces, added Black & white and four color palettes, and introduced a standalone squirrel mark and stroke-only icon set.
+- Added a public sample workspace, signed-in profile photos, and four spending insights. Metrics Explorer shows Coming soon.
+- Added a squirrel mascot, browser and install artwork, and a matching icon set across the workspace.
+- Added device-local font, color palette and display mode settings.
+- Open on the household’s monthly Home and log expenses from any screen. Amount and category are required, and extra details are available on demand.
+- Track income, bills and EMIs, and dated savings and investment values. Link an existing expense when recording a bill payment to keep one ledger entry.
+- Preserved Firebase account and document paths. Restored platform labels on new expense writes.
+- Parked KautilyaAI behind a Coming soon screen.
+- Adopted App Launchpad v1.9.0 and added emulator-backed browser and Hosting revision checks.
+
+
 All notable changes to FinBuddy will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).

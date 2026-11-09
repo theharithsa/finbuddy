@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, getDocs, collection, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { observeOperation } from '@/lib/operation-monitoring';
 import {
+  type ExpenseUpdate,
   subscribeToExpenses,
   subscribeToBudgets,
   subscribeToTemplates,
@@ -47,230 +47,76 @@ export function useFirestoreData() {
   const [budgetTemplates, setBudgetTemplates] = useState<BudgetTemplate[]>([]);
   const [publicBudgetTemplates, setPublicBudgetTemplates] = useState<BudgetTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const userId = user?.uid;
 
   useEffect(() => {
-    if (!user || !user.uid) {
-      // Clear all data when user is not authenticated
-      setExpenses([]);
-      setBudgets([]);
-      setTemplates([]);
-      setCustomCategories([]);
-      setPublicCategories([]);
-      setCustomPeople([]);
-      setPublicPeople([]);
-      setBudgetTemplates([]);
-      setPublicBudgetTemplates([]);
-      setLoading(false);
-      return;
+    setLoading(Boolean(userId));
+    setError(false);
+    setExpenses([]);
+    setBudgets([]);
+    setTemplates([]);
+    setCustomCategories([]);
+    setPublicCategories([]);
+    setCustomPeople([]);
+    setPublicPeople([]);
+    setBudgetTemplates([]);
+    setPublicBudgetTemplates([]);
+    if (!userId) return;
+
+    const unsubscribers: (() => void)[] = [];
+    const pending = new Set(['expenses', 'budgets', 'categories', 'people', 'budgetTemplates']);
+    function ready(name: string) {
+      pending.delete(name);
+      if (!pending.size) setLoading(false);
     }
+    const fail = () => { setError(true); setLoading(false); };
 
-    setLoading(true);
-
-    const unsubscribeFunctions: (() => void)[] = [];
-    let timeoutId: NodeJS.Timeout;
-    let isCleanedUp = false;
-
-    // Add a delay to ensure Firebase auth is fully ready and permissions are set
-    const timeoutHandle = setTimeout(() => {
-      if (isCleanedUp) return;
-
-      try {
-        // Subscribe to expenses
-        const unsubscribeExpenses = subscribeToExpenses(user.uid, (expenseData) => {
-          if (!isCleanedUp) {
-            setExpenses(expenseData);
-          }
-        });
-        if (unsubscribeExpenses) {
-          unsubscribeFunctions.push(unsubscribeExpenses);
-        }
-
-        // Subscribe to budgets
-        const unsubscribeBudgets = subscribeToBudgets(user.uid, (budgetData) => {
-          if (!isCleanedUp) {
-            setBudgets(budgetData);
-          }
-        });
-        if (unsubscribeBudgets) {
-          unsubscribeFunctions.push(unsubscribeBudgets);
-        }
-
-        // Subscribe to templates
-        const unsubscribeTemplates = subscribeToTemplates(user.uid, (templateData) => {
-          if (!isCleanedUp) {
-            setTemplates(templateData);
-          }
-        });
-        if (unsubscribeTemplates) {
-          unsubscribeFunctions.push(unsubscribeTemplates);
-        }
-
-        // Subscribe to custom categories
-        const unsubscribeCustomCategories = subscribeToCustomCategories(user.uid, (categoryData) => {
-          if (!isCleanedUp) {
-            setCustomCategories(categoryData);
-          }
-        });
-        if (unsubscribeCustomCategories) {
-          unsubscribeFunctions.push(unsubscribeCustomCategories);
-        }
-
-        // Subscribe to public categories
-        const unsubscribePublicCategories = subscribeToPublicCategories((categoryData) => {
-          if (!isCleanedUp) {
-            setPublicCategories(categoryData);
-          }
-        });
-        if (unsubscribePublicCategories) {
-          unsubscribeFunctions.push(unsubscribePublicCategories);
-        }
-
-        // Subscribe to custom people
-        const unsubscribeCustomPeople = subscribeToCustomPeople(user.uid, (peopleData) => {
-          if (!isCleanedUp) {
-            setCustomPeople(peopleData);
-          }
-        });
-        if (unsubscribeCustomPeople) {
-          unsubscribeFunctions.push(unsubscribeCustomPeople);
-        }
-
-        // Subscribe to public people
-        const unsubscribePublicPeople = subscribeToPublicPeople((peopleData) => {
-          if (!isCleanedUp) {
-            setPublicPeople(peopleData);
-          }
-        });
-        if (unsubscribePublicPeople) {
-          unsubscribeFunctions.push(unsubscribePublicPeople);
-        }
-
-        // Subscribe to budget templates
-        const unsubscribeBudgetTemplates = subscribeToBudgetTemplates(user.uid, (templateData) => {
-          if (!isCleanedUp) {
-            setBudgetTemplates(templateData);
-          }
-        });
-        if (unsubscribeBudgetTemplates) {
-          unsubscribeFunctions.push(unsubscribeBudgetTemplates);
-        }
-
-        // Subscribe to public budget templates
-        const unsubscribePublicBudgetTemplates = subscribeToPublicBudgetTemplates((templateData) => {
-          if (!isCleanedUp) {
-            setPublicBudgetTemplates(templateData);
-          }
-        });
-        if (unsubscribePublicBudgetTemplates) {
-          unsubscribeFunctions.push(unsubscribePublicBudgetTemplates);
-        }
-
-        if (!isCleanedUp) {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error setting up Firebase subscriptions:', error);
-        if (!isCleanedUp) {
-          setLoading(false);
-        }
-      }
-    }, 500); // Increased delay to ensure auth is fully ready
-
-    return () => {
-      console.log('Cleaning up Firebase subscriptions');
-      isCleanedUp = true;
-      
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
-      }
-      
-      unsubscribeFunctions.forEach(unsubscribe => {
-        try {
-          if (typeof unsubscribe === 'function') {
-            unsubscribe();
-          }
-        } catch (error) {
-          console.error('Error unsubscribing:', error);
-        }
-      });
-    };
-  }, [user]);
-
-  // Expense operations
-  const addExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
-    if (!user) {
-      console.error('❌ addExpense: User not authenticated');
-      throw new Error('User not authenticated');
-    }
-    
-    console.log('🔐 USER DEBUG - addExpense user info:', {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName
-    });
-    
-    console.log('💾 addExpense called with:', { 
-      userId: user.uid, 
-      expenseData,
-      targetPath: `users/${user.uid}/expenses`
-    });
-    
-    const expense = {
-      ...expenseData,
-      createdAt: new Date().toISOString(),
-    };
-    
     try {
-      const result = await addExpenseToFirestore(user.uid, expense);
-      console.log('✅ addExpense successful - Document ID:', result);
-      console.log('📍 Expense should be written to path:', `users/${user.uid}/expenses/${result}`);
-      
-      // VERIFICATION: Read back the expense to confirm it was written
-      setTimeout(async () => {
-        try {
-          const docRef = doc(db, `users/${user.uid}/expenses`, result);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            console.log('✅ VERIFICATION: Expense confirmed in Firestore:', docSnap.data());
-          } else {
-            console.error('❌ VERIFICATION: Expense NOT found in Firestore!');
-          }
-        } catch (verifyError) {
-          console.error('❌ VERIFICATION ERROR:', verifyError);
-        }
-      }, 1000);
-      
-      return result;
-    } catch (error) {
-      console.error('❌ addExpense failed:', error);
-      throw error;
+      unsubscribers.push(subscribeToExpenses(userId, (value) => { setExpenses(value); ready('expenses'); }, fail));
+      unsubscribers.push(subscribeToBudgets(userId, (value) => { setBudgets(value); ready('budgets'); }, fail));
+      unsubscribers.push(subscribeToTemplates(userId, setTemplates));
+      unsubscribers.push(subscribeToCustomCategories(userId, (value) => { setCustomCategories(value); ready('categories'); }));
+      unsubscribers.push(subscribeToCustomPeople(userId, (value) => { setCustomPeople(value); ready('people'); }));
+      unsubscribers.push(subscribeToBudgetTemplates(userId, (value) => { setBudgetTemplates(value); ready('budgetTemplates'); }));
+      unsubscribers.push(subscribeToPublicCategories(setPublicCategories));
+      unsubscribers.push(subscribeToPublicPeople(setPublicPeople));
+      unsubscribers.push(subscribeToPublicBudgetTemplates(setPublicBudgetTemplates));
+    } catch {
+      fail();
     }
+    return () => { unsubscribers.forEach((unsubscribe) => unsubscribe()); };
+  }, [userId]);
+
+  const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+    if (!userId) throw new Error('User not authenticated');
+    return observeOperation('expense.create', () => addExpenseToFirestore(userId, expense));
   };
 
-  const updateExpense = async (expenseId: string, expenseData: Partial<Expense>) => {
-    if (!user) throw new Error('User not authenticated');
-    await updateExpenseInFirestore(user.uid, expenseId, expenseData);
+  const updateExpense = async (expenseId: string, expense: ExpenseUpdate) => {
+    if (!userId) throw new Error('User not authenticated');
+    await observeOperation('expense.update', () => updateExpenseInFirestore(userId, expenseId, expense));
   };
 
   const deleteExpense = async (expenseId: string) => {
-    if (!user) throw new Error('User not authenticated');
-    await deleteExpenseFromFirestore(user.uid, expenseId);
+    if (!userId) throw new Error('User not authenticated');
+    await observeOperation('expense.delete', () => deleteExpenseFromFirestore(userId, expenseId));
   };
 
   // Budget operations
   const addBudget = async (budgetData: Omit<Budget, 'id'>) => {
     if (!user) throw new Error('User not authenticated');
-    await addBudgetToFirestore(user.uid, budgetData);
+    await observeOperation('budget.create', () => addBudgetToFirestore(user.uid, budgetData));
   };
 
   const updateBudget = async (budgetId: string, budgetData: Partial<Budget>) => {
     if (!user) throw new Error('User not authenticated');
-    await updateBudgetInFirestore(user.uid, budgetId, budgetData);
+    await observeOperation('budget.update', () => updateBudgetInFirestore(user.uid, budgetId, budgetData));
   };
 
   const deleteBudget = async (budgetId: string) => {
     if (!user) throw new Error('User not authenticated');
-    await deleteBudgetFromFirestore(user.uid, budgetId);
+    await observeOperation('budget.delete', () => deleteBudgetFromFirestore(user.uid, budgetId));
   };
 
   // Template operations
@@ -348,20 +194,6 @@ export function useFirestoreData() {
     
     await deletePersonFromFirestore(user.uid, personId);
     
-    // Force refresh the people list since real-time subscription might not trigger
-    try {
-      const peopleSnapshot = await getDocs(query(
-        collection(db, 'users', user.uid, 'customPeople'),
-        orderBy('name', 'asc')
-      ));
-      const updatedPeople = peopleSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Person));
-      setCustomPeople(updatedPeople);
-    } catch (refreshError) {
-      console.error('Failed to refresh people list:', refreshError);
-    }
   };
 
   const adoptPerson = async (publicPerson: Person) => {
@@ -370,7 +202,7 @@ export function useFirestoreData() {
   };
 
   // Budget Template operations
-  const addBudgetTemplate = async (templateData: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId'>) => {
+  const addBudgetTemplate = async (templateData: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId' | 'createdBy'>) => {
     if (!user) throw new Error('User not authenticated');
     
     const template = {
@@ -409,6 +241,7 @@ export function useFirestoreData() {
     budgetTemplates,
     publicBudgetTemplates,
     loading,
+    error,
     addExpense,
     updateExpense,
     deleteExpense,

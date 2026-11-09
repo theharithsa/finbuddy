@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import {
   Book as BookOpen, 
   Globe,
   Calendar
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { 
   DEFAULT_CATEGORIES, 
   getAllCategories, 
@@ -38,11 +39,10 @@ interface BudgetManagerProps {
   expenses: Expense[];
   budgetTemplates?: BudgetTemplate[];
   publicBudgetTemplates?: BudgetTemplate[];
-  onUpdateBudgets: (budgets: Budget[]) => void;
   onAddBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
   onUpdateBudget: (budgetId: string, budget: Partial<Budget>) => Promise<void>;
   onDeleteBudget: (budgetId: string) => Promise<void>;
-  onAddBudgetTemplate?: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
+  onAddBudgetTemplate?: (template: Omit<BudgetTemplate, 'id' | 'createdAt' | 'userId' | 'createdBy'>) => Promise<void>;
   onUpdateBudgetTemplate?: (templateId: string, template: Partial<BudgetTemplate>) => Promise<void>;
   onDeleteBudgetTemplate?: (templateId: string) => Promise<void>;
   onAdoptBudgetTemplate?: (template: BudgetTemplate) => Promise<void>;
@@ -54,7 +54,6 @@ export function BudgetManager({
   expenses,
   budgetTemplates = [],
   publicBudgetTemplates = [],
-  onUpdateBudgets, 
   onAddBudget, 
   onUpdateBudget, 
   onDeleteBudget,
@@ -198,8 +197,8 @@ export function BudgetManager({
   const getProgressColor = (spent: number, limit: number) => {
     const percentage = (spent / limit) * 100;
     if (percentage >= 100) return 'bg-destructive';
-    if (percentage >= 80) return 'bg-yellow-500';
-    return 'bg-accent';
+    if (percentage >= 80) return 'bg-caution';
+    return 'bg-primary';
   };
 
   const availableCategories = DEFAULT_CATEGORIES.filter(
@@ -208,11 +207,17 @@ export function BudgetManager({
 
   return (
     <div className="space-y-6">
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Wallet size={22} /></span>
+          <div><h1>Budgets</h1><p>Set spending limits and check how each category is tracking.</p></div>
+        </div>
+      </header>
       <Tabs defaultValue="budgets" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="budgets" className="flex items-center gap-2">
             <Wallet size={16} />
-            My Budgets
+            Limits
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
@@ -224,7 +229,7 @@ export function BudgetManager({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Wallet size={24} className="text-primary" />
-               <h2 className="text-2xl font-semibold tracking-tight">Budget Overview</h2>
+               <h2 className="text-2xl font-semibold tracking-tight">Category budgets</h2>
             </div>
             <div className="flex items-center gap-2">
               <Button 
@@ -233,7 +238,7 @@ export function BudgetManager({
                 variant="outline"
               >
                 <Calculator className="w-4 h-4" />
-                Quick Setup
+                Budget setup
               </Button>
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -257,7 +262,7 @@ export function BudgetManager({
                         {getAllCategories(customCategories).map((cat) => (
                           <SelectItem key={cat.name} value={cat.name}>
                             <div className="flex items-center gap-2">
-                              <span>{cat.icon}</span>
+                              <span><ItemIcon value={cat.icon} size={17} /></span>
                               {cat.name}
                             </div>
                           </SelectItem>
@@ -366,12 +371,7 @@ export function BudgetManager({
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                            style={{ backgroundColor: category?.color || 'oklch(0.6 0.1 240)' }}
-                          >
-                            {category?.icon || '📝'}
-                          </div>
+                          <span className="m3-row-icon"><ItemIcon value={category?.icon} /></span>
                           <div>
                             <CardTitle className="text-lg">{budget.category}</CardTitle>
                             <p className="text-sm text-muted-foreground">
@@ -383,7 +383,7 @@ export function BudgetManager({
                           {(isOverBudget || isNearLimit) && (
                             <Warning 
                               size={20} 
-                              className={isOverBudget ? 'text-destructive' : 'text-yellow-500'} 
+                              className={isOverBudget ? 'text-destructive' : 'text-caution'}
                             />
                           )}
                           <Button
