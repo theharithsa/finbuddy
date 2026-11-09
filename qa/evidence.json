@@ -2,22 +2,75 @@
   "$schema": "../schemas/evidence.schema.json",
   "schemaVersion": 1,
   "application": "FinBuddy",
-  "revision": null,
-  "release": null,
-  "checks": [],
+  "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+  "release": "Firebase Hosting version 59d6e65f6a84d2f9",
+  "checks": [
+    {
+      "id": "main-foundation",
+      "status": "passed",
+      "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "command": "sh scripts/check.sh",
+      "observedAt": "2026-11-09T21:50:02Z",
+      "environment": "GitHub Actions main",
+      "artifact": "https://github.com/theharithsa/finbuddy/actions/runs/42706196096"
+    },
+    {
+      "id": "main-application",
+      "status": "passed",
+      "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "command": "GitHub Actions verify job",
+      "observedAt": "2026-11-09T21:52:07Z",
+      "environment": "GitHub Actions main",
+      "artifact": "https://github.com/theharithsa/finbuddy/actions/runs/42706196435"
+    },
+    {
+      "id": "hosting-deploy",
+      "status": "passed",
+      "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "command": "Firebase Hosting deploy action",
+      "observedAt": "2026-11-09T21:52:42Z",
+      "environment": "Firebase Hosting production",
+      "artifact": "https://github.com/theharithsa/finbuddy/actions/runs/42706196435"
+    },
+    {
+      "id": "hosting-ci-smoke",
+      "status": "failed",
+      "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "command": "Verify live revision and asset",
+      "observedAt": "2026-11-09T21:52:42Z",
+      "environment": "GitHub Actions production",
+      "artifact": "https://github.com/theharithsa/finbuddy/actions/runs/42706196435"
+    },
+    {
+      "id": "hosting-later-smoke",
+      "status": "passed",
+      "revision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "command": "node scripts/verify-hosting.mjs https://finbuddy-2025.web.app 22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+      "observedAt": "2026-11-09T22:05:22.9915387+00:00",
+      "environment": "Firebase Hosting production",
+      "artifact": "https://finbuddy-2025.web.app"
+    }
+  ],
   "limits": [
-    "See the linked PR for current-head CI and Hosting evidence.",
-    "Production release awaits the repository-required approving review.",
-    "Live Auth, callable response and Dynatrace tenant signals are separate checks."
+    "The first production smoke check reported a revision mismatch. The later smoke check confirmed the merged SHA and required Hosting assets.",
+    "The v3.0.0 tag records the earlier verified production commit 48ce818. Hosting version 5092852b479e2d27 is the preceding rollback candidate.",
+    "Live Firebase rules parity, callable response, Dynatrace ingestion, and actual provider spend require separate evidence."
   ],
   "lifecycle": {
-    "issueUrl": "https://github.com/theharithsa/budget-buddy/issues/111",
-    "pullRequestUrl": null,
-    "checkedHeadSha": null,
-    "mergeSha": null,
-    "issueResolution": null,
-    "deploymentId": null,
-    "artifactDigest": null,
-    "sdlcEvidence": []
+    "issueUrl": "https://github.com/theharithsa/finbuddy/issues/111",
+    "pullRequestUrl": "https://github.com/theharithsa/finbuddy/pull/112",
+    "checkedHeadSha": "529a1d27141a3275bbf1b1d78304b8d696c38407",
+    "mergeSha": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115",
+    "issueResolution": "completed",
+    "deploymentId": "1794261161186000",
+    "artifactDigest": "sha256:61024a948105bd6f28bd67495a42834a66ba5a04ccb92d96f4ac3629cd0dcefb",
+    "sdlcEvidence": [
+      {
+        "type": "application-tag",
+        "tag": "v3.0.0",
+        "revision": "48ce818202c5efeae043d1589cbd81ef436b103c",
+        "source": "https://github.com/theharithsa/finbuddy/tree/v3.0.0"
+      }
+    ]
   }
 }

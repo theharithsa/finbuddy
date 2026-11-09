@@ -6,6 +6,11 @@ license: Complete terms in LICENSE.txt
 
 # MCP Server Development Guide
 
+## FinBuddy usage
+
+For this repository, start with the [FinBuddy MCP service skill](../service-mcp-server/SKILL.md) and the package lockfile. Its current transport is operator-run stdio with privileged Firebase Admin SDK access. Use the general references below for protocol design, and confirm API examples against the lockfile and the [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) before adapting them. Preserve this bundled guide and its license as the legacy reference.
+
+
 ## Overview
 
 Create MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. The quality of an MCP server is measured by how well it enables LLMs to accomplish real-world tasks.

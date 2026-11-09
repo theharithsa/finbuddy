@@ -1,22 +1,22 @@
 # FinBuddy MCP Server
 
-[![MCP](https://img.shields.io/badge/MCP-1.12.1-8b5cf6?style=flat-square)](https://modelcontextprotocol.io/)
-[![Firebase](https://img.shields.io/badge/Firebase%20Admin-13.4.0-ffca28?style=flat-square&logo=firebase)](https://firebase.google.com/)
+[![MCP](https://img.shields.io/badge/MCP-1.29.0-8b5cf6?style=flat-square)](https://modelcontextprotocol.io/)
+[![Firebase](https://img.shields.io/badge/Firebase%20Admin-13.7.0-ffca28?style=flat-square&logo=firebase)](https://firebase.google.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-Model Context Protocol (MCP) server for the FinBuddy personal finance app. Provides 15 tools for expense CRUD, budget management, and financial analytics — all backed by Firebase/Firestore.
+Model Context Protocol (MCP) server for the FinBuddy personal finance app. Provides 16 tools for expense CRUD, budgets, analytics and app lookup. Expense, budget and analytics tools use Firestore.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 24 for the verified repository build
 - A Firebase project with Firestore enabled (project: `finbuddy-2025`)
-- A service account JSON key with Firestore access
+- An approved Firebase Admin credential with access to the intended project
 
 ## Setup
 
 ```bash
 cd mcp-server
-npm install
+npm ci
 npm run build
 ```
 
@@ -70,27 +70,21 @@ To avoid passing `userId` on every tool call, set the `FINBUDDY_USER_ID` environ
 }
 ```
 
-With this set, all 15 tools will use your UID automatically. You can still override it per-call by passing `userId` explicitly.
+With this set, the 15 Firestore-backed tools can resolve your UID automatically. You can still override it per-call by passing `userId` explicitly.
 
-Find your UID in Firebase Console → Authentication → Users, or in the browser DevTools console while logged in:
-```js
-firebase.auth().currentUser.uid
-```
+Find the intended account's UID in **Firebase Console → Authentication → Users**.
 
-### Manual / Inspector
+### Manual start
 
 ```bash
 # Run directly
 npm start
 
-# Interactive inspector (test tools in browser)
-npm run inspect
-
 # Development mode (no build step)
 npm run dev
 ```
 
-## Tools (15 total)
+## Tools (16 total)
 
 ### Expenses (5 tools)
 
@@ -122,9 +116,15 @@ npm run dev
 | `finbuddy_daily_spending` | Day-by-day spending with peak day detection |
 | `finbuddy_financial_health` | Financial health score (0-100) combining budget compliance, consistency, and over-budget analysis |
 
+### App lookup (1 tool)
+
+| Tool | Description |
+|------|-------------|
+| `finbuddy_search_apps` | Find an app name in the bundled app library before logging an expense |
+
 ## User Authentication
 
-`userId` is **optional** on all tools when `FINBUDDY_USER_ID` is set as an environment variable. The resolution order is:
+`userId` is **optional** on Firestore-backed tools when `FINBUDDY_USER_ID` is set as an environment variable. The resolution order is:
 
 1. `userId` parameter passed to the tool (highest priority)
 2. `FINBUDDY_USER_ID` environment variable (fallback)
@@ -137,9 +137,6 @@ This maps to the Firebase Auth UID used in Firestore paths (`/users/{userId}/exp
 ```
 /users/{userId}/expenses    → Expense documents
 /users/{userId}/budgets     → Budget documents
-/users/{userId}/templates   → Recurring template documents
-/customCategories           → User-created categories
-/publicCategories           → Shared/public categories
 ```
 
 ## Development
@@ -151,14 +148,14 @@ npm run build
 # Watch mode (rebuild on changes)
 npx tsc --watch
 
-# Test with MCP Inspector
-npm run inspect
 ```
+
+Use a local MCP client to verify initialization and `tools/list` before running fixture tool operations.
 
 ## Tech Stack
 
 - **Runtime**: Node.js (ES modules)
-- **MCP SDK**: @modelcontextprotocol/sdk 1.12.1
-- **Firebase**: firebase-admin 13.4.0
-- **Validation**: Zod 3.25.x
+- **MCP SDK**: @modelcontextprotocol/sdk 1.29.0 (lockfile)
+- **Firebase**: firebase-admin 13.7.0 (lockfile)
+- **Validation**: Zod 3.25.76 (lockfile)
 - **Language**: TypeScript 5.8.x

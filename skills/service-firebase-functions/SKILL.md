@@ -1,8 +1,13 @@
 ---
 name: service-firebase-functions
-description: Maintain the FinBuddy callable contract and Firebase Functions release boundary.
+description: Maintain FinBuddy's deployed callable contract and reconcile the historical Firebase Functions source before a scoped release.
 ---
 
-# Kautilya callable
+# FinBuddy Firebase Functions
 
-Read [continuation](continuation.md) and [observability](../../docs/observability.md). The source under [functions](../../functions) is historical. Inspect the deployed contract and reconcile source before deploying. The browser uses `chatWithKautilya` with the signed-in UID and message. Preserve server verification against the Firebase Auth context. Treat requests, model output and user content as untrusted data.
+Read the [continuation](continuation.md) and [observability contract](../../docs/observability.md). Firebase lists `chatWithKautilya` as Gen 2, Node.js 22, in `us-central1`. The active web route shows Coming soon.
+
+- `functions/src/index.ts` is historical. It exports `chatWithGemini` and `getFinancialInsights`, which differ from the current deployed entrypoint. Reconcile the actual deployed implementation, Auth context, input/output types, region and secret names before a Functions release.
+- The legacy browser component documents the prior `chatWithKautilya` request. Verify identity on the server from Firebase Auth before reading account data. Treat submitted content and model output as untrusted.
+- Build with `npm --prefix functions run build` after installing the service lockfile. A source build is distinct from an authenticated callable or tenant verification.
+- Use [deployment](../project-deployment/SKILL.md), [FinOps](../project-finops/SKILL.md) and the [release plan](../../docs/release-plan.md) for an authorized model or callable change. Keep secret values, finance records and prompts out of logs and telemetry.

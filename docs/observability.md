@@ -10,6 +10,8 @@ The release defaults to RUM off. Enable a FinBuddy-specific Classic tag with `VI
 
 The browser writes to Firestore using Firebase Auth and existing owner-scoped rules. Those writes have no app-owned server span or canonical business event. The KautilyaAI screen shows Coming soon. The previously deployed `chatWithKautilya` callable and its Dynatrace OTLP configuration have a separate lifecycle. Treat callable telemetry as pending reconciliation and independent verification.
 
+See the [Firebase data handoff](../skills/service-firebase-data/continuation.md) for verified provider boundaries and [FinOps](../skills/project-finops/SKILL.md) for metered usage. Dynatrace ingestion and provider billable usage require separate evidence.
+
 ## Delivery
 
 GitHub Actions records the actual lint, unit, isolated browser, build and Hosting smoke outcomes. The production job verifies the Git revision and asset cache headers from live Hosting. Automated export of GitHub outcomes to Dynatrace requires a trusted metadata-only observer and a confirmed ingestion route. PR checks use no cloud or Dynatrace credentials.
