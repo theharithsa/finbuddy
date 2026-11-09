@@ -1,6 +1,6 @@
 # FinBuddy
 
-FinBuddy is an INR-first personal finance workspace for tracking everyday spending, setting category budgets, and reviewing spending by month.
+FinBuddy is an INR-first household finance workspace for tracking income, everyday spending, upcoming bills and EMIs, and the latest value of savings and investments.
 
 Template version: **1.9.0** · [App Launchpad adoption](project.json) · [FinBuddy release plan](docs/release-plan.md)
 
@@ -15,6 +15,7 @@ Use Node.js 24 and run `npm ci`, then `npm run dev`. Local development uses FinB
 | Path | Responsibility |
 | --- | --- |
 | `src/features/account` | Sign-in, registration and recovery |
+| `src/features/household` | Monthly Home, bill payments, savings and investment values |
 | `src/features/workspace` | Monthly overview, spending calculations and expense ledger |
 | `src/components` | Feature screens, expense dialogs and shared controls |
 | `src/lib/firebase.ts` | Firebase client and existing document contracts |

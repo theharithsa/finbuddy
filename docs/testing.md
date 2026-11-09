@@ -27,5 +27,8 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 | FIN-02 | Open each workspace destination, toggle and restore dark mode, verify keyboard dismissal and sign out at 390 × 844 |
 | FIN-03 | Check leap month, local month boundaries, legacy ISO dates and paise arithmetic |
 | FIN-04 | Verify exact deployed revision and immutable JavaScript from Hosting |
+| FIN-06 | Record income, link an existing bill payment, add another payment, and verify that savings stay separate after reload |
+| FIN-07 | Submit concurrent payments, verify one ledger entry, and reject a different account’s read |
+| FIN-08 | Carry overdue bills forward, handle short months and leap years, and restore an unpaid bill if its expense is removed |
 
 Live Google sign-in, tenant signal searchability and model responses require distinct verification. The [release plan](release-plan.md) describes the boundary between emulator and Hosting evidence.

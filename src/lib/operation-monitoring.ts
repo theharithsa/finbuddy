@@ -2,6 +2,7 @@ type Operation =
   | 'expense.create' | 'expense.update' | 'expense.delete'
   | 'budget.create' | 'budget.update' | 'budget.delete'
   | 'ai.ask'
+  | 'household.save' | 'household.remove' | 'bill.payment'
   | 'auth.google' | 'auth.email' | 'auth.signup' | 'auth.reset' | 'auth.magic_link';
 
 interface RumClassic {

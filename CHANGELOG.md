@@ -3,9 +3,10 @@
 ## [3.0.0] - Unreleased
 
 - Applied Material 3 to sign-in, all workspace destinations, shared controls, dialogs, and charts.
-- Open on Expenses and log spending from any screen. Amount and category are required, and extra details are available on demand.
+- Open on the household’s monthly Home and log expenses from any screen. Amount and category are required, and extra details are available on demand.
+- Track income, bills and EMIs, and dated savings and investment values. Link an existing expense when recording a bill payment to keep one ledger entry.
 - Preserved Firebase account and document paths. Restored platform labels on new expense writes.
-- Connected KautilyaAI to the existing deployed callable.
+- Parked KautilyaAI behind a Coming soon screen.
 - Adopted App Launchpad v1.9.0 and added emulator-backed browser and Hosting revision checks.
 
 

@@ -117,7 +117,7 @@
   .m3-overview-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
   .m3-stat-highlight { grid-column: 1/-1; }
   .m3-overview-grid { grid-template-columns: 1fr; gap: 12px; }
-  [data-sonner-toaster][data-y-position="bottom"] { --offset-bottom: calc(148px + env(safe-area-inset-bottom)); }
+  body:has(.m3-navigation) [data-sonner-toaster][data-y-position="bottom"] { --finbuddy-toast-bottom: calc(148px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 370px) {
   .m3-destination-indicator { min-width: 46px; }

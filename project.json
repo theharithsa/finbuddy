@@ -10,8 +10,8 @@
   "decisions": {
     "product": {
       "status": "approved",
-      "value": "Expense-first INR finance workspace with Material 3, category budgets and monthly review",
-      "approval": "Revival and Material 3 requests, tracked in issue 111"
+      "value": "Material 3 INR household workspace with a monthly money check-in, quick expenses, bills and EMIs, and dated savings and investment values",
+      "approval": "Revival, Material 3 and household tracking requests, tracked in issue 111"
     },
     "stack": {
       "status": "approved",

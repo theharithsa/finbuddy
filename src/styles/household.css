@@ -1,0 +1,58 @@
+.money-period { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--m3-outline-variant); border-radius: var(--m3-shape-full); background: var(--m3-surface-low); font: var(--m3-body-medium); white-space: nowrap; }
+.money-hero { padding: clamp(16px, 3.1vw, 29px); border-radius: var(--m3-shape-xl); background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+.money-hero-top { display: flex; justify-content: space-between; align-items: start; gap: 14px; flex-wrap: wrap; }
+.money-hero-top > div { display: grid; gap: 7px; min-width: 0; }
+.money-hero-top span, .money-metrics span { display: flex; align-items: center; gap: 6px; font: var(--m3-body-medium); font-weight: 500; }
+.money-hero-top strong { font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: 1.05; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.money-hero-top p { font: var(--m3-body-medium); }
+.money-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 17px; }
+.money-metrics > * { display: grid; gap: 4px; padding: 9px 11px; border-radius: var(--m3-shape-medium); min-width: 0; background: color-mix(in srgb, var(--m3-on-primary-container) 8%, transparent); text-align: left; }
+.money-metrics button:hover { background: color-mix(in srgb, var(--m3-on-primary-container) 14%, transparent); }
+.money-metrics strong, .money-held > strong, .money-compact-list li > strong, .money-record-list li > button > strong, .money-bill-row > strong { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.money-metrics strong { font: var(--m3-title-medium); font-variant-numeric: tabular-nums; }
+.money-home-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.money-panel { display: flex; flex-direction: column; gap: 14px; }
+.money-panel-heading { display: flex; align-items: start; gap: 10px; }
+.money-panel-heading h2 { font: var(--m3-title-large); }
+.money-panel-heading p, .money-quiet { color: var(--m3-on-surface-variant); font: var(--m3-body-medium); }
+.money-panel-heading p { margin-top: 3px; }
+.money-panel-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; }
+.money-panel-actions [data-slot="button"] { white-space: normal; text-align: left; }
+.money-compact-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0,max-content); gap: 8px; align-items: center; padding-block: 9px; border-top: 1px solid var(--m3-outline-variant); }
+.money-compact-list li > div, .money-held, .money-bill-label, .money-record-list button > span { display: grid; gap: 3px; min-width: 0; }
+.money-compact-list strong, .money-bill-row strong, .money-record-list strong { font: var(--m3-title-medium); overflow-wrap: anywhere; }
+.money-compact-list small, .money-held small, .money-bill-label small, .money-record-list small { font: var(--m3-body-medium); color: var(--m3-on-surface-variant); overflow-wrap: anywhere; }
+.money-held > strong { font: var(--m3-headline-small); }
+.money-list-panel summary { display: flex; align-items: center; gap: 8px; cursor: pointer; font: var(--m3-title-medium); min-height: 34px; }
+.money-list-panel summary::-webkit-details-marker { display: none; }
+.money-list-panel summary small { margin-left: auto; color: var(--m3-on-surface-variant); font: var(--m3-body-medium); }
+.money-list-panel[open] summary { margin-bottom: 10px; }
+.money-record-list > li + li, .money-bill-list > li + li { border-top: 1px solid var(--m3-outline-variant); }
+.money-record-list button { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 18px; gap: 10px; align-items: center; text-align: left; padding: 10px 4px; min-height: 60px; border-radius: 8px; }
+.money-record-list button:hover { background: var(--m3-surface-high); }
+.money-bill-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,max-content) auto; align-items: center; gap: 10px; padding: 10px 0; }
+.money-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.money-paid { display: inline-flex; gap: 5px; align-items: center; padding: 5px 9px; border-radius: 8px; background: var(--m3-positive-container); color: var(--m3-on-positive-container); font: var(--m3-body-medium); }
+.money-form, .money-form > fieldset { display: grid; min-width: 0; gap: 12px; }
+.money-form .m3-expense-actions { align-items: center; }
+.money-form .money-remove { margin-right: auto; color: var(--m3-error); }
+.money-amount-field > div { display: flex; align-items: center; gap: 7px; padding-left: 12px; background: var(--m3-surface-low); border: 1px solid var(--m3-outline); border-radius: var(--m3-shape-small); }
+.money-amount-field > div:focus-within { outline: 2px solid var(--m3-primary); outline-offset: 1px; }
+.money-amount-field input { border: 0; padding-left: 0; outline: none; font-variant-numeric: tabular-nums; }
+.money-amount-field input:focus-visible { outline: none; }
+.money-amount-field > div > span { color: var(--m3-primary); }
+.money-details { border-radius: var(--m3-shape-medium); padding: 5px 10px; background: var(--m3-secondary-container); color: var(--m3-on-secondary-container); }
+.money-details summary { padding: 7px 1px; cursor: pointer; font: var(--m3-body-medium); }
+.money-details > label { margin: 6px 0 9px; }
+.money-details small { font-size: .72rem; }
+
+@media (max-width: 680px) {
+  .money-home-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .money-hero-top { gap: 10px; }
+  .money-metrics { gap: 6px; }
+  .money-metrics > * { padding: 7px 6px; }
+  .money-metrics span { font-size: .72rem; }
+  .money-metrics strong { font-size: .88rem; }
+  .money-bill-row { grid-template-columns: minmax(0,1fr) minmax(0,max-content); gap: 6px; }
+  .money-bill-actions { grid-column: 1/-1; justify-content: flex-end; }
+}

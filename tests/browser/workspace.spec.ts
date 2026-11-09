@@ -1,13 +1,19 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
-async function createAccount(page: Page) {
+async function createAccount(page: Page, openLedger = true) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await page.getByLabel('Name').fill('Test account');
   await page.getByLabel('Email', { exact: true }).fill(`workspace-${randomUUID()}@example.test`);
   await page.getByLabel('Password', { exact: true }).fill('Synthetic-only-password-2026');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Home', exact: true })).toBeVisible();
+  if (openLedger) await openExpenses(page);
+}
+
+async function openExpenses(page: Page) {
+  await page.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('button', { name: 'Expenses', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Expenses', exact: true })).toBeVisible();
 }
 
@@ -56,6 +62,7 @@ test('persists optional fields and a receipt, then edits, filters and deletes th
   await expect(add).toHaveCount(0);
 
   await page.reload();
+  await openExpenses(page);
   const entry = page.getByRole('button', { name: 'Edit expense: Synthetic lunch' });
   await expect(entry).toContainText('Swiggy · Family');
   await page.getByRole('button', { name: 'Previous month' }).click();
@@ -98,15 +105,16 @@ test('persists optional fields and a receipt, then edits, filters and deletes th
 
 test('navigation, secondary screens and dark mode work on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await createAccount(page);
+  await createAccount(page, false);
   const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
-  await expect(nav.getByRole('button', { name: 'Expenses' })).toHaveAttribute('aria-current', 'page');
-  await nav.getByRole('button', { name: 'Overview' }).click();
-  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
-  await nav.getByRole('button', { name: 'Budgets' }).click();
-  await expect(page.getByRole('heading', { name: 'Budgets', exact: true })).toBeVisible();
+  await expect(nav.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  await nav.getByRole('button', { name: 'Savings', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Savings & investments', exact: true })).toBeVisible();
 
   for (const [label, heading] of [
+    ['Bills & EMIs', 'Bills & EMIs'],
+    ['Budgets', 'Budgets'],
+    ['Overview', 'Overview'],
     ['Recurring', 'Recurring templates'],
     ['Categories', 'Categories'],
     ['People', 'People'],
@@ -119,6 +127,7 @@ test('navigation, secondary screens and dark mode work on a phone', async ({ pag
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   }
+  await expect(page.getByRole('main').getByText('Coming soon', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Switch to dark mode' }).click();
   await expect(page.locator('html')).toHaveClass('dark');
@@ -132,4 +141,131 @@ test('navigation, secondary screens and dark mode work on a phone', async ({ pag
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page.getByRole('heading', { name: 'Welcome to FinBuddy' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+async function addBill(page: Page, name: string, amount: string, monthly = false) {
+  await page.getByRole('button', { name: 'Add bill', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Add bill', exact: true });
+  await dialog.getByLabel('Name', { exact: true }).fill(name);
+  await dialog.getByLabel('Expected amount').fill(amount);
+  if (monthly) {
+    await dialog.getByText('Repeat', { exact: true }).click();
+    await dialog.getByLabel('How often?').selectOption('monthly');
+  }
+  await dialog.getByRole('button', { name: 'Save bill', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+}
+
+test('tracks household income, links a payment once and keeps investment values separate', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await createAccount(page, false);
+  const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
+  const summary = page.getByRole('region', { name: 'Monthly money summary' });
+  await expect(summary).toContainText('Add income you’ve received');
+  await page.getByRole('button', { name: 'Add income', exact: true }).click();
+  const income = page.getByRole('dialog', { name: 'Add income', exact: true });
+  await income.getByLabel('Amount received').fill('65000');
+  await income.getByLabel(/Label/).fill('Salary');
+  await income.getByRole('button', { name: 'Save income' }).click();
+  await expect(income).toHaveCount(0);
+
+  const expense = await openExpense(page);
+  await expense.getByLabel('Amount').fill('1250');
+  await expense.getByLabel('Category', { exact: true }).selectOption('Bills & Utilities');
+  await expense.getByLabel(/Note/).fill('Broadband paid');
+  await expense.getByRole('button', { name: 'Save expense' }).click();
+  await expect(expense).toHaveCount(0);
+  await addBill(page, 'Broadband', '1250');
+  await addBill(page, 'Rent', '12000', true);
+  await expect(summary.getByText('₹13,250.00', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Manage bills' }).click();
+  await page.getByRole('listitem').filter({ hasText: 'Broadband' }).getByRole('button', { name: 'Record payment' }).click();
+  const payment = page.getByRole('dialog', { name: 'Record payment' });
+  await payment.getByRole('button', { name: 'Already logged it?' }).click();
+  const picker = payment.getByLabel('Expense already logged');
+  const existing = await picker.locator('option').filter({ hasText: 'Broadband paid' }).getAttribute('value');
+  await picker.selectOption(existing ?? '');
+  await payment.getByRole('button', { name: 'Link expense' }).click();
+  await expect(payment).toHaveCount(0);
+  await page.getByRole('listitem').filter({ hasText: 'Rent' }).getByRole('button', { name: 'Record payment' }).click();
+  await expect(payment.getByLabel('Amount paid')).toHaveValue('12000');
+  await payment.getByRole('button', { name: 'Save payment' }).click();
+  await expect(payment).toHaveCount(0);
+  await expect(page.getByText('You’re caught up on the bills shown here.')).toBeVisible();
+
+  await nav.getByRole('button', { name: 'Savings', exact: true }).click();
+  await page.getByRole('button', { name: 'Add savings or investment' }).click();
+  const holding = page.getByRole('dialog', { name: 'Add savings or investment' });
+  await holding.getByLabel('Name', { exact: true }).fill('Emergency savings');
+  await holding.getByLabel('Latest value').fill('50000');
+  await holding.getByText('Type and value date', { exact: false }).click();
+  await holding.getByLabel('Type', { exact: true }).selectOption('Savings');
+  await holding.getByRole('button', { name: 'Save value' }).click();
+  await expect(holding).toHaveCount(0);
+  await page.getByRole('button', { name: 'Update value: Emergency savings' }).click();
+  const update = page.getByRole('dialog', { name: 'Update value' });
+  await update.getByLabel('Latest value').fill('52000');
+  await update.getByRole('button', { name: 'Save changes' }).click();
+  await expect(update).toHaveCount(0);
+
+  await page.reload();
+  await expect(summary.getByText('₹51,750.00', { exact: true })).toBeVisible();
+  await expect(summary.getByRole('button', { name: /Expenses logged/ })).toContainText('₹13,250.00');
+  await expect(summary.getByRole('button', { name: /Bills still due/ })).toContainText('₹0.00');
+  await expect(page.getByText('₹52,000.00', { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 760 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await page.getByRole('button', { name: 'Previous month' }).click();
+  await expect(summary).toContainText('Add income you’ve received');
+  await page.getByRole('button', { name: 'Next month' }).click();
+  await expect(summary.getByText('₹51,750.00', { exact: true })).toBeVisible();
+  await openExpenses(page);
+  await expect(page.getByRole('button', { name: 'Edit expense: Broadband paid' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Edit expense: Rent' })).toHaveCount(1);
+});
+
+test('concurrent payment attempts use one expense and household reads stay owner-scoped', async ({ page, browser }) => {
+  await createAccount(page, false);
+  await addBill(page, 'Phone bill', '799');
+  const modules = { firebase: '/src/lib/firebase.ts', household: '/src/lib/household-firestore.ts' };
+  const result = await page.evaluate(async (paths) => {
+    const { auth } = await import(paths.firebase) as typeof import('../../src/lib/firebase');
+    const { watchHousehold, recordBillPayment } = await import(paths.household) as typeof import('../../src/lib/household-firestore');
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Expected a synthetic account');
+    const bill = await new Promise<import('../../src/lib/household').Bill>((resolve, reject) => {
+      const stop = watchHousehold(uid, ({ bills }) => {
+        stop();
+        const entry = bills.find(({ name }) => name === 'Phone bill');
+        if (entry) resolve(entry);
+        else reject(new Error('Expected a persisted bill'));
+      }, () => reject(new Error('Unable to load test bill')));
+    });
+    const payment = { amountPaise: 79_900, date: bill.dueDate };
+    const outcomes = await Promise.all([
+      recordBillPayment(uid, bill.id, bill.dueDate, payment),
+      recordBillPayment(uid, bill.id, bill.dueDate, payment),
+    ]);
+    return { uid, id: bill.id, outcomes: outcomes.sort() };
+  }, modules);
+  expect(result.outcomes).toEqual(['already-recorded', 'recorded']);
+  await openExpenses(page);
+  await expect(page.getByRole('button', { name: 'Edit expense: Phone bill' })).toHaveCount(1);
+
+  const other = await browser.newContext({ baseURL: 'http://127.0.0.1:5173' });
+  try {
+    const otherPage = await other.newPage();
+    await createAccount(otherPage, false);
+    const status = await otherPage.evaluate(async ({ firebase, uid, id }) => {
+      const { auth } = await import(firebase) as typeof import('../../src/lib/firebase');
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Expected a second synthetic account');
+      const endpoint = 'http://127.0.0.1:8080/v1/projects/demo-finbuddy/databases/(default)/documents/users';
+      return (await fetch(`${endpoint}/${uid}/householdBills/${id}`, { headers: { Authorization: `Bearer ${token}` } })).status;
+    }, { firebase: modules.firebase, uid: result.uid, id: result.id });
+    expect(status).toBe(403);
+  } finally {
+    await other.close();
+  }
 });

@@ -7,6 +7,7 @@ export interface Expense {
   description: string;
   date: string;
   createdAt: string;
+  billPaymentKey?: string;
   receiptUrl?: string;
   receiptFileName?: string;
   peopleIds?: string[]; // IDs of people this expense was spent for

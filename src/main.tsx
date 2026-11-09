@@ -11,6 +11,7 @@ import './styles/material.css';
 import './styles/workspace.css';
 import './styles/expenses.css';
 import './styles/account.css';
+import './styles/household.css';
 
 initializeRum();
 

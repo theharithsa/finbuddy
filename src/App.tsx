@@ -1,6 +1,6 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { ChartNoAxesCombined, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Trash2, Users, Wallet } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Trash2, Users, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
@@ -18,41 +18,55 @@ import { UsageAnalytics } from '@/features/account/UsageAnalytics';
 import { LoginPage, Wordmark } from '@/features/account/LoginPage';
 import { Ledger } from '@/features/workspace/Ledger';
 import { Overview } from '@/features/workspace/Overview';
-import { localDate, monthRange } from '@/lib/finance-period';
+import { localDate, monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
+import { useHouseholdData } from '@/hooks/useHouseholdData';
+import { listBillOccurrences, type BillOccurrence } from '@/lib/household';
+import { MoneyHome } from '@/features/household/MoneyHome';
+import { BillsPage } from '@/features/household/BillsPage';
+import { SavingsPage } from '@/features/household/SavingsPage';
+import { HouseholdEditor, type Editor } from '@/features/household/HouseholdEditor';
+import { BillPaymentEditor } from '@/features/household/BillPaymentEditor';
+import { KautilyaComingSoon } from '@/features/household/KautilyaComingSoon';
 
 const BudgetManager = lazy(() => import('@/components/BudgetManager').then(({ BudgetManager }) => ({ default: BudgetManager })));
 const RecurringTemplates = lazy(() => import('@/components/RecurringTemplates').then(({ RecurringTemplates }) => ({ default: RecurringTemplates })));
 const CategoryManager = lazy(() => import('@/components/CategoryManager').then(({ CategoryManager }) => ({ default: CategoryManager })));
 const PeopleManager = lazy(() => import('@/components/PeopleManager').then(({ PeopleManager }) => ({ default: PeopleManager })));
 const MetricsExplorer = lazy(() => import('@/components/MetricsExplorer').then(({ MetricsExplorer }) => ({ default: MetricsExplorer })));
-const AIChatPage = lazy(() => import('@/components/AIChatPage').then(({ AIChatPage }) => ({ default: AIChatPage })));
 
 const mainPages = [
+  { id: 'home', label: 'Home', icon: House },
   { id: 'expenses', label: 'Expenses', icon: ReceiptText },
-  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-  { id: 'budgets', label: 'Budgets', icon: Wallet },
+  { id: 'savings', label: 'Savings', icon: Landmark },
 ] as const;
 
 const morePages = [
+  { id: 'bills', label: 'Bills & EMIs', description: 'See payments still due', icon: CalendarDays },
+  { id: 'budgets', label: 'Budgets', description: 'Set category spending limits', icon: Wallet },
+  { id: 'dashboard', label: 'Overview', description: 'Review your spending by month', icon: LayoutDashboard },
   { id: 'templates', label: 'Recurring', description: 'Reuse expenses you log regularly', icon: Repeat2 },
   { id: 'categories', label: 'Categories', description: 'Organize where your money goes', icon: Shapes },
   { id: 'people', label: 'People', description: 'Track spending for other people', icon: Users },
   { id: 'explorer', label: 'Metrics Explorer', description: 'Explore and compare spending patterns', icon: ChartNoAxesCombined },
-  { id: 'ai-chat', label: 'KautilyaAI', description: 'Ask questions about your spending', icon: Sparkles },
+  { id: 'ai-chat', label: 'KautilyaAI', description: 'Coming soon', icon: Sparkles },
 ] as const;
 
 type Page = (typeof mainPages)[number]['id'] | (typeof morePages)[number]['id'];
 
 function Workspace({ user }: { user: User }) {
   const data = useFirestoreData();
+  const household = useHouseholdData(user.uid);
   const shortcut = new URLSearchParams(location.search).get('action');
-  const [page, setPage] = useState<Page>(shortcut === 'view-budget' ? 'budgets' : 'expenses');
+  const [page, setPage] = useState<Page>(shortcut === 'view-budget' ? 'budgets' : shortcut === 'add-expense' ? 'expenses' : 'home');
   const [menu, setMenu] = useState(false);
   const [adding, setAdding] = useState(shortcut === 'add-expense');
+  const [entryEditor, setEntryEditor] = useState<Editor | null>(null);
+  const [paymentEditor, setPaymentEditor] = useState<BillOccurrence | null>(null);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [deleting, setDeleting] = useState<Expense | null>(null);
   const [deletingPending, setDeletingPending] = useState(false);
   const [month, setMonth] = useState(() => localDate().slice(0, 7));
+  const [homeMonth, setHomeMonth] = useState<string | null>(null);
   const [range, setRange] = useState(() => monthRange(month));
   const [signingOut, setSigningOut] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -61,6 +75,17 @@ function Workspace({ user }: { user: User }) {
   const name = user.displayName || user.email || 'Your account';
   const currentPage = [...mainPages, ...morePages].find(({ id }) => id === page)?.label;
   const moreSelected = morePages.some(({ id }) => id === page);
+
+  const today = localDate();
+  const currentMonth = today.slice(0, 7);
+  const selectedMonth = page === 'home' ? homeMonth ?? currentMonth : currentMonth;
+  const selectedRange = monthRange(selectedMonth);
+  const throughDate = selectedMonth === currentMonth ? today : selectedRange.to;
+  const selectedIncome = household.data.income.filter(({ date }) => date >= selectedRange.from && date <= throughDate).sort((a, b) => b.date.localeCompare(a.date));
+  const spentPaise = Math.round(totalAmount(periodExpenses(data.expenses, selectedRange.from, throughDate)) * 100);
+  const bills = listBillOccurrences(household.data.bills, household.data.payments, data.expenses, selectedMonth, throughDate);
+  const householdPage = page === 'home' || page === 'bills' || page === 'savings';
+  const expenseDependentPage = page !== 'savings' && page !== 'ai-chat';
 
   function navigate(next: Page) {
     setPage(next);
@@ -146,9 +171,24 @@ function Workspace({ user }: { user: User }) {
           <ThemeToggle />
         </header>
         <main id="workspace" className="m3-workspace" tabIndex={-1} ref={mainRef}>
-          {data.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><Button onClick={() => location.reload()}>Reload workspace</Button></section> :
-            data.loading ? <div className="m3-loading" role="status">Loading your workspace…</div> : (
+          {expenseDependentPage && data.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><Button onClick={() => location.reload()}>Reload workspace</Button></section> :
+            expenseDependentPage && data.loading ? <div className="m3-loading" role="status">Loading your workspace…</div> :
+            householdPage && household.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load household money</h1><p>Check your connection and try again.</p><Button onClick={household.retry}>Try again</Button></section> :
+            householdPage && household.loading ? <div className="m3-loading" role="status">Loading household money…</div> : (
               <Suspense fallback={<div className="m3-loading" role="status">Loading {currentPage}…</div>}>
+                {page === 'home' && <MoneyHome
+                  monthLabel={new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(selectedRange.from + 'T12:00:00'))}
+                  currentMonth={selectedMonth === currentMonth} today={throughDate}
+                  income={selectedIncome} spentPaise={spentPaise} bills={bills} holdings={household.data.holdings}
+                  onMonthChange={(direction) => {
+                    const next = shiftMonth(selectedMonth, direction);
+                    setHomeMonth(next >= currentMonth ? null : next);
+                  }}
+                  onEdit={setEntryEditor} onExpenses={() => { setMonth(selectedMonth); setRange(selectedRange); navigate('expenses'); }}
+                  onBills={() => navigate('bills')} onSavings={() => navigate('savings')}
+                />}
+                {page === 'bills' && <BillsPage bills={household.data.bills} occurrences={bills} today={today} onEdit={setEntryEditor} onPay={setPaymentEditor} />}
+                {page === 'savings' && <SavingsPage holdings={household.data.holdings} onEdit={setEntryEditor} />}
                 {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={categories} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
                 {page === 'expenses' && <Ledger expenses={data.expenses} categories={categories} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={setDeleting} onAdd={() => setAdding(true)} />}
                 {page === 'budgets' && <BudgetManager budgets={data.budgets} expenses={data.expenses} onAddBudget={data.addBudget} onDeleteBudget={data.deleteBudget} onUpdateBudget={data.updateBudget} customCategories={data.customCategories} budgetTemplates={data.budgetTemplates} publicBudgetTemplates={data.publicBudgetTemplates} onAdoptBudgetTemplate={data.adoptBudgetTemplate} onAddBudgetTemplate={data.addBudgetTemplate} onUpdateBudgetTemplate={data.updateBudgetTemplate} onDeleteBudgetTemplate={data.deleteBudgetTemplate} />}
@@ -156,13 +196,15 @@ function Workspace({ user }: { user: User }) {
                 {page === 'categories' && <CategoryManager customCategories={data.customCategories} publicCategories={data.publicCategories} onAddCategory={data.addCustomCategory} onUpdateCategory={data.updateCustomCategory} onDeleteCategory={data.deleteCustomCategory} onAdoptCategory={data.adoptCategory} />}
                 {page === 'people' && <PeopleManager user={user} customPeople={data.customPeople} publicPeople={data.publicPeople} onAddPerson={data.addPerson} onUpdatePerson={data.updatePerson} onDeletePerson={data.deletePerson} onAdoptPerson={data.adoptPerson} />}
                 {page === 'explorer' && <MetricsExplorer expenses={data.expenses} budgets={data.budgets} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
-                {page === 'ai-chat' && <AIChatPage />}
+                {page === 'ai-chat' && <KautilyaComingSoon onHome={() => navigate('home')} />}
               </Suspense>
             )}
           <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
         </main>
       </div>
 
+      {entryEditor && <HouseholdEditor uid={user.uid} editor={entryEditor} onClose={() => setEntryEditor(null)} />}
+      {paymentEditor && <BillPaymentEditor uid={user.uid} occurrence={paymentEditor} expenses={data.expenses} onClose={() => setPaymentEditor(null)} />}
       {adding && !data.loading && !data.error && <AddExpenseModal isOpen onClose={() => setAdding(false)} onAddExpense={addExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} recentCategories={data.expenses.map(({ category }) => category)} />}
       {editing && <EditExpenseModal expense={editing} isOpen onClose={() => setEditing(null)} onUpdate={data.updateExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
       <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => { if (!open && !deletingPending) setDeleting(null); }}>
@@ -182,5 +224,14 @@ function AppContent() {
 }
 
 export default function App() {
-  return <AuthProvider><AppContent /><Toaster position="bottom-center" /></AuthProvider>;
+  return (
+    <AuthProvider>
+      <AppContent />
+      <Toaster
+        position="bottom-center"
+        offset={{ bottom: 'var(--finbuddy-toast-bottom, 24px)' }}
+        mobileOffset={{ bottom: 'var(--finbuddy-toast-bottom, 16px)' }}
+      />
+    </AuthProvider>
+  );
 }
