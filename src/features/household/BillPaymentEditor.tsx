@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { localDate, shiftMonth } from '@/lib/finance-period';
+import { localDate } from '@/lib/finance-period';
 import { recordBillPayment } from '@/lib/household-firestore';
 import { parsePaise, type BillOccurrence } from '@/lib/household';
 import { formatCurrency, formatDate, type Expense } from '@/lib/types';
@@ -18,10 +18,8 @@ export function BillPaymentEditor({ uid, occurrence, expenses, onClose }: BillPa
   const [link, setLink] = useState(false);
   const today = localDate();
   const { bill, dueDate } = occurrence;
-  const earliestDate = shiftMonth(dueDate.slice(0, 7), -1);
   const candidates = expenses.filter((expense) =>
-    !expense.billPaymentKey && expense.date.slice(0, 10) <= today
-      && expense.date.slice(0, 7) >= earliestDate,
+    !expense.billPaymentKey && expense.date.slice(0, 10) <= today,
   ).sort((a, b) => {
     const aMatches = Number(Math.round(a.amount * 100) === bill.amountPaise);
     const bMatches = Number(Math.round(b.amount * 100) === bill.amountPaise);

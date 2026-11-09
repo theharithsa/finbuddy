@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { shiftMonth } from '../../src/lib/finance-period';
 
 async function createAccount(page: Page, openLedger = true) {
   await page.goto('/');
@@ -160,7 +161,7 @@ async function addBill(page: Page, name: string, amount: string, monthly = false
   await expect(dialog).toHaveCount(0);
 }
 
-test('tracks household income, links a payment once and keeps investment values separate', async ({ page }) => {
+test('tracks household income, links an advance payment once and keeps investment values separate', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await createAccount(page, false);
   const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
@@ -177,6 +178,10 @@ test('tracks household income, links a payment once and keeps investment values 
   await expense.getByLabel('Amount').fill('1250');
   await expense.getByLabel('Category', { exact: true }).selectOption('Bills & Utilities');
   await expense.getByLabel(/Note/).fill('Broadband paid');
+  await expense.getByRole('button', { name: /more details/i }).click();
+  const date = expense.getByLabel('Date', { exact: true });
+  const earlierMonth = shiftMonth((await date.inputValue()).slice(0, 7), -2);
+  await date.fill(earlierMonth + '-01');
   await expense.getByRole('button', { name: 'Save expense' }).click();
   await expect(expense).toHaveCount(0);
   await addBill(page, 'Broadband', '1250');
@@ -214,8 +219,8 @@ test('tracks household income, links a payment once and keeps investment values 
   await expect(update).toHaveCount(0);
 
   await page.reload();
-  await expect(summary.getByText('₹51,750.00', { exact: true })).toBeVisible();
-  await expect(summary.getByRole('button', { name: /Expenses logged/ })).toContainText('₹13,250.00');
+  await expect(summary.getByText('₹53,000.00', { exact: true })).toBeVisible();
+  await expect(summary.getByRole('button', { name: /Expenses logged/ })).toContainText('₹12,000.00');
   await expect(summary.getByRole('button', { name: /Bills still due/ })).toContainText('₹0.00');
   await expect(page.getByText('₹52,000.00', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 760 });
@@ -223,10 +228,13 @@ test('tracks household income, links a payment once and keeps investment values 
   await page.getByRole('button', { name: 'Previous month' }).click();
   await expect(summary).toContainText('Add income you’ve received');
   await page.getByRole('button', { name: 'Next month' }).click();
-  await expect(summary.getByText('₹51,750.00', { exact: true })).toBeVisible();
+  await expect(summary.getByText('₹53,000.00', { exact: true })).toBeVisible();
   await openExpenses(page);
-  await expect(page.getByRole('button', { name: 'Edit expense: Broadband paid' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Edit expense: Rent' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Edit expense: Broadband paid' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Previous month' }).click();
+  await page.getByRole('button', { name: 'Previous month' }).click();
+  await expect(page.getByRole('button', { name: 'Edit expense: Broadband paid' })).toHaveCount(1);
 });
 
 test('concurrent payment attempts use one expense and household reads stay owner-scoped', async ({ page, browser }) => {
