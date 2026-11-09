@@ -31,5 +31,7 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 | FIN-07 | Submit concurrent payments, verify one ledger entry, and reject a different account’s read |
 | FIN-08 | Carry overdue bills forward, handle short months and leap years, and restore an unpaid bill if its expense is removed |
 | FIN-09 | Apply a bundled font, switch palettes and display mode, verify settings at phone width, reload, and reset appearance |
+| FIN-10 | Open the public demo, check insight tiles and footer placement, and verify the demo makes no Firebase account requests |
+| FIN-11 | Render a synthetic profile photo and restore initials if the image fails |
 
 Live Google sign-in, tenant signal searchability and model responses require distinct verification. The [release plan](release-plan.md) describes the boundary between emulator and Hosting evidence.

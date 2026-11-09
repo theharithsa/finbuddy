@@ -21,7 +21,7 @@
 .m3-expense-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px; padding-right: 4px; }
 .m3-expense-row + .m3-expense-row { border-top: 1px solid var(--m3-outline-variant); }
 .m3-expense-row-main { display: grid; width: 100%; min-width: 0; min-height: 68px; grid-template-columns: auto minmax(0,1fr) minmax(0,max-content); align-items: center; gap: clamp(6px, 2vw, 14px); text-align: left; padding: 8px 4px 8px 12px; border-radius: 12px; }
-.m3-expense-row-main:hover { background: var(--m3-surface-high); }
+button.m3-expense-row-main:hover { background: var(--m3-surface-high); }
 .m3-row-label { display: grid; min-width: 0; gap: 2px; }
 .m3-row-label strong { font: var(--m3-title-medium); overflow-wrap: anywhere; }
 .m3-row-label small { font: var(--m3-body-medium); color: var(--m3-on-surface-variant); overflow-wrap: anywhere; }

@@ -19,10 +19,12 @@ Savings and investments use manually entered INR values, each with its own as-of
 
 ## Design system
 
-- Settings offers light, dark and system display modes, five Material color palettes and locally bundled fonts. Google Sans and Lavender are the defaults. Appearance applies immediately and persists on the device.
-- A purple Indian palm squirrel holding a rupee coin is the FinBuddy mark. The favicon, wordmark, touch and install icons use the same mascot. App destinations, form actions and built-in categories use the matching rounded SVG set.
+The FinBuddy glyph library uses one 24-unit grid, one 1.75-unit rounded stroke, and the surrounding text color. A glyph depicts one recognizable action or object. Navigation, forms, category badges, and recurring templates reuse the same glyphs. Legacy icon IDs map to these shapes and unknown IDs use a neutral fallback. Brand art and the official sign-in provider mark have their own assets.
+
+- Settings offers light, dark and system display modes, nine color palettes, Black & white, and locally bundled fonts. Google Sans and Lavender are the defaults. Appearance applies immediately and persists on the device.
+- A standalone squirrel silhouette with a sweeping tail and coin is the FinBuddy mark. The favicon, wordmark, touch and install icons use the same silhouette. The in-app mark inherits the theme color.
 - On wider screens, the app bar holds Home, Expenses, Savings, More, and Add expense. On phones, the destinations move to the bottom bar with a reachable Add expense button. More groups money tools and account options.
-- Home leads with one balance estimate and a three-row calculation. Bills and expenses use lightly divided lists. The savings section keeps a softer surface and the FinBuddy mascot.
+- Home leads with one balance estimate and a three-row calculation on a solid surface. Sign-in and Home use equally inset light outlines. Bills and expenses use lightly divided lists.
 - Short entrance transitions give page and form changes a sense of continuity. Control states and disclosures animate briefly. The page and form motion turns off when the system requests reduced motion.
 - Shared Material controls cover filled, tonal, outlined and text buttons, cards, text fields, chips, tabs, menus, switches, progress, tables, dialogs, sheets, and snackbars. The expense form becomes a bottom sheet on phones. Charts use the same roles as the app.
 - The ledger groups transactions by day and exposes search, date presets, category, person, and sort filters. Tapping a row edits it. Its overflow menu opens the receipt or asks for confirmation before deletion.
@@ -33,6 +35,12 @@ Savings and investments use manually entered INR values, each with its own as-of
 The layout takes its restrained surfaces and clear selection states from Dynatrace Strato. Copilot Money and Monarch inform the separation between a quick money check-in and deeper reports. Material 3 guides the interaction states and motion. [Dynatrace’s Strato refresh](https://www.dynatrace.com/news/blog/a-design-refresh-for-every-dynatrace-app-including-yours/) · [Copilot Money for Web](https://help.copilot.money/en/articles/11780342-copilot-money-for-web) · [Getting started with Monarch](https://help.monarch.com/hc/en-us/articles/360048393272-Getting-Started-with-Monarch) · [Material motion](https://m3.material.io/styles/motion)
 
 For another React app, reuse the appearance options in `src/lib/appearance.ts`, the provider in `src/contexts/ThemeContext.tsx` and the Material palette tokens. Set an app-specific storage key to keep its browser preferences separate.
+
+## Demo and insights
+
+Explore demo opens a read-only workspace with synthetic records. It uses the same Home, Expenses, Bills, Savings, Overview, and Settings screens. The demo route loads separately from the Firebase account app. Appearance preferences are device-local. In signed-in mode, FinBuddy reads the Google profile photo exposed by Firebase and falls back to initials.
+
+Overview adds a daily average over elapsed calendar days, the largest expense, the top category, and a change from the same number of elapsed days in the prior month. Metrics Explorer shows Coming soon.
 
 ## Data and release
 

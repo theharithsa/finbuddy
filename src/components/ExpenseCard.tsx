@@ -10,8 +10,8 @@ interface ExpenseCardProps {
   expense: Expense;
   categories: Category[];
   people: Pick<Person, 'id' | 'name'>[];
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 function getReceiptUrl(value: string | undefined): string | undefined {
@@ -37,17 +37,22 @@ export function ExpenseCard({ expense, categories, people, onEdit, onDelete }: E
   const metadata = [expense.category, expense.app === 'Cash' ? undefined : expense.app, ...personNames].filter(Boolean).join(' · ');
   const pdf = expense.receiptFileName?.toLowerCase().endsWith('.pdf');
 
-  return (
-    <li className="m3-expense-row">
-      <button type="button" className="m3-expense-row-main" aria-label={`Edit expense: ${label}`} onClick={onEdit}>
+  const row = (
+    <>
         <span className="m3-row-icon" aria-hidden="true">{icon ? <ItemIcon value={icon} size={21} /> : <ReceiptText size={21} />}</span>
         <span className="m3-row-label">
           <strong>{label}</strong>
           {metadata && <small>{metadata}</small>}
         </span>
         <span className="m3-row-amount">{formatCurrency(expense.amount)}</span>
-      </button>
-      <DropdownMenu modal={false}>
+    </>
+  );
+  return (
+    <li className="m3-expense-row">
+      {onEdit
+        ? <button type="button" className="m3-expense-row-main" aria-label={`Edit expense: ${label}`} onClick={onEdit}>{row}</button>
+        : <div className="m3-expense-row-main">{row}</div>}
+      {(onEdit || onDelete || receiptUrl) && <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button ref={actions} variant="ghost" size="icon" aria-label={`Actions for ${label}`}><EllipsisVertical size={20} /></Button>
         </DropdownMenuTrigger>
@@ -60,11 +65,11 @@ export function ExpenseCard({ expense, categories, people, onEdit, onDelete }: E
           actions.current?.focus();
           action();
         }}>
-          <DropdownMenuItem onSelect={() => { nextAction.current = onEdit; }}><Pencil size={17} /> Edit expense</DropdownMenuItem>
+          {onEdit && <DropdownMenuItem onSelect={() => { nextAction.current = onEdit; }}><Pencil size={17} /> Edit expense</DropdownMenuItem>}
           {receiptUrl && <DropdownMenuItem onSelect={() => { nextAction.current = () => setViewingReceipt(true); }}><FileText size={17} /> View receipt</DropdownMenuItem>}
-          <DropdownMenuItem variant="destructive" onSelect={() => { nextAction.current = onDelete; }}><Trash2 size={17} /> Delete expense</DropdownMenuItem>
+          {onDelete && <DropdownMenuItem variant="destructive" onSelect={() => { nextAction.current = onDelete; }}><Trash2 size={17} /> Delete expense</DropdownMenuItem>}
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu>}
       {receiptUrl && viewingReceipt && (
         <Dialog open onOpenChange={setViewingReceipt}>
           <DialogContent className="sm:max-w-2xl" onCloseAutoFocus={(event) => {

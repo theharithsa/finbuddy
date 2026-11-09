@@ -33,6 +33,7 @@ interface RecurringTemplatesProps {
 }
 
 export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTemplate, customCategories = [], customPeople = [], publicPeople = [] }: RecurringTemplatesProps) {
+  const allCategories = getAllCategories(customCategories);
   const { user } = useAuth();
   const [templates, setTemplates] = useState<RecurringTemplate[]>(DEFAULT_RECURRING_TEMPLATES);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -309,7 +310,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getAllCategories(customCategories).map((category) => (
+                    {allCategories.map((category) => (
                       <SelectItem key={category.name} value={category.name}>
                         <div className="flex items-center gap-2">
                           <span><ItemIcon value={category.icon} size={17} /></span>
@@ -367,7 +368,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
       <Card className="bg-accent/10 shadow-sm hover:shadow-md transition-shadow">
         <CardContent className="pt-4">
           <div className="flex items-start gap-3">
-            <div className="text-accent">💡</div>
+            <span className="m3-row-icon"><ItemIcon value="calendar" size={20} /></span>
             <div className="space-y-1">
               <h4 className="font-medium text-sm">Smart Bill Management</h4>
               <p className="text-xs text-muted-foreground">
@@ -389,7 +390,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} size={18} />{template.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={getFrequencyBadgeVariant(template.frequency)}>
                           <Clock className="w-3 h-3 mr-1" />
@@ -490,17 +491,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 >
                   {/* Template Name */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${template.frequency === 'yearly' ? 'bg-tertiary-container' :
-                        template.frequency === 'quarterly' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                          'bg-primary-container'
-                      }`}>
-                      {template.category === 'Food & Dining' ? '🍽️' :
-                        template.category === 'Transportation' ? '🚗' :
-                          template.category === 'Entertainment' ? '🎬' :
-                            template.category === 'Healthcare' ? '🏥' :
-                              template.category === 'Education' ? '📚' :
-                                template.category === 'Bills & Utilities' ? '⚡' : '📝'}
-                    </div>
+                    <span className="m3-row-icon"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} size={20} /></span>
                     <div>
                       <div className="font-medium">{template.name}</div>
                       <div className="text-xs text-muted-foreground">{template.description.slice(0, 30)}...</div>
@@ -550,13 +541,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
 
                   {/* Frequency Badge */}
                   <div className="col-span-2 text-center">
-                    <Badge
-                      variant="secondary"
-                      className={`${template.frequency === 'yearly' ? 'bg-tertiary-container text-on-tertiary-container' :
-                          template.frequency === 'quarterly' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                            'bg-primary-container text-on-primary-container'
-                        }`}
-                    >
+                    <Badge variant="secondary">
                       {template.frequency}
                     </Badge>
                   </div>

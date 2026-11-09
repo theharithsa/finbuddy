@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/types';
 import { billPaymentKey, money, type Bill, type BillOccurrence } from '@/lib/household';
 import type { Editor } from './HouseholdEditor';
+import { MoneyRecordRow } from './MoneyRecordRow';
 
 const repeatLabel = { once: 'One time', monthly: 'Monthly', yearly: 'Yearly' };
 
@@ -10,8 +11,8 @@ interface BillsPageProps {
   bills: Bill[];
   occurrences: BillOccurrence[];
   today: string;
-  onEdit: (editor: Editor) => void;
-  onPay: (occurrence: BillOccurrence) => void;
+  onEdit?: (editor: Editor) => void;
+  onPay?: (occurrence: BillOccurrence) => void;
 }
 
 export function BillsPage({ bills, occurrences, today, onEdit, onPay }: BillsPageProps) {
@@ -29,8 +30,8 @@ export function BillsPage({ bills, occurrences, today, onEdit, onPay }: BillsPag
         </div>
         <strong>{expense ? formatCurrency(expense.amount) : money(bill.amountPaise)}</strong>
         <div className="money-bill-actions">
-          {expense ? <span className="money-paid"><Check size={15} /> Paid</span> : <Button variant="secondary" onClick={() => onPay({ bill, dueDate })}>Record payment</Button>}
-          <Button variant="ghost" size="icon" aria-label={`Edit bill: ${bill.name}`} onClick={() => onEdit({ kind: 'bills', entry: bill })}><Pencil size={18} /></Button>
+          {expense ? <span className="money-paid"><Check size={15} /> Paid</span> : onPay && <Button variant="secondary" onClick={() => onPay({ bill, dueDate })}>Record payment</Button>}
+          {onEdit && <Button variant="ghost" size="icon" aria-label={`Edit bill: ${bill.name}`} onClick={() => onEdit({ kind: 'bills', entry: bill })}><Pencil size={18} /></Button>}
         </div>
       </li>
     );
@@ -40,7 +41,7 @@ export function BillsPage({ bills, occurrences, today, onEdit, onPay }: BillsPag
     <>
       <header className="m3-page-heading">
         <div><span className="m3-page-kicker">On the calendar</span><h1>Bills &amp; EMIs</h1><p>See what’s coming up and mark each bill as you pay it.</p></div>
-        <Button onClick={() => onEdit({ kind: 'bills' })}><Plus size={18} /> Add bill</Button>
+        {onEdit && <Button onClick={() => onEdit({ kind: 'bills' })}><Plus size={18} /> Add bill</Button>}
       </header>
 
       <section className="money-page-list">
@@ -58,10 +59,9 @@ export function BillsPage({ bills, occurrences, today, onEdit, onPay }: BillsPag
       {other.length > 0 && <details className="money-page-list money-list-panel">
         <summary><CalendarDays size={19} /> Other bill schedules <small>{other.length}</small></summary>
         <ul className="money-record-list">{other.map((bill) => <li key={bill.id}>
-          <button type="button" aria-label={`Edit bill: ${bill.name}`} onClick={() => onEdit({ kind: 'bills', entry: bill })}>
-            <span><strong>{bill.name}</strong><small>{repeatLabel[bill.repeat]} · First due {formatDate(bill.dueDate)}</small></span>
-            <strong>{money(bill.amountPaise)}</strong><Pencil size={17} />
-          </button>
+          <MoneyRecordRow title={bill.name} description={repeatLabel[bill.repeat] + ' · First due ' + formatDate(bill.dueDate)}
+            amount={money(bill.amountPaise)} editLabel={`Edit bill: ${bill.name}`}
+            onEdit={onEdit ? () => onEdit({ kind: 'bills', entry: bill }) : undefined} />
         </li>)}</ul>
       </details>}
     </>

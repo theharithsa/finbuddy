@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { localDate, monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
+import { localDate, monthRange, periodExpenses, shiftMonth, spendingWindow, totalAmount } from '@/lib/finance-period';
 import type { Expense } from '@/lib/types';
 
 function expense(date: string, amount: number): Expense {
@@ -21,5 +21,18 @@ describe('workspace date and amount calculations', () => {
     ], '2024-02-01', '2024-02-29');
     expect(selected).toHaveLength(2);
     expect(totalAmount(selected)).toBe(0.3);
+  });
+
+  it('compares the same elapsed days and excludes future-dated entries', () => {
+    const result = spendingWindow([
+      expense('2026-02-20', 90.1),
+      expense('2026-03-20', 100.1),
+      expense('2026-03-29', 500),
+      expense('2026-03-31', 900),
+    ], '2026-03', '2026-03-30');
+    expect(result.elapsedDays).toBe(30);
+    expect(result.spent).toBe(600.1);
+    expect(result.comparison).toEqual({ days: 28, difference: 10 });
+    expect(spendingWindow([], '2026-04', '2026-03-30').elapsedDays).toBe(0);
   });
 });

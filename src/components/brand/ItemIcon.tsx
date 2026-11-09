@@ -40,8 +40,8 @@ export function resolveItemIcon(value: string) {
 
 export function ItemIcon({ value = 'note', size = 20 }: { value?: string; size?: number }) {
   const name = resolveItemIcon(value);
-  const Icon = name ? itemIcons[name] : undefined;
-  return Icon ? <Icon size={size} /> : <span aria-hidden="true">{value}</span>;
+  const Icon = name ? itemIcons[name] : FileText;
+  return <Icon size={size} className="m3-item-glyph" />;
 }
 
 export function ItemIconPicker({ value, options, onChange }: {

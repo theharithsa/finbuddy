@@ -1,8 +1,10 @@
 import { ArrowDownLeft, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Landmark, Plus, Wallet } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
+import { BrandMark } from '@/components/brand/BrandMark';
 import { formatDate } from '@/lib/types';
 import { billPaymentKey, money, type BillOccurrence, type Holding, type Income } from '@/lib/household';
 import type { Editor } from './HouseholdEditor';
+import { MoneyRecordRow } from './MoneyRecordRow';
 
 interface MoneyHomeProps {
   monthLabel: string;
@@ -13,7 +15,7 @@ interface MoneyHomeProps {
   bills: BillOccurrence[];
   holdings: Holding[];
   onMonthChange: (direction: -1 | 1) => void;
-  onEdit: (editor: Editor) => void;
+  onEdit?: (editor: Editor) => void;
   onExpenses: () => void;
   onBills: () => void;
   onSavings: () => void;
@@ -35,7 +37,6 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
       ? 'Logged expenses and unpaid bills are ahead of recorded income.'
       : 'An estimate based on what you’ve logged.';
   const savingsPaise = holdings.reduce((total, entry) => total + entry.amountPaise, 0);
-  const addIncome = () => onEdit({ kind: 'income', defaultDate: currentMonth ? undefined : today });
 
   return (
     <>
@@ -57,7 +58,7 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
           <span className="money-hero-label"><Wallet size={19} /> Left after bills</span>
           <strong className="money-hero-amount">{income.length ? money(left) : '—'}</strong>
           <p>{estimateCopy}</p>
-          <Button className="money-hero-action" onClick={addIncome}><Plus size={18} /> Add income</Button>
+          {onEdit && <Button className="money-hero-action" onClick={() => onEdit({ kind: 'income', defaultDate: currentMonth ? undefined : today })}><Plus size={18} /> Add income</Button>}
         </div>
         <div className="money-metrics">
           <span className="money-metrics-title">How it adds up</span>
@@ -83,7 +84,7 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
           ) : <p className="money-quiet money-home-empty">{bills.length ? 'You’re caught up on the bills shown for this month.' : 'No bills due on your list this month.'}</p>}
           <div className="money-panel-actions">
             <Button variant="secondary" onClick={onBills}>Manage bills <ArrowRight size={17} /></Button>
-            <Button variant="ghost" onClick={() => onEdit({ kind: 'bills' })}>Add bill</Button>
+            {onEdit && <Button variant="ghost" onClick={() => onEdit({ kind: 'bills' })}>Add bill</Button>}
           </div>
         </section>
 
@@ -97,12 +98,12 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
               {holdings.length ? <div className="money-held"><strong>{money(savingsPaise)}</strong><small>Latest values from {holdings.length} {holdings.length === 1 ? 'entry' : 'entries'}</small></div>
                 : <p className="money-quiet">Start with a balance you know. It could be an emergency fund, an FD, or a mutual fund.</p>}
             </div>
-            <img src="/icons/buddy-mark-v1.png" alt="" width={92} height={92} />
+            <BrandMark className="money-savings-mark" />
           </div>
           <div className="money-panel-actions">
             {holdings.length
               ? <Button variant="secondary" onClick={onSavings}>Open savings <ArrowRight size={17} /></Button>
-              : <Button variant="secondary" onClick={() => onEdit({ kind: 'holdings' })}><Plus size={17} /> Add savings or investment</Button>}
+              : onEdit && <Button variant="secondary" onClick={() => onEdit({ kind: 'holdings' })}><Plus size={17} /> Add savings or investment</Button>}
           </div>
         </section>
       </div>
@@ -111,10 +112,8 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
         <summary><ArrowDownLeft size={19} /> Income this month <small>{income.length} {income.length === 1 ? 'entry' : 'entries'}</small><ChevronRight className="money-disclosure-arrow" size={17} /></summary>
         <ul className="money-record-list">
           {income.map((entry) => <li key={entry.id}>
-            <button type="button" aria-label={`Edit income: ${entry.name}`} onClick={() => onEdit({ kind: 'income', entry })}>
-              <span><strong>{entry.name}</strong><small>{formatDate(entry.date)}</small></span>
-              <strong>{money(entry.amountPaise)}</strong><ChevronRight size={18} />
-            </button>
+            <MoneyRecordRow title={entry.name} description={formatDate(entry.date)} amount={money(entry.amountPaise)}
+              editLabel={`Edit income: ${entry.name}`} onEdit={onEdit ? () => onEdit({ kind: 'income', entry }) : undefined} />
           </li>)}
         </ul>
       </details>}

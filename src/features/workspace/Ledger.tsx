@@ -13,9 +13,9 @@ interface LedgerProps {
   people: Pick<Person, 'id' | 'name'>[];
   range: DateRange;
   onRangeChange: (range: DateRange) => void;
-  onEdit: (expense: Expense) => void;
-  onDelete: (expense: Expense) => void;
-  onAdd: () => void;
+  onEdit?: (expense: Expense) => void;
+  onDelete?: (expense: Expense) => void;
+  onAdd?: () => void;
 }
 
 interface Filters {
@@ -127,11 +127,12 @@ export function Ledger({ expenses, categories, people, range, onRangeChange, onE
           <span className="m3-row-icon"><ReceiptText size={24} /></span>
           <h2>{period.length > 0 ? 'No matching expenses' : 'No expenses in this period'}</h2>
           <p>{period.length > 0 ? 'Try another search or clear the filters.' : 'A grocery run, a ride home, or a cup of chai. Start with something you remember.'}</p>
-          {period.length === 0 && <Button variant="secondary" onClick={onAdd}>Log your first expense</Button>}
+          {period.length === 0 && onAdd && <Button variant="secondary" onClick={onAdd}>Log your first expense</Button>}
         </div> : [...groups].map(([date, group]) => (
           <div className="m3-expense-group" key={date}>
             {date && <h2>{formatDate(date)}</h2>}
-            <ul>{group.map((expense) => <ExpenseCard key={expense.id} expense={expense} categories={categories} people={people} onEdit={() => onEdit(expense)} onDelete={() => onDelete(expense)} />)}</ul>
+            <ul>{group.map((expense) => <ExpenseCard key={expense.id} expense={expense} categories={categories} people={people}
+              onEdit={onEdit ? () => onEdit(expense) : undefined} onDelete={onDelete ? () => onDelete(expense) : undefined} />)}</ul>
           </div>
         ))}
         {filtered.length > visible && <Button variant="ghost" className="m3-load-more" onClick={() => setVisible(visible + 30)}>Show more expenses</Button>}

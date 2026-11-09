@@ -197,7 +197,7 @@ export function BudgetManager({
   const getProgressColor = (spent: number, limit: number) => {
     const percentage = (spent / limit) * 100;
     if (percentage >= 100) return 'bg-destructive';
-    if (percentage >= 80) return 'bg-yellow-500';
+    if (percentage >= 80) return 'bg-caution';
     return 'bg-primary';
   };
 
@@ -388,7 +388,7 @@ export function BudgetManager({
                           {(isOverBudget || isNearLimit) && (
                             <Warning 
                               size={20} 
-                              className={isOverBudget ? 'text-destructive' : 'text-yellow-500'} 
+                              className={isOverBudget ? 'text-destructive' : 'text-caution'}
                             />
                           )}
                           <Button

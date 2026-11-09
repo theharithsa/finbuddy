@@ -16,19 +16,19 @@
   ],
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/buddy-app-192-v2.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/buddy-app-512-v2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/buddy-maskable-v1.png",
+      "src": "/icons/buddy-maskable-v2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -42,7 +42,7 @@
       "url": "/?action=add-expense",
       "icons": [
         {
-          "src": "/icons/buddy-add-expense-v1.png",
+          "src": "/icons/buddy-add-expense-v2.png",
           "sizes": "96x96",
           "type": "image/png"
         }
@@ -55,7 +55,7 @@
       "url": "/?action=view-budget",
       "icons": [
         {
-          "src": "/icons/buddy-view-budget-v1.png",
+          "src": "/icons/buddy-view-budget-v2.png",
           "sizes": "96x96",
           "type": "image/png"
         }

@@ -4,6 +4,7 @@ import { checkMagicLinkOnLoad, resetPassword, sendMagicLink, signInWithEmail, si
 import { UsageAnalytics } from './UsageAnalytics';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandMark, Wordmark } from '@/components/brand/BrandMark';
 import { observeOperation } from '@/lib/operation-monitoring';
 
 type Mode = 'signin' | 'signup' | 'reset' | 'link' | 'complete-link';
@@ -15,10 +16,6 @@ const submitLabels: Record<Mode, string> = {
   signin: 'Sign in', signup: 'Create account', reset: 'Send reset email',
   link: 'Send sign-in link', 'complete-link': 'Finish signing in',
 };
-
-export function Wordmark() {
-  return <span className="m3-wordmark"><span><img src="/icons/buddy-mark-v1.png" alt="" width={33} height={33} /></span><strong>FinBuddy</strong></span>;
-}
 
 function getAuthError(error: unknown): string {
   const code = error && typeof error === 'object' && 'code' in error ? error.code : '';
@@ -99,7 +96,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
         <section className="m3-login-story" aria-labelledby="finbuddy-intro">
           <Wordmark />
           <div className="m3-story-body">
-            <img className="m3-story-mascot" src="/icons/buddy-mark-v1.png" alt="" width={144} height={144} />
+            <BrandMark className="m3-story-mascot" />
             <span className="m3-story-kicker">Your household’s money</span>
             <h1 id="finbuddy-intro">Make sense of the month.</h1>
             <p>From salary day to the last chai of the month, see what came in and where it went.</p>
@@ -135,10 +132,14 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
                 <button type="button" disabled={busy} onClick={() => changeMode('link')}>Email me a sign-in link</button>
               </> : <button type="button" disabled={busy} onClick={() => changeMode('signin')}>Back to sign in</button>}
             </div>
-            <footer className="m3-login-legal"><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/">Help</a><UsageAnalytics /></footer>
+            {mode === 'signin' && <div className="m3-demo-invite">
+              <p>See a sample household before making an account.</p>
+              <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
+            </div>}
           </div>
         </section>
       </div>
+      <footer className="m3-login-legal"><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/">Help</a><UsageAnalytics /></footer>
     </main>
   );
 }

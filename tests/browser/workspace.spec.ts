@@ -327,8 +327,80 @@ test('appearance loads real fonts, follows the device and keeps choices after re
   await expect(page.getByRole('radio', { name: 'Ocean' })).toBeChecked();
   await expect(page.getByRole('radio', { name: 'System' })).toBeChecked();
   await expect(fontSelect).toHaveValue('source-serif-4');
+  await page.getByRole('radio', { name: 'Black & white' }).check();
+  await expect(root).toHaveAttribute('data-palette', 'monochrome');
+  expect(await primary()).toBe('#171717');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(root).toHaveClass('dark');
+  expect(await primary()).toBe('#f3f3f3');
   await page.getByRole('button', { name: 'Reset appearance' }).click();
   await expect(fontSelect).toHaveValue('google-sans');
   await expect(page.getByRole('radio', { name: 'Lavender' })).toBeChecked();
   await expect(page.getByRole('radio', { name: 'Light' })).toBeChecked();
+});
+
+test('visitors can explore sample spending without Firebase account requests', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const demo = page.getByRole('link', { name: 'Explore demo' });
+  await expect(demo).toBeVisible();
+  const backendRequests: string[] = [];
+  page.on('request', (request) => {
+    const url = request.url();
+    if (/\/src\/lib\/firebase\.ts|:(8080|9099|9199)\/|(?:identitytoolkit|securetoken|firestore|firebasestorage)\.googleapis\.com/.test(url)) backendRequests.push(url);
+  });
+  await demo.click();
+  await expect(page.getByText('Sample household data')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your money, in view.' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Monthly money summary' })).toContainText('₹45,560.00');
+  await expect(page.getByRole('button', { name: 'Add income' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Add expense' })).toHaveCount(0);
+
+  const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
+  await nav.getByRole('button', { name: 'More', exact: true }).click();
+  const more = page.getByRole('navigation', { name: 'More destinations' });
+  await more.getByRole('button', { name: /^Overview/ }).click();
+  const insights = page.getByRole('region', { name: 'Spending insights' });
+  await expect(insights.getByText('Daily average')).toBeVisible();
+  await expect(insights.getByText('Largest expense')).toBeVisible();
+  await expect(insights.getByText('Top category')).toBeVisible();
+  await expect(insights.getByText('Compared with last month')).toBeVisible();
+  await page.getByRole('button', { name: 'View expenses' }).click();
+  await expect(page.getByText('Household groceries', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Edit expense:/ })).toHaveCount(0);
+
+  await nav.getByRole('button', { name: 'More', exact: true }).click();
+  await more.getByRole('button', { name: /^Metrics Explorer/ }).click();
+  await expect(page.getByRole('main').getByText('Coming soon', { exact: true })).toBeVisible();
+  const footer = await page.locator('.m3-footer').boundingBox();
+  expect(footer && footer.y + footer.height).toBeGreaterThan(730);
+  expect(backendRequests).toEqual([]);
+  await page.getByRole('link', { name: 'Back to sign in' }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome to FinBuddy' })).toBeVisible();
+});
+
+test('the signed-in avatar shows the profile photo with an initials fallback', async ({ page }) => {
+  await createAccount(page, false);
+  const avatar = page.getByRole('img', { name: 'Test account profile' });
+  await expect(avatar).toHaveText('T');
+  const photoUrl = 'https://lh3.googleusercontent.com/finbuddy-synthetic-avatar';
+  await page.route(photoUrl, (route) => route.fulfill({ path: 'public/icons/buddy-mark-v2.png', contentType: 'image/png' }));
+  const status = await page.evaluate(async ({ firebase, photoUrl }) => {
+    const { auth } = await import(firebase) as typeof import('../../src/lib/firebase');
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) throw new Error('Expected a synthetic test account');
+    return (await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:update?key=demo-finbuddy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, photoUrl, returnSecureToken: false }),
+    })).status;
+  }, { firebase: '/src/lib/firebase.ts', photoUrl });
+  expect(status).toBe(200);
+  await page.reload();
+  await expect(avatar.locator('img')).toHaveAttribute('src', photoUrl);
+  await expect.poll(() => avatar.locator('img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await page.unroute(photoUrl);
+  await page.route(photoUrl, (route) => route.abort());
+  await page.reload();
+  await expect(avatar).toHaveText('T');
 });

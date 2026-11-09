@@ -1,21 +1,20 @@
-.m3-login { min-height: 100dvh; background: var(--m3-surface); padding: clamp(16px, 3vw, 38px); }
-.m3-login-shell { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.95fr); min-height: calc(100dvh - 2 * clamp(16px, 3vw, 38px)); gap: 24px; }
+.m3-login { display: flex; flex-direction: column; min-height: 100dvh; background: var(--m3-surface); padding: clamp(16px, 3vw, 38px); }
+.m3-login-shell { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.95fr); gap: 24px; }
 .m3-login-story {
   position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column;
   justify-content: space-between; gap: clamp(18px, 4vh, 36px); padding: clamp(24px,5vw,64px); border-radius: 32px;
-  background: radial-gradient(ellipse at 100% 78%, var(--m3-feature-halo), transparent 72%), var(--m3-feature-deep); color: #fff;
+  background: var(--m3-feature-deep); color: var(--m3-feature-ink);
 }
 .m3-login-story::before {
-  position: absolute; z-index: -1; inset: 0; content: ''; pointer-events: none; opacity: .14;
-  background: repeating-radial-gradient(ellipse at 100% 82%, transparent 0 38px, #fff 39px 40px, transparent 41px 58px);
-  mask-image: linear-gradient(100deg, transparent 22%, #000 90%);
+  position: absolute; z-index: -1; inset: 8px; content: ''; pointer-events: none;
+  border: 1px solid var(--m3-feature-outline); border-radius: 24px;
 }
-.m3-login-story .m3-wordmark > span { background: #efe5ff; }
+.m3-login-story .m3-wordmark > .finbuddy-mark { color: inherit; }
 .m3-login-story h1 { font-size: clamp(2.6rem,5.4vw,5rem); line-height: 1.03; font-weight: 520; letter-spacing: -.045em; max-width: 11ch; }
 .m3-login-story p { line-height: 1.55; }
 .m3-story-body { display: grid; align-content: center; gap: 12px; }
-.m3-story-mascot { width: clamp(80px, 10vw, 132px); height: auto; margin-bottom: 4px; }
-.m3-story-kicker { color: #ffd58c; font: var(--m3-body-medium); font-weight: 650; font-size: .75rem; letter-spacing: .09em; text-transform: uppercase; }
+.m3-story-mascot { width: clamp(80px, 10vw, 132px); margin-bottom: 4px; }
+.m3-story-kicker { color: #fffd; font: var(--m3-body-medium); font-weight: 650; font-size: .75rem; letter-spacing: .09em; text-transform: uppercase; }
 .m3-story-body > p { max-width: 36ch; }
 .m3-story-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .m3-story-list li { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 11px; border-radius: var(--m3-shape-full); background: #ffffff1a; font-size: .85rem; }
@@ -31,7 +30,11 @@
 .m3-login-links, .m3-login-legal { display: flex; flex-wrap: wrap; gap: 4px 12px; font: var(--m3-body-medium); margin-top: 14px; color: var(--m3-primary); }
 .m3-login-links button { min-height: 36px; text-align: left; }
 .m3-login-links button:hover { text-decoration: underline; }
-.m3-login-legal { border-top: 1px solid var(--m3-outline-variant); padding-top: 14px; color: var(--m3-on-surface-variant); }
+.m3-login-legal { width: 100%; max-width: 1320px; margin-inline: auto; border-top: 1px solid var(--m3-outline-variant); padding-top: 14px; color: var(--m3-on-surface-variant); }
+.m3-demo-invite {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--m3-outline-variant); color: var(--m3-on-surface-variant); font: var(--m3-body-medium);
+}
 .m3-login-status { padding: 10px 12px; background: var(--m3-positive-container); color: var(--m3-on-positive-container); border-radius: 8px; font: var(--m3-body-medium); }
 .m3-mobile-wordmark { display: none; }
 .m3-google[data-slot="button"] { background: #fff; color: #1f1f1f; border-color: #747775; font-family: "Google Sans Variable", system-ui, sans-serif; }
@@ -39,11 +42,11 @@
 .dark .m3-google[data-slot="button"] { background: #131314; color: #e3e3e3; border-color: #8e918f; }
 .dark .m3-google[data-slot="button"]:hover { background: #272727; color: #e3e3e3; }
 @media (max-width: 680px) {
-  .m3-login-shell { display: block; }
+  .m3-login-shell { display: grid; grid-template-columns: minmax(0, 1fr); }
   .m3-login-story { display: none; }
   .m3-mobile-wordmark { display: block; }
   .m3-login-toolbar { justify-content: space-between; gap: 8px; margin-bottom: 24px; }
-  .m3-login-access { min-height: calc(100dvh - 32px); padding: 0; }
+  .m3-login-access { padding: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .m3-login-card form { animation: none; }

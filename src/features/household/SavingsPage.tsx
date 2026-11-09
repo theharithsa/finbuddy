@@ -1,16 +1,17 @@
-import { ChevronRight, Landmark, Plus } from '@/components/brand/Icons';
+import { Landmark, Plus } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/types';
 import { money, type Holding } from '@/lib/household';
 import type { Editor } from './HouseholdEditor';
+import { MoneyRecordRow } from './MoneyRecordRow';
 
-export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit: (editor: Editor) => void }) {
+export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit?: (editor: Editor) => void }) {
   const total = holdings.reduce((sum, holding) => sum + holding.amountPaise, 0);
   return (
     <>
       <header className="m3-page-heading">
         <div><span className="m3-page-kicker">Set aside</span><h1>Savings &amp; investments</h1><p>Keep the latest values for the money you’ve put aside.</p></div>
-        <Button onClick={() => onEdit({ kind: 'holdings' })}><Plus size={18} /> Add savings or investment</Button>
+        {onEdit && <Button onClick={() => onEdit({ kind: 'holdings' })}><Plus size={18} /> Add savings or investment</Button>}
       </header>
 
       <section className="m3-ledger-summary" aria-label="Recorded savings and investment value">
@@ -21,15 +22,13 @@ export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit:
 
       <section className="money-page-list">
         <header className="money-panel-heading">
-          <div><h2>What you’ve set aside</h2><p>Tap an entry to update its value. Each date shows when that value was recorded.</p></div>
+          <div><h2>What you’ve set aside</h2><p>Each date shows when that value was recorded.{onEdit && ' Tap an entry to update it.'}</p></div>
         </header>
         {holdings.length ? (
           <ul className="money-record-list">
             {[...holdings].sort((a, b) => a.name.localeCompare(b.name)).map((entry) => <li key={entry.id}>
-              <button type="button" aria-label={`Update value: ${entry.name}`} onClick={() => onEdit({ kind: 'holdings', entry })}>
-                <span><strong>{entry.name}</strong><small>{entry.kind} · As of {formatDate(entry.asOf)}</small></span>
-                <strong>{money(entry.amountPaise)}</strong><ChevronRight size={18} />
-              </button>
+              <MoneyRecordRow title={entry.name} description={entry.kind + ' · As of ' + formatDate(entry.asOf)} amount={money(entry.amountPaise)}
+                editLabel={`Update value: ${entry.name}`} onEdit={onEdit ? () => onEdit({ kind: 'holdings', entry }) : undefined} />
             </li>)}
           </ul>
         ) : <p className="money-quiet">Pick one balance you already know. A name and its latest value are enough to get started.</p>}

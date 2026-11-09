@@ -59,7 +59,8 @@ await Promise.all([
   verifyIco(),
   verifyPng(iconLink('icon'), 32),
   verifyPng(iconLink('apple-touch-icon'), 180),
-  verifyPng('/icons/buddy-mark-v1.png', 208),
+  verifyPng('/icons/buddy-favicon-dark-v2.png', 32),
+  verifyPng('/icons/buddy-mark-v2.png', 208),
   ...expectedIcons.map(([purpose, size]) => {
     const match = manifest.icons.find((icon) => icon.purpose === purpose && icon.sizes === `${size}x${size}`);
     assert.ok(match, `Missing ${purpose} ${size} install icon`);

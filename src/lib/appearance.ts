@@ -16,6 +16,11 @@ export const palettes = {
   forest: { name: 'Forest', swatch: '#28664d' },
   marigold: { name: 'Marigold', swatch: '#916013' },
   rose: { name: 'Rose', swatch: '#9f3d61' },
+  indigo: { name: 'Indigo', swatch: '#3e4594' },
+  clay: { name: 'Clay', swatch: '#a24432' },
+  jade: { name: 'Jade', swatch: '#006e63' },
+  slate: { name: 'Slate', swatch: '#4c5969' },
+  monochrome: { name: 'Black & white', swatch: '#1b1b1b' },
 } as const;
 
 export type Font = keyof typeof fonts;
