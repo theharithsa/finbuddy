@@ -269,3 +269,54 @@ test('concurrent payment attempts use one expense and household reads stay owner
     await other.close();
   }
 });
+
+test('appearance loads real fonts, follows the device and keeps choices after reload', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await createAccount(page, false);
+  const openSettings = async () => {
+    await page.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('button', { name: 'More', exact: true }).click();
+    await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: /^Settings/ }).click();
+    await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  };
+  await openSettings();
+  const fontSelect = page.getByRole('combobox', { name: 'Font' });
+  await expect(fontSelect).toHaveValue('google-sans');
+  for (const [option, family] of [
+    ['source-code-pro', 'Source Code Pro Variable'],
+    ['source-sans-3', 'Source Sans 3 Variable'],
+    ['lato', 'Lato'],
+    ['open-sans', 'Open Sans Variable'],
+    ['ubuntu', 'Ubuntu'],
+    ['lora', 'Lora Variable'],
+    ['roboto', 'Roboto Variable'],
+    ['source-serif-4', 'Source Serif 4 Variable'],
+  ]) {
+    await fontSelect.selectOption(option);
+    await expect.poll(() => page.evaluate(async (name) => {
+      const [face] = await document.fonts.load('400 16px "' + name + '"', 'FinBuddy ₹24,500.00');
+      return face?.status === 'loaded' && getComputedStyle(document.body).fontFamily.includes(name);
+    }, family)).toBe(true);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  const root = page.locator('html');
+  const primary = () => root.evaluate((element) => getComputedStyle(element).getPropertyValue('--m3-primary').trim());
+  const lavender = await primary();
+  await page.getByRole('radio', { name: 'Ocean' }).check();
+  await expect(root).toHaveAttribute('data-palette', 'ocean');
+  expect(await primary()).not.toBe(lavender);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.getByRole('radio', { name: 'System' }).check();
+  await expect(root).toHaveClass('dark');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(root).toHaveClass('light');
+
+  await page.reload();
+  await openSettings();
+  await expect(page.getByRole('radio', { name: 'Ocean' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'System' })).toBeChecked();
+  await expect(fontSelect).toHaveValue('source-serif-4');
+  await page.getByRole('button', { name: 'Reset appearance' }).click();
+  await expect(fontSelect).toHaveValue('google-sans');
+  await expect(page.getByRole('radio', { name: 'Lavender' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Light' })).toBeChecked();
+});

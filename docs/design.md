@@ -19,13 +19,16 @@ Savings and investments use manually entered INR values, each with its own as-of
 
 ## Design system
 
-- Lavender primary, tonal surfaces, and explicit on-color, outline, error and success roles in both themes. Roboto Variable is bundled locally. The theme preference applies immediately and persists in the browser.
+- Settings offers light, dark and system display modes, five Material color palettes and locally bundled fonts. Google Sans and Lavender are the defaults. Appearance applies immediately and persists on the device.
+- A purple Indian palm squirrel holding a rupee coin is the FinBuddy mark. The favicon, wordmark, touch and install icons use the same mascot. App destinations, form actions and built-in categories use the matching rounded SVG set.
 - Compact screens use a bottom navigation bar and floating Add expense button. Medium screens use a compact rail. Expanded screens use a labeled rail and extended button. Home, Expenses, and Savings are the primary destinations. Home links to Bills & EMIs, and More groups it with Budgets, Overview, Recurring, Categories, People, Metrics Explorer, KautilyaAI, and account actions.
 - Shared Material controls cover filled, tonal, outlined and text buttons, cards, text fields, chips, tabs, menus, switches, progress, tables, dialogs, sheets, and snackbars. The expense form becomes a bottom sheet on phones. Charts use the same roles as the app.
 - The ledger groups transactions by day and exposes search, date presets, category, person, and sort filters. Tapping a row edits it. Its overflow menu opens the receipt or asks for confirmation before deletion.
 - Focus returns to the initiating control after dismissing the expense form. Validation gives feedback next to the form actions and moves focus to the required field. Error, pending, and empty states use the same components.
 
 [Material 3 color roles](https://m3.material.io/styles/color/the-color-system/) · [Material 3 typography](https://m3.material.io/styles/typography/applying-type) · [Material 3 lists](https://m3.material.io/components/lists/overview)
+
+For another React app, reuse the appearance options in `src/lib/appearance.ts`, the provider in `src/contexts/ThemeContext.tsx` and the Material palette tokens. Set an app-specific storage key to keep its browser preferences separate.
 
 ## Data and release
 

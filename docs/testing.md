@@ -26,9 +26,10 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 | FIN-05 | Save an expense with platform and synthetic receipt, reload, navigate months, search, edit, view the receipt and confirm deletion |
 | FIN-02 | Open each workspace destination, toggle and restore dark mode, verify keyboard dismissal and sign out at 390 × 844 |
 | FIN-03 | Check leap month, local month boundaries, legacy ISO dates and paise arithmetic |
-| FIN-04 | Verify exact deployed revision and immutable JavaScript from Hosting |
+| FIN-04 | Verify exact deployed revision, immutable JavaScript, favicon, touch icon, install icons and shortcut images from Hosting |
 | FIN-06 | Record income, link an existing bill payment, add another payment, and verify that savings stay separate after reload |
 | FIN-07 | Submit concurrent payments, verify one ledger entry, and reject a different account’s read |
 | FIN-08 | Carry overdue bills forward, handle short months and leap years, and restore an unpaid bill if its expense is removed |
+| FIN-09 | Apply a bundled font, switch palettes and display mode, verify settings at phone width, reload, and reset appearance |
 
 Live Google sign-in, tenant signal searchability and model responses require distinct verification. The [release plan](release-plan.md) describes the boundary between emulator and Hosting evidence.

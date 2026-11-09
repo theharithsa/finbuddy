@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
-import { CalendarDays, Check, ChevronDown, Paperclip, ReceiptText } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, Paperclip, ReceiptText } from '@/components/brand/Icons';
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -163,7 +164,7 @@ export function ExpenseEditor({
             {!expense && <div className="m3-chip-set" role="group" aria-label="Quick categories">
               {shortcuts.map((name) => (
                 <button type="button" className="m3-chip" aria-pressed={category === name} key={name} disabled={saving} onClick={() => { setCategory(name); setError(''); }}>
-                  {category === name && <Check size={15} />}{name}
+                  {category === name ? <Check size={15} /> : <ItemIcon value={categories.find((item) => item.name === name)?.icon} size={15} />}{name}
                 </button>
               ))}
             </div>}

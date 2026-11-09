@@ -9,7 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Edit2, Trash2, Share2, Download, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, Share2, Download, AlertCircle, Eye, EyeOff } from '@/components/brand/Icons';
+import { ItemIcon, ItemIconPicker, personIcons } from '@/components/brand/ItemIcon';
 import { Person, getAllPeople, DEFAULT_PEOPLE } from '@/lib/types';
 import { adoptPublicPerson } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -17,11 +18,6 @@ import { toast } from 'sonner';
 const PERSON_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
   '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
-];
-
-const PERSON_ICONS = [
-  '👤', '👨', '👩', '👧', '👦', '👴', '👵', '👨‍💼', '👩‍💼', '👨‍🎓', 
-  '👩‍🎓', '👨‍⚕️', '👩‍⚕️', '👨‍🔧', '👩‍🔧', '👨‍🍳', '👩‍🍳', '👨‍🎨', '👩‍🎨', '🧑‍💻'
 ];
 
 const RELATIONSHIP_OPTIONS = [
@@ -58,7 +54,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     color: PERSON_COLORS[0],
-    icon: PERSON_ICONS[0],
+    icon: 'person',
     relationship: 'Friend',
     isPublic: false
   });
@@ -70,7 +66,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
     setFormData({
       name: '',
       color: PERSON_COLORS[0],
-      icon: PERSON_ICONS[0],
+      icon: 'person',
       relationship: 'Friend',
       isPublic: false
     });
@@ -261,23 +257,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                 </Select>
               </div>
 
-              <div>
-                <Label>Icon</Label>
-                <div className="grid grid-cols-10 gap-2 mt-2">
-                  {PERSON_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={`p-2 text-lg rounded border transition-colors ${
-                        formData.icon === icon ? 'bg-primary/10 border-primary' : 'bg-muted hover:bg-muted/80 border-border'
-                      }`}
-                      onClick={() => setFormData(prev => ({ ...prev, icon }))}
-                    >
-                      {icon}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <ItemIconPicker value={formData.icon} options={personIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
 
               <div>
                 <Label>Color</Label>
@@ -355,7 +335,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
                     style={{ backgroundColor: person.color }}
                   >
-                    {person.icon}
+                    <ItemIcon value={person.icon} />
                   </div>
                   <div>
                     <span className="font-medium">{person.name}</span>
@@ -378,7 +358,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
                     style={{ backgroundColor: person.color }}
                   >
-                    {person.icon}
+                    <ItemIcon value={person.icon} />
                   </div>
                   <div>
                     <span className="font-medium">{person.name}</span>
@@ -445,7 +425,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
                     style={{ backgroundColor: person.color }}
                   >
-                    {person.icon}
+                    <ItemIcon value={person.icon} />
                   </div>
                   <div>
                     <span className="font-medium">{person.name}</span>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Search, SlidersHorizontal, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Search, SlidersHorizontal, X } from '@/components/brand/Icons';
 import { ExpenseCard } from '@/components/ExpenseCard';
 import { ALL_DATES, TimeframePicker, type DateRange } from '@/components/TimeframePicker';
 import { Button } from '@/components/ui/button';

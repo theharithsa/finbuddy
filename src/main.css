@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --font-sans: "Roboto Variable", Roboto, system-ui, sans-serif;
+  --font-sans: var(--app-font, "Google Sans Variable", system-ui, sans-serif);
   --color-background: var(--m3-surface);
   --color-foreground: var(--m3-on-surface);
   --color-card: var(--m3-surface-low);
@@ -42,6 +42,7 @@
 }
 
 @layer base {
+  :root { font-family: var(--font-sans); }
   body { @apply bg-background text-foreground font-sans; margin: 0; }
   *, ::after, ::before { border-color: var(--m3-outline-variant); }
   button:not(:disabled), select { cursor: pointer; }

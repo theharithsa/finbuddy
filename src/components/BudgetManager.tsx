@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import {
   Book as BookOpen, 
   Globe,
   Calendar
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { 
   DEFAULT_CATEGORIES, 
   getAllCategories, 
@@ -261,7 +262,7 @@ export function BudgetManager({
                         {getAllCategories(customCategories).map((cat) => (
                           <SelectItem key={cat.name} value={cat.name}>
                             <div className="flex items-center gap-2">
-                              <span>{cat.icon}</span>
+                              <span><ItemIcon value={cat.icon} size={17} /></span>
                               {cat.name}
                             </div>
                           </SelectItem>
@@ -374,7 +375,7 @@ export function BudgetManager({
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
                             style={{ backgroundColor: category?.color || 'oklch(0.6 0.1 240)' }}
                           >
-                            {category?.icon || '📝'}
+                            <ItemIcon value={category?.icon} />
                           </div>
                           <div>
                             <CardTitle className="text-lg">{budget.category}</CardTitle>

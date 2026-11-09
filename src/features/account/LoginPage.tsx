@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowRight, ChartNoAxesCombined, LockKeyhole, ReceiptText, Wallet, WalletCards } from 'lucide-react';
+import { ArrowRight, CalendarDays, Landmark, LockKeyhole, ReceiptText } from '@/components/brand/Icons';
 import { checkMagicLinkOnLoad, resetPassword, sendMagicLink, signInWithEmail, signInWithGoogle, signInWithMagicLink, signUpWithEmail } from '@/lib/firebase';
 import { UsageAnalytics } from './UsageAnalytics';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ const submitLabels: Record<Mode, string> = {
 };
 
 export function Wordmark() {
-  return <div className="m3-wordmark"><span><WalletCards size={20} strokeWidth={2.1} /></span><strong>FinBuddy</strong></div>;
+  return <div className="m3-wordmark"><span><img src="/icons/buddy-mark-v1.png" alt="" width={33} height={33} /></span><strong>FinBuddy</strong></div>;
 }
 
 function getAuthError(error: unknown): string {
@@ -29,7 +29,7 @@ function getAuthError(error: unknown): string {
     case 'auth/weak-password': return 'Choose a stronger password and try again.';
     case 'auth/email-already-in-use': return 'An account already uses this email. Sign in or reset your password.';
     case 'auth/invalid-credential': return 'The email or password didn’t match. Try again or reset your password.';
-    case 'auth/unauthorized-domain': return 'Google sign-in is unavailable on this address. Open the main FinBuddy site.';
+    case 'auth/unauthorized-domain': return 'Google and email links require an authorized FinBuddy address. Sign in with your email and password, or open the main FinBuddy site.';
     default: return 'Couldn’t complete that request. Please try again.';
   }
 }
@@ -99,12 +99,13 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
         <section className="m3-login-story" aria-labelledby="finbuddy-intro">
           <Wordmark />
           <div className="m3-story-body">
-            <h1 id="finbuddy-intro">Make a habit of tracking what you spend.</h1>
-            <p>Log a purchase in seconds, look back at the month, and see what’s left in your budgets.</p>
+            <img className="m3-story-mascot" src="/icons/buddy-mark-v1.png" alt="" width={144} height={144} />
+            <h1 id="finbuddy-intro">Know where your money goes.</h1>
+            <p>See what came in, what you’ve spent, and what’s left after bills.</p>
             <ul className="m3-story-list">
               <li><ReceiptText size={18} /> Expenses</li>
-              <li><Wallet size={18} /> Budgets</li>
-              <li><ChartNoAxesCombined size={18} /> Spending insights</li>
+              <li><CalendarDays size={18} /> Bills &amp; EMIs</li>
+              <li><Landmark size={18} /> Savings</li>
             </ul>
           </div>
           <p className="m3-story-lock"><LockKeyhole size={16} /> Sign in to your personal workspace.</p>
@@ -115,7 +116,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             <h2 id="login-heading">{headings[mode]}</h2>
             <p>{mode === 'signin' ? 'Sign in to start tracking expenses.' : 'Use the email address for your FinBuddy account.'}</p>
             {mode === 'signin' && <>
-              <Button className="m3-google" variant="outline" type="button" disabled={busy} onClick={google}><span className="m3-google-mark" aria-hidden="true">G</span> Continue with Google</Button>
+              <Button className="m3-google" variant="outline" type="button" disabled={busy} onClick={google}><img src="/icons/google-g.png" alt="" width={20} height={20} /> Continue with Google</Button>
               <div className="m3-login-divider"><span>or use email</span></div>
             </>}
             <form key={mode} onSubmit={submit}>

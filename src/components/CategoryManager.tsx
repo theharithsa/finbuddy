@@ -16,7 +16,8 @@ import {
   Trash, 
   Download, 
   Search as MagnifyingGlass 
-} from 'lucide-react';
+} from '@/components/brand/Icons';
+import { ItemIcon, ItemIconPicker, categoryIcons } from '@/components/brand/ItemIcon';
 import { type CustomCategory, DEFAULT_CATEGORIES } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -45,20 +46,6 @@ const COLOR_PALETTE = [
   'oklch(0.6 0.2 350)',   // Rose
 ];
 
-// Common emoji categories for quick selection
-const EMOJI_CATEGORIES = [
-  { name: 'Food & Drink', emojis: ['🍽️', '🍕', '🍔', '🍜', '🍱', '🥗', '🍰', '☕', '🍺', '🥤'] },
-  { name: 'Transportation', emojis: ['🚗', '🚌', '🚊', '🚲', '🛵', '✈️', '🚂', '🚕', '⛽', '🚁'] },
-  { name: 'Shopping', emojis: ['🛍️', '👔', '👕', '👗', '👠', '💄', '📱', '💻', '🎮', '📚'] },
-  { name: 'Home & Bills', emojis: ['🏠', '⚡', '💡', '🔧', '🚿', '📺', '📞', '💳', '📊', '📋'] },
-  { name: 'Health & Fitness', emojis: ['🏥', '💊', '🏋️', '🧘', '🦷', '👓', '💉', '🩺', '🏃', '🚴'] },
-  { name: 'Entertainment', emojis: ['🎬', '🎮', '🎵', '🎭', '🎨', '📖', '🎪', '🎯', '🎲', '🎸'] },
-  { name: 'Education', emojis: ['📚', '🎓', '✏️', '🖊️', '📝', '💻', '🔬', '🌐', '📐', '🧮'] },
-  { name: 'Travel', emojis: ['✈️', '🏖️', '🗺️', '🧳', '🏨', '📷', '🎒', '🚢', '🏔️', '🌴'] },
-  { name: 'Finance', emojis: ['💰', '💳', '🏦', '💸', '📊', '💎', '🪙', '💵', '📈', '💴'] },
-  { name: 'Other', emojis: ['📝', '⭐', '🔍', '🎯', '💡', '⚙️', '📌', '🔔', '❓', '✨'] },
-];
-
 export function CategoryManager({
   customCategories,
   publicCategories,
@@ -76,7 +63,7 @@ export function CategoryManager({
   const [formData, setFormData] = useState({
     name: '',
     color: COLOR_PALETTE[0],
-    icon: '📝',
+    icon: 'note',
     isPublic: false
   });
 
@@ -84,7 +71,7 @@ export function CategoryManager({
     setFormData({
       name: '',
       color: COLOR_PALETTE[0],
-      icon: '📝',
+      icon: 'note',
       isPublic: false
     });
   };
@@ -251,38 +238,8 @@ export function CategoryManager({
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium">Icon *</label>
-                <div className="space-y-3">
-                  <Input
-                    placeholder="🐾"
-                    value={formData.icon}
-                    onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                    className="text-center text-lg"
-                  />
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {EMOJI_CATEGORIES.map((category) => (
-                      <div key={category.name}>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">{category.name}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {category.emojis.map((emoji) => (
-                            <Button
-                              key={emoji}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                              onClick={() => setFormData(prev => ({ ...prev, icon: emoji }))}
-                            >
-                              {emoji}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
+              <ItemIconPicker value={formData.icon} options={categoryIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
+
               <div>
                 <label className="text-sm font-medium">Color *</label>
                 <div className="grid grid-cols-6 gap-2 mt-2">
@@ -355,7 +312,7 @@ export function CategoryManager({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                         style={{ backgroundColor: category.color }}
                       >
-                        {category.icon}
+                        <ItemIcon value={category.icon} />
                       </div>
                       <CardTitle className="text-sm">{category.name}</CardTitle>
                       <Badge variant="secondary" className="ml-auto text-xs">Default</Badge>
@@ -381,7 +338,7 @@ export function CategoryManager({
                             className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                             style={{ backgroundColor: category.color }}
                           >
-                            {category.icon}
+                            <ItemIcon value={category.icon} />
                           </div>
                           <div className="flex-1">
                             <CardTitle className="text-sm">{category.name}</CardTitle>
@@ -469,7 +426,7 @@ export function CategoryManager({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
                         style={{ backgroundColor: category.color }}
                       >
-                        {category.icon}
+                        <ItemIcon value={category.icon} />
                       </div>
                       <div className="flex-1">
                         <CardTitle className="text-sm">{category.name}</CardTitle>

@@ -1,10 +1,11 @@
 .m3-login { min-height: 100dvh; background: var(--m3-surface); padding: clamp(16px, 3vw, 38px); }
 .m3-login-shell { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.95fr); min-height: calc(100dvh - 2 * clamp(16px, 3vw, 38px)); gap: 24px; }
 .m3-login-story { display: flex; flex-direction: column; justify-content: space-between; gap: 36px; padding: clamp(24px,5vw,64px); border-radius: 36px; background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
-.m3-login-story .m3-wordmark > span { background: var(--m3-primary); color: var(--m3-on-primary); }
+.m3-login-story .m3-wordmark > span { background: #efe5ff; }
 .m3-login-story h1 { font-size: clamp(2.6rem,5.4vw,5rem); line-height: 1.04; font-weight: 420; letter-spacing: -.038em; max-width: 12ch; }
 .m3-login-story p { line-height: 1.55; }
 .m3-story-body { display: grid; align-content: center; gap: 18px; }
+.m3-story-mascot { width: clamp(90px, 11vw, 144px); height: auto; }
 .m3-story-body > p { max-width: 36ch; }
 .m3-story-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .m3-story-list li { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 11px; border-radius: 10px; background: color-mix(in srgb, var(--m3-on-primary-container) 9%, transparent); font-size: .85rem; }
@@ -23,7 +24,10 @@
 .m3-login-legal { border-top: 1px solid var(--m3-outline-variant); padding-top: 14px; color: var(--m3-on-surface-variant); }
 .m3-login-status { padding: 10px 12px; background: var(--m3-positive-container); color: var(--m3-on-positive-container); border-radius: 8px; font: var(--m3-body-medium); }
 .m3-mobile-wordmark { display: none; }
-.m3-google-mark { display: inline-block; font-weight: 700; color: var(--m3-primary); }
+.m3-google[data-slot="button"] { background: #fff; color: #1f1f1f; border-color: #747775; font-family: "Google Sans Variable", system-ui, sans-serif; }
+.m3-google[data-slot="button"]:hover { background: #f2f2f2; color: #1f1f1f; }
+.dark .m3-google[data-slot="button"] { background: #131314; color: #e3e3e3; border-color: #8e918f; }
+.dark .m3-google[data-slot="button"]:hover { background: #272727; color: #e3e3e3; }
 @media (max-width: 680px) {
   .m3-login-shell { display: block; }
   .m3-login-story { display: none; }

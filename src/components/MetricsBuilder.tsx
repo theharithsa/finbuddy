@@ -32,8 +32,8 @@ import {
   Database,
   Target,
   Clock,
-  DollarSign
-} from 'lucide-react';
+  Rupee
+} from '@/components/brand/Icons';
 import ApexCharts from 'apexcharts';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { getAllPeople, formatCurrency } from '../lib/types';
@@ -76,7 +76,7 @@ const AVAILABLE_DIMENSIONS = [
 
 export function MetricsBuilder() {
   const { expenses, budgets, customPeople, publicPeople } = useFirestoreData();
-  const { theme } = useTheme();
+  const { theme, font, palette } = useTheme();
   const isMobile = useIsMobile();
   
   // State management
@@ -401,7 +401,7 @@ export function MetricsBuilder() {
         chartInstances.current[selectedQuery] = null;
       }
     };
-  }, [currentQuery, queryResult, selectedQuery, theme]);
+  }, [currentQuery, queryResult, selectedQuery, theme, font, palette]);
 
   return (
     <div className="space-y-6">
@@ -497,7 +497,7 @@ export function MetricsBuilder() {
                       {AVAILABLE_METRICS.map(metric => (
                         <SelectItem key={metric.id} value={metric.id}>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" />
+                            <Rupee className="h-4 w-4" />
                             {metric.name}
                           </div>
                         </SelectItem>

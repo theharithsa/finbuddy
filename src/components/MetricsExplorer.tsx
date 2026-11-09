@@ -26,13 +26,13 @@ import {
   Receipt,
   Table,
   Gauge,
-  DollarSign,
+  Rupee,
   Grid3x3,
   Settings,
   Layers,
   Zap,
   Hexagon
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type Expense, type Budget, type CustomCategory, type Person, getAllCategories, getAllPeople, formatCurrency } from '@/lib/types';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -183,7 +183,7 @@ export function MetricsExplorer({
   customPeople, 
   publicPeople 
 }: MetricsExplorerProps) {
-  const { theme } = useTheme();
+  const { theme, font, palette } = useTheme();
   const isMobile = useIsMobile();
   const [selectedGroup, setSelectedGroup] = useState<MetricGroup>('category');
   const [selectedMetric, setSelectedMetric] = useState<string>('total-spend-category');
@@ -594,11 +594,11 @@ export function MetricsExplorer({
             useFillColorAsStroke: false,
             colorScale: {
               ranges: [
-                { from: minValue, to: minValue + (maxValue - minValue) * 0.2, color: getChartTheme(theme).colors.scale[0], name: 'Low' },
-                { from: minValue + (maxValue - minValue) * 0.2, to: minValue + (maxValue - minValue) * 0.4, color: getChartTheme(theme).colors.scale[1], name: 'Below Average' },
-                { from: minValue + (maxValue - minValue) * 0.4, to: minValue + (maxValue - minValue) * 0.6, color: getChartTheme(theme).colors.scale[2], name: 'Average' },
-                { from: minValue + (maxValue - minValue) * 0.6, to: minValue + (maxValue - minValue) * 0.8, color: getChartTheme(theme).colors.scale[3], name: 'Above Average' },
-                { from: minValue + (maxValue - minValue) * 0.8, to: maxValue, color: getChartTheme(theme).colors.scale[4], name: 'High' }
+                { from: minValue, to: minValue + (maxValue - minValue) * 0.2, color: themeConfig.colors.scale[0], name: 'Low' },
+                { from: minValue + (maxValue - minValue) * 0.2, to: minValue + (maxValue - minValue) * 0.4, color: themeConfig.colors.scale[1], name: 'Below Average' },
+                { from: minValue + (maxValue - minValue) * 0.4, to: minValue + (maxValue - minValue) * 0.6, color: themeConfig.colors.scale[2], name: 'Average' },
+                { from: minValue + (maxValue - minValue) * 0.6, to: minValue + (maxValue - minValue) * 0.8, color: themeConfig.colors.scale[3], name: 'Above Average' },
+                { from: minValue + (maxValue - minValue) * 0.8, to: maxValue, color: themeConfig.colors.scale[4], name: 'High' }
               ]
             }
           }
@@ -708,7 +708,7 @@ export function MetricsExplorer({
             shade: 'dark',
             type: 'radial',
             shadeIntensity: 0.4,
-            gradientToColors: getChartTheme(theme).seriesColors,
+            gradientToColors: themeConfig.seriesColors,
             inverseColors: false,
             opacityFrom: 0.8,
             opacityTo: 0.2,
@@ -754,7 +754,7 @@ export function MetricsExplorer({
             }
           }
         },
-        colors: getChartTheme(theme).seriesColors,
+        colors: themeConfig.seriesColors,
         plotOptions: {
           bubble: {
             minBubbleRadius: 8,
@@ -793,11 +793,11 @@ export function MetricsExplorer({
             useFillColorAsStroke: true,
             colorScale: {
               ranges: [
-                { from: 0, to: maxValue * 0.2, color: getChartTheme(theme).colors.scale[0], name: 'Low' },
-                { from: maxValue * 0.2, to: maxValue * 0.4, color: getChartTheme(theme).colors.scale[1], name: 'Below Average' },
-                { from: maxValue * 0.4, to: maxValue * 0.6, color: getChartTheme(theme).colors.scale[2], name: 'Average' },
-                { from: maxValue * 0.6, to: maxValue * 0.8, color: getChartTheme(theme).colors.scale[3], name: 'Above Average' },
-                { from: maxValue * 0.8, to: maxValue, color: getChartTheme(theme).colors.scale[4], name: 'High' }
+                { from: 0, to: maxValue * 0.2, color: themeConfig.colors.scale[0], name: 'Low' },
+                { from: maxValue * 0.2, to: maxValue * 0.4, color: themeConfig.colors.scale[1], name: 'Below Average' },
+                { from: maxValue * 0.4, to: maxValue * 0.6, color: themeConfig.colors.scale[2], name: 'Average' },
+                { from: maxValue * 0.6, to: maxValue * 0.8, color: themeConfig.colors.scale[3], name: 'Above Average' },
+                { from: maxValue * 0.8, to: maxValue, color: themeConfig.colors.scale[4], name: 'High' }
               ]
             }
           }
@@ -831,7 +831,7 @@ export function MetricsExplorer({
             }
           }
         },
-        colors: getChartTheme(theme).seriesColors,
+        colors: themeConfig.seriesColors,
         stroke: {
           width: 2,
           colors: ['#ffffff']
@@ -848,7 +848,7 @@ export function MetricsExplorer({
         chartInstance.current = null;
       }
     };
-  }, [metricData, chartType, theme, selectedMetric, chartKey]);
+  }, [metricData, chartType, theme, font, palette, selectedMetric, chartKey]);
 
   // Handle metric group change
   const handleGroupChange = (group: MetricGroup) => {
@@ -1018,7 +1018,7 @@ export function MetricsExplorer({
                     <Card key={index} className="text-center">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-center mb-2">
-                          <DollarSign className="h-8 w-8 text-primary" />
+                          <Rupee className="h-8 w-8 text-primary" />
                         </div>
                         <div className="text-3xl font-bold">
                           {metricData.metadata?.isPercentage 

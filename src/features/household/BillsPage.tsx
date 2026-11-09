@@ -1,4 +1,4 @@
-import { CalendarDays, Check, Pencil, Plus } from 'lucide-react';
+import { CalendarDays, Check, Pencil, Plus } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/types';
 import { billPaymentKey, money, type Bill, type BillOccurrence } from '@/lib/household';

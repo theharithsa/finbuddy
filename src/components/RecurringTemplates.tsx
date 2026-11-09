@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import {
   Clock,
   Search,
   Check
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type RecurringTemplate, type Expense, type CustomCategory, type Person, DEFAULT_CATEGORIES, getAllCategories, DEFAULT_RECURRING_TEMPLATES, formatCurrency } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { subscribeToTemplates } from '@/lib/firebase';
@@ -311,7 +312,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                     {getAllCategories(customCategories).map((category) => (
                       <SelectItem key={category.name} value={category.name}>
                         <div className="flex items-center gap-2">
-                          <span>{category.icon}</span>
+                          <span><ItemIcon value={category.icon} size={17} /></span>
                           {category.name}
                         </div>
                       </SelectItem>

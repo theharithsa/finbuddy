@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import {
   Tag, 
   TrendingUp as TrendUp, 
   Wallet 
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type BudgetTemplate, type Budget, type CustomCategory, formatCurrency, getAllCategories } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -359,7 +360,7 @@ export function BudgetCommunity({
                           {allCategories.map((category) => (
                             <SelectItem key={category.name} value={category.name}>
                               <div className="flex items-center gap-2">
-                                <span>{category.icon}</span>
+                                <span><ItemIcon value={category.icon} size={17} /></span>
                                 {category.name}
                               </div>
                             </SelectItem>

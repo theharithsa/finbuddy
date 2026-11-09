@@ -1,5 +1,6 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { Button } from '@/components/ui/button';
-import { ArrowDownRight, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, CircleGauge, ReceiptText, Wallet } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, CircleGauge, ReceiptText, Wallet } from '@/components/brand/Icons';
 import { formatCurrency, formatDate, type Budget, type Category, type Expense } from '@/lib/types';
 import { monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
 
@@ -93,7 +94,7 @@ export function Overview({ expenses, budgets, categories, month, onMonthChange, 
         {recent.length > 0 ? <ul className="m3-recent">
           {recent.map((expense) => (
             <li key={expense.id}>
-              <span className="m3-row-icon" aria-hidden="true">{categories.find(({ name }) => name === expense.category)?.icon ?? <ReceiptText size={18} />}</span>
+              <span className="m3-row-icon" aria-hidden="true"><ItemIcon value={categories.find(({ name }) => name === expense.category)?.icon} size={18} /></span>
               <span className="m3-row-label"><strong>{expense.description && expense.description !== 'No description' ? expense.description : expense.category || 'Expense'}</strong><small>{expense.category || 'Uncategorised'} · {formatDate(expense.date)}</small></span>
               <strong>{formatCurrency(expense.amount)}</strong>
             </li>

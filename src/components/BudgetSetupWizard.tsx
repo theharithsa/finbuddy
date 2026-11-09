@@ -1,3 +1,4 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
   Lightbulb, 
   Calculator, 
   Target 
-} from 'lucide-react';
+} from '@/components/brand/Icons';
 import { type Budget, DEFAULT_CATEGORIES, formatCurrency } from '@/lib/types';
 
 interface BudgetSuggestion {
@@ -256,13 +257,13 @@ export function BudgetSetupWizard({ open, onOpenChange, onBudgetsCreate, existin
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {prioritySuggestions.map(suggestion => {
-                        const categoryIcon = DEFAULT_CATEGORIES.find(c => c.name === suggestion.category)?.icon || '💰';
+                        const categoryIcon = DEFAULT_CATEGORIES.find(c => c.name === suggestion.category)?.icon || 'money';
                         
                         return (
                           <Card key={suggestion.category} className="p-4">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-lg">{categoryIcon}</span>
+                                <span className="text-lg"><ItemIcon value={categoryIcon} /></span>
                                 <div>
                                   <div className="font-medium text-sm">{suggestion.category}</div>
                                   <div className="text-xs text-muted-foreground">{suggestion.description}</div>

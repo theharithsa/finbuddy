@@ -1,3 +1,5 @@
+import { defaultFont, fonts, type Theme } from '@/lib/appearance';
+
 // ApexCharts needs resolved colors when it computes gradients and hover states.
 const palettes = {
   light: {
@@ -14,11 +16,26 @@ const palettes = {
   },
 };
 
-export function getChartTheme(theme: keyof typeof palettes) {
-  const colors = palettes[theme];
+export function getChartTheme(theme: Theme) {
+  const fallback = palettes[theme];
+  const style = getComputedStyle(document.documentElement);
+  const token = (name: string, value: string) => style.getPropertyValue('--m3-' + name).trim() || value;
+  const colors = {
+    primary: token('primary', fallback.primary),
+    secondary: token('secondary', fallback.secondary),
+    tertiary: token('tertiary', fallback.tertiary),
+    quaternary: token('error', fallback.quaternary),
+    positive: token('positive', fallback.positive),
+    caution: token('caution', fallback.caution),
+    text: token('on-surface', fallback.text),
+    textMuted: token('on-surface-variant', fallback.textMuted),
+    grid: token('outline-variant', fallback.grid),
+    background: token('surface-low', fallback.background),
+    scale: fallback.scale.map((color, index) => token('chart-scale-' + index, color)),
+  };
   return {
     colors,
-    fontFamily: '"Roboto Variable", Roboto, system-ui, sans-serif',
+    fontFamily: style.getPropertyValue('--app-font').trim() || fonts[defaultFont].family,
     seriesColors: [colors.primary, colors.tertiary, colors.positive, colors.caution, colors.quaternary, colors.secondary],
     seriesLabelColor: theme === 'dark' ? '#201732' : '#fff',
   };

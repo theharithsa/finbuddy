@@ -29,7 +29,7 @@
   padding: 8px clamp(16px, 4vw, 40px); background: var(--m3-surface); border-bottom: 1px solid var(--m3-outline-variant);
 }
 .m3-wordmark { display: inline-flex; align-items: center; gap: 11px; font: var(--m3-title-large); }
-.m3-wordmark > span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+.m3-wordmark > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #efe5ff; }
 .m3-wordmark strong { font-weight: 500; }
 .m3-workspace { max-width: 1330px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; padding: 30px clamp(16px, 4vw, 40px) 24px; }
 .m3-workspace:focus { outline: none; }

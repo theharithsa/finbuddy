@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { CalendarDays, Check, ChevronDown } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { localDate, monthRange, shiftMonth } from '@/lib/finance-period';

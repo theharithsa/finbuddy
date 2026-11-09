@@ -5,13 +5,15 @@ import { initializeRum, reportRuntimeFailure } from './lib/operation-monitoring'
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Button } from './components/ui/button';
 
-import '@fontsource-variable/roboto';
+import '@fontsource-variable/google-sans';
 import './main.css';
 import './styles/material.css';
 import './styles/workspace.css';
 import './styles/expenses.css';
 import './styles/account.css';
 import './styles/household.css';
+import './styles/appearance.css';
+import './styles/palettes.css';
 
 initializeRum();
 

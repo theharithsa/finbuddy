@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkles } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 
 export function KautilyaComingSoon({ onHome }: { onHome: () => void }) {

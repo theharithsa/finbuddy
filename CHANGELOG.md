@@ -3,6 +3,8 @@
 ## [3.0.0] - Unreleased
 
 - Applied Material 3 to sign-in, all workspace destinations, shared controls, dialogs, and charts.
+- Added a squirrel mascot, browser and install artwork, and a matching icon set across the workspace.
+- Added device-local font, color palette and display mode settings.
 - Open on the household’s monthly Home and log expenses from any screen. Amount and category are required, and extra details are available on demand.
 - Track income, bills and EMIs, and dated savings and investment values. Link an existing expense when recording a bill payment to keep one ledger entry.
 - Preserved Firebase account and document paths. Restored platform labels on new expense writes.

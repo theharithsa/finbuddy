@@ -1,6 +1,6 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Trash2, Users, Wallet } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Settings, Shapes, Sparkles, Trash2, Users, Wallet } from '@/components/brand/Icons';
 import { toast } from 'sonner';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
@@ -27,6 +27,7 @@ import { SavingsPage } from '@/features/household/SavingsPage';
 import { HouseholdEditor, type Editor } from '@/features/household/HouseholdEditor';
 import { BillPaymentEditor } from '@/features/household/BillPaymentEditor';
 import { KautilyaComingSoon } from '@/features/household/KautilyaComingSoon';
+import { SettingsPage } from '@/features/settings/SettingsPage';
 
 const BudgetManager = lazy(() => import('@/components/BudgetManager').then(({ BudgetManager }) => ({ default: BudgetManager })));
 const RecurringTemplates = lazy(() => import('@/components/RecurringTemplates').then(({ RecurringTemplates }) => ({ default: RecurringTemplates })));
@@ -42,6 +43,7 @@ const mainPages = [
 
 const morePages = [
   { id: 'bills', label: 'Bills & EMIs', description: 'See payments still due', icon: CalendarDays },
+  { id: 'settings', label: 'Settings', description: 'Change font, colors, and display mode', icon: Settings },
   { id: 'budgets', label: 'Budgets', description: 'Set category spending limits', icon: Wallet },
   { id: 'dashboard', label: 'Overview', description: 'Review your spending by month', icon: LayoutDashboard },
   { id: 'templates', label: 'Recurring', description: 'Reuse expenses you log regularly', icon: Repeat2 },
@@ -85,7 +87,7 @@ function Workspace({ user }: { user: User }) {
   const spentPaise = Math.round(totalAmount(periodExpenses(data.expenses, selectedRange.from, throughDate)) * 100);
   const bills = listBillOccurrences(household.data.bills, household.data.payments, data.expenses, selectedMonth, throughDate);
   const householdPage = page === 'home' || page === 'bills' || page === 'savings';
-  const expenseDependentPage = page !== 'savings' && page !== 'ai-chat';
+  const expenseDependentPage = page !== 'savings' && page !== 'ai-chat' && page !== 'settings';
 
   function navigate(next: Page) {
     setPage(next);
@@ -189,6 +191,7 @@ function Workspace({ user }: { user: User }) {
                 />}
                 {page === 'bills' && <BillsPage bills={household.data.bills} occurrences={bills} today={today} onEdit={setEntryEditor} onPay={setPaymentEditor} />}
                 {page === 'savings' && <SavingsPage holdings={household.data.holdings} onEdit={setEntryEditor} />}
+                {page === 'settings' && <SettingsPage />}
                 {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={categories} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
                 {page === 'expenses' && <Ledger expenses={data.expenses} categories={categories} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={setDeleting} onAdd={() => setAdding(true)} />}
                 {page === 'budgets' && <BudgetManager budgets={data.budgets} expenses={data.expenses} onAddBudget={data.addBudget} onDeleteBudget={data.deleteBudget} onUpdateBudget={data.updateBudget} customCategories={data.customCategories} budgetTemplates={data.budgetTemplates} publicBudgetTemplates={data.publicBudgetTemplates} onAdoptBudgetTemplate={data.adoptBudgetTemplate} onAddBudgetTemplate={data.addBudgetTemplate} onUpdateBudgetTemplate={data.updateBudgetTemplate} onDeleteBudgetTemplate={data.deleteBudgetTemplate} />}

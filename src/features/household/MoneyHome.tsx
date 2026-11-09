@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Landmark, Plus, Wallet } from 'lucide-react';
+import { ArrowDownLeft, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Landmark, Plus, Wallet } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/types';
 import { billPaymentKey, money, type BillOccurrence, type Holding, type Income } from '@/lib/household';

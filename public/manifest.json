@@ -1,7 +1,7 @@
 {
   "name": "FinBuddy - Personal Finance Tracker",
   "short_name": "FinBuddy",
-  "description": "Your personal finance management companion with AI-powered insights",
+  "description": "Track household income, expenses, bills and savings.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fcf8ff",
@@ -19,13 +19,19 @@
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/buddy-maskable-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -36,8 +42,8 @@
       "url": "/?action=add-expense",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
+          "src": "/icons/buddy-add-expense-v1.png",
+          "sizes": "96x96",
           "type": "image/png"
         }
       ]
@@ -49,8 +55,8 @@
       "url": "/?action=view-budget",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
+          "src": "/icons/buddy-view-budget-v1.png",
+          "sizes": "96x96",
           "type": "image/png"
         }
       ]

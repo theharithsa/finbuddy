@@ -1,4 +1,4 @@
-import { ChevronRight, Landmark, Plus } from 'lucide-react';
+import { ChevronRight, Landmark, Plus } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/types';
 import { money, type Holding } from '@/lib/household';

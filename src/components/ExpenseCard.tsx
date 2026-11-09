@@ -1,5 +1,6 @@
+import { ItemIcon } from '@/components/brand/ItemIcon';
 import { useRef, useState } from 'react';
-import { EllipsisVertical, FileText, Pencil, ReceiptText, Trash2 } from 'lucide-react';
+import { EllipsisVertical, FileText, Pencil, ReceiptText, Trash2 } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -39,7 +40,7 @@ export function ExpenseCard({ expense, categories, people, onEdit, onDelete }: E
   return (
     <li className="m3-expense-row">
       <button type="button" className="m3-expense-row-main" aria-label={`Edit expense: ${label}`} onClick={onEdit}>
-        <span className="m3-row-icon" aria-hidden="true">{icon || <ReceiptText size={21} />}</span>
+        <span className="m3-row-icon" aria-hidden="true">{icon ? <ItemIcon value={icon} size={21} /> : <ReceiptText size={21} />}</span>
         <span className="m3-row-label">
           <strong>{label}</strong>
           {metadata && <small>{metadata}</small>}
