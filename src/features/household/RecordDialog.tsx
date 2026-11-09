@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -18,9 +18,27 @@ interface RecordDialogProps {
 export function RecordDialog({ title, description, submitLabel, children, onClose, onSave, onRemove, removeDescription }: RecordDialogProps) {
   const trigger = useRef(document.activeElement);
   const pending = useRef(false);
+  const removeButton = useRef<HTMLButtonElement>(null);
+  const keepButton = useRef<HTMLButtonElement>(null);
+  const restoreRemoveFocus = useRef(false);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState('');
+
+  useLayoutEffect(() => {
+    if (confirm) {
+      keepButton.current?.focus();
+    } else if (restoreRemoveFocus.current) {
+      restoreRemoveFocus.current = false;
+      removeButton.current?.focus();
+    }
+  }, [confirm]);
+
+  function keepEntry() {
+    restoreRemoveFocus.current = true;
+    setConfirm(false);
+    setError('');
+  }
 
   async function run(operation: () => Promise<void>) {
     if (pending.current) return;
@@ -40,6 +58,7 @@ export function RecordDialog({ title, description, submitLabel, children, onClos
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (confirm) return;
     const values = new FormData(event.currentTarget);
     void run(() => onSave(values));
   }
@@ -57,25 +76,24 @@ export function RecordDialog({ title, description, submitLabel, children, onClos
         }}
       >
         <DialogHeader><DialogTitle>{title}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>
-        {confirm && onRemove ? (
+        <form className="money-form" hidden={confirm} onSubmit={submit} noValidate>
+          <fieldset disabled={busy || confirm}>{children}</fieldset>
+          {!confirm && error && <p className="m3-field-error" role="alert">{error}</p>}
+          <div className="m3-expense-actions">
+            {onRemove && <Button ref={removeButton} type="button" className="money-remove" variant="ghost" onClick={() => { setConfirm(true); setError(''); }} disabled={busy}>Remove</Button>}
+            <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
+            <Button type="submit" disabled={busy}>{busy ? 'Saving…' : submitLabel}</Button>
+          </div>
+        </form>
+        {confirm && onRemove && (
           <div className="money-form">
             <p>{removeDescription ?? 'This removes the entry from your totals.'}</p>
             {error && <p className="m3-field-error" role="alert">{error}</p>}
             <div className="m3-expense-actions">
-              <Button variant="ghost" disabled={busy} onClick={() => { setConfirm(false); setError(''); }}>Keep entry</Button>
+              <Button ref={keepButton} variant="ghost" disabled={busy} onClick={keepEntry}>Keep entry</Button>
               <Button variant="destructive" disabled={busy} onClick={() => run(onRemove)}>{busy ? 'Removing…' : 'Remove entry'}</Button>
             </div>
           </div>
-        ) : (
-          <form className="money-form" onSubmit={submit} noValidate>
-            <fieldset disabled={busy}>{children}</fieldset>
-            {error && <p className="m3-field-error" role="alert">{error}</p>}
-            <div className="m3-expense-actions">
-              {onRemove && <Button type="button" className="money-remove" variant="ghost" onClick={() => { setConfirm(true); setError(''); }} disabled={busy}>Remove</Button>}
-              <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
-              <Button type="submit" disabled={busy}>{busy ? 'Saving…' : submitLabel}</Button>
-            </div>
-          </form>
         )}
       </DialogContent>
     </Dialog>

@@ -227,6 +227,9 @@ test('tracks household income, links an advance payment once and keeps investmen
   await income.getByLabel(/Label/).fill('Salary');
   await income.getByRole('button', { name: 'Save income' }).click();
   await expect(income).toHaveCount(0);
+  await page.getByText('Income this month', { exact: false }).click();
+  const salary = page.getByRole('button', { name: 'Edit income: Salary', exact: true });
+  await expect(salary).toHaveAccessibleDescription(`₹65,000.00 ${await salary.locator('small').innerText()}`);
 
   const expense = await openExpense(page);
   await expense.getByLabel('Amount').fill('1250');
@@ -264,13 +267,34 @@ test('tracks household income, links an advance payment once and keeps investmen
   await holding.getByLabel('Latest value').fill('50000');
   await holding.getByText('Type and value date', { exact: false }).click();
   await holding.getByLabel('Type', { exact: true }).selectOption('Savings');
+  await holding.getByLabel('Value as of').fill('2025-01-15');
   await holding.getByRole('button', { name: 'Save value' }).click();
   await expect(holding).toHaveCount(0);
-  await page.getByRole('button', { name: 'Update value: Emergency savings' }).click();
+  const savings = page.getByRole('button', { name: 'Update value: Emergency savings', exact: true });
+  await expect(savings).toHaveAccessibleDescription('₹50,000.00 Savings · As of 15 Jan 2025');
+  await savings.click();
   const update = page.getByRole('dialog', { name: 'Update value' });
   await update.getByLabel('Latest value').fill('52000');
+  await update.getByLabel('Name', { exact: true }).fill('Emergency fund');
+  await update.getByText('Type and value date', { exact: false }).click();
+  await update.getByLabel('Type', { exact: true }).selectOption('FD / RD');
+  await update.getByLabel('Value as of').fill('2025-02-12');
+  const remove = update.getByRole('button', { name: 'Remove', exact: true });
+  await remove.click();
+  const keep = update.getByRole('button', { name: 'Keep entry', exact: true });
+  await expect(keep).toBeFocused();
+  await expect(update.getByLabel('Latest value')).toBeHidden();
+  await keep.click();
+  await expect(remove).toBeFocused();
+  await expect(update.getByLabel('Latest value')).toHaveValue('52000');
+  await expect(update.getByLabel('Name', { exact: true })).toHaveValue('Emergency fund');
+  await expect(update.getByLabel('Type', { exact: true })).toBeVisible();
+  await expect(update.getByLabel('Type', { exact: true })).toHaveValue('FD / RD');
+  await expect(update.getByLabel('Value as of')).toHaveValue('2025-02-12');
   await update.getByRole('button', { name: 'Save changes' }).click();
   await expect(update).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Update value: Emergency fund', exact: true }))
+    .toHaveAccessibleDescription('₹52,000.00 FD / RD · As of 12 Feb 2025');
 
   await page.reload();
   await expect(summary.getByText('₹53,000.00', { exact: true })).toBeVisible();
