@@ -23,7 +23,7 @@
   padding: 5px 11px; border-radius: var(--m3-shape-full); color: var(--m3-on-surface-variant);
   font: var(--m3-body-medium); font-weight: 550;
 }
-.m3-destination-indicator { display: grid; place-items: center; flex-shrink: 0; width: 24px; height: 30px; border-radius: var(--m3-shape-full); }
+.m3-destination-indicator { display: grid; place-items: center; flex-shrink: 0; width: 24px; height: 26px; }
 .m3-destination:hover { background: color-mix(in srgb, var(--m3-on-surface) 7%, transparent); }
 .m3-destination[aria-current], .m3-destination[data-selected="true"] {
   background: var(--m3-secondary-container); color: var(--m3-on-secondary-container);
@@ -138,7 +138,6 @@
 .m3-feature-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
 .m3-feature-heading :is(h1,h2) { font: var(--m3-headline-small); }
 .m3-feature-heading p { color: var(--m3-on-surface-variant); font: var(--m3-body-medium); }
-.m3-feature-icon { display: inline-grid; place-items: center; border-radius: 16px; width: 44px; height: 44px; background: var(--m3-primary-container); color: var(--m3-on-primary-container); flex-shrink: 0; }
 .m3-chat-bubble { border-radius: 20px; background: var(--m3-surface-container); color: var(--m3-on-surface); }
 .m3-chat-bubble-user { border-end-end-radius: 6px; background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
 .m3-chat-bubble-error { background: var(--m3-error-container); color: var(--m3-on-error-container); }
@@ -155,17 +154,11 @@
     flex: 1; min-width: 0; min-height: 61px; flex-direction: column; gap: 3px;
     padding: 3px 0; border-radius: 12px; font-size: .72rem;
   }
-  .m3-destination[aria-current], .m3-destination[data-selected="true"] { background: none; }
-  .m3-destination-indicator {
-    width: clamp(46px, 15vw, 62px); height: 30px;
-    transition: background-color var(--m3-motion-fast) var(--m3-motion-ease);
-  }
-  .m3-destination[aria-current] .m3-destination-indicator, .m3-destination[data-selected="true"] .m3-destination-indicator {
-    background: var(--m3-secondary-container); color: var(--m3-on-secondary-container);
+  .m3-destination[aria-current], .m3-destination[data-selected="true"], .m3-mobile-expense {
+    background: none; color: var(--m3-on-surface); font-weight: 700;
   }
   .m3-app-actions .m3-fab { display: none; }
   .m3-mobile-expense { display: inline-flex; }
-  .m3-mobile-expense .m3-destination-indicator { background: var(--m3-primary); color: var(--m3-on-primary); }
   .m3-mobile-expense:disabled { opacity: .5; }
   .m3-workspace { padding-top: 24px; }
   .m3-drawer[data-slot="dialog-content"] {

@@ -139,7 +139,7 @@ function Workspace({ user }: { user: User }) {
       {editing && <EditExpenseModal expense={editing} isOpen onClose={() => setEditing(null)} onUpdate={data.updateExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
       <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => { if (!open && !deletingPending) setDeleting(null); }}>
         <AlertDialogContent onCloseAutoFocus={(event) => { event.preventDefault(); mainRef.current?.focus({ preventScroll: true }); }}>
-          <AlertDialogHeader><span className="m3-dialog-icon m3-danger-icon"><Trash2 size={22} /></span><AlertDialogTitle>Delete expense?</AlertDialogTitle><AlertDialogDescription>This permanently removes the expense from your ledger.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogHeader><span className="m3-dialog-icon"><Trash2 size={22} /></span><AlertDialogTitle>Delete expense?</AlertDialogTitle><AlertDialogDescription>This permanently removes the expense from your ledger.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel disabled={deletingPending}>Cancel</AlertDialogCancel><Button variant="destructive" disabled={deletingPending} onClick={confirmDelete}>{deletingPending ? 'Deleting…' : 'Delete expense'}</Button></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

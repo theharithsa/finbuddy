@@ -33,5 +33,6 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 | FIN-09 | Apply a bundled font, switch palettes and display mode, verify settings at phone width, reload, and reset appearance |
 | FIN-10 | Open the public demo, check insight tiles and footer placement, and verify the demo makes no Firebase account requests |
 | FIN-11 | Render a synthetic profile photo and restore initials if the image fails |
+| FIN-12 | Verify single-fill, borderless glyphs for categories, people, icon pickers, mobile navigation and bill templates |
 
 Live Google sign-in, tenant signal searchability and model responses require distinct verification. The [release plan](release-plan.md) describes the boundary between emulator and Hosting evidence.

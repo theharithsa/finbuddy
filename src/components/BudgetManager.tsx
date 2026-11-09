@@ -371,12 +371,7 @@ export function BudgetManager({
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                            style={{ backgroundColor: category?.color || 'oklch(0.6 0.1 240)' }}
-                          >
-                            <ItemIcon value={category?.icon} />
-                          </div>
+                          <span className="m3-row-icon"><ItemIcon value={category?.icon} /></span>
                           <div>
                             <CardTitle className="text-lg">{budget.category}</CardTitle>
                             <p className="text-sm text-muted-foreground">

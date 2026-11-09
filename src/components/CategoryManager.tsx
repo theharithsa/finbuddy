@@ -30,21 +30,7 @@ interface CategoryManagerProps {
   onAdoptCategory: (category: CustomCategory) => Promise<void>;
 }
 
-// Predefined color palette
-const COLOR_PALETTE = [
-  'oklch(0.65 0.2 40)',   // Orange
-  'oklch(0.6 0.25 220)',  // Blue
-  'oklch(0.7 0.2 300)',   // Purple
-  'oklch(0.65 0.25 330)', // Pink
-  'oklch(0.5 0.15 20)',   // Red
-  'oklch(0.6 0.2 140)',   // Green
-  'oklch(0.55 0.2 260)',  // Indigo
-  'oklch(0.65 0.2 180)',  // Cyan
-  'oklch(0.6 0.1 240)',   // Gray
-  'oklch(0.7 0.25 60)',   // Yellow
-  'oklch(0.55 0.2 120)',  // Lime
-  'oklch(0.6 0.2 350)',   // Rose
-];
+const DEFAULT_RECORD_COLOR = 'oklch(0.65 0.2 40)';
 
 export function CategoryManager({
   customCategories,
@@ -62,7 +48,7 @@ export function CategoryManager({
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    color: COLOR_PALETTE[0],
+    color: DEFAULT_RECORD_COLOR,
     icon: 'note',
     isPublic: false
   });
@@ -70,7 +56,7 @@ export function CategoryManager({
   const resetForm = () => {
     setFormData({
       name: '',
-      color: COLOR_PALETTE[0],
+      color: DEFAULT_RECORD_COLOR,
       icon: 'note',
       isPublic: false
     });
@@ -240,25 +226,6 @@ export function CategoryManager({
               
               <ItemIconPicker value={formData.icon} options={categoryIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
 
-              <div>
-                <label className="text-sm font-medium">Color *</label>
-                <div className="grid grid-cols-6 gap-2 mt-2">
-                  {COLOR_PALETTE.map((color) => (
-                    <Button
-                      key={color}
-                      size="sm"
-                      variant="outline"
-                      className="h-10 w-full p-0 border-2"
-                      style={{ 
-                        backgroundColor: color,
-                        borderColor: formData.color === color ? '#000' : 'transparent'
-                      }}
-                      onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    />
-                  ))}
-                </div>
-              </div>
-              
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium">Share with community</label>
@@ -308,12 +275,7 @@ export function CategoryManager({
                 <Card key={category.name} className="shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <ItemIcon value={category.icon} />
-                      </div>
+                      <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                       <CardTitle className="text-sm">{category.name}</CardTitle>
                       <Badge variant="secondary" className="ml-auto text-xs">Default</Badge>
                     </div>
@@ -334,12 +296,7 @@ export function CategoryManager({
                     <Card key={category.id} className="relative group shadow-sm hover:shadow-md transition-shadow">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                            style={{ backgroundColor: category.color }}
-                          >
-                            <ItemIcon value={category.icon} />
-                          </div>
+                          <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                           <div className="flex-1">
                             <CardTitle className="text-sm">{category.name}</CardTitle>
                             <div className="flex items-center gap-2 mt-1">
@@ -422,12 +379,7 @@ export function CategoryManager({
                 <Card key={category.id} className="shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <ItemIcon value={category.icon} />
-                      </div>
+                      <span className="m3-row-icon"><ItemIcon value={category.icon} /></span>
                       <div className="flex-1">
                         <CardTitle className="text-sm">{category.name}</CardTitle>
                         <p className="text-xs text-muted-foreground">by {category.createdBy}</p>

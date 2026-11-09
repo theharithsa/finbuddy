@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { shiftMonth } from '../../src/lib/finance-period';
 
@@ -24,6 +24,60 @@ async function openExpense(page: Page) {
   await expect(dialog.getByLabel('Amount')).toBeFocused();
   return dialog;
 }
+
+async function expectBareIcon(holder: Locator) {
+  const icon = holder.locator('svg');
+  await expect(icon).toBeVisible();
+  await expect(icon).toHaveAttribute('fill', 'currentColor');
+  await expect(icon).toHaveCSS('stroke', 'none');
+  await expect(icon.locator(':scope > path')).toHaveCount(1);
+  await expect(holder).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(holder).toHaveCSS('border-top-width', '0px');
+}
+
+test('category, person and bill icons have a single fill and no colored tiles or borders', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await createAccount(page, false);
+  const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
+  const more = page.getByRole('navigation', { name: 'More destinations' });
+  const main = page.getByRole('main');
+  const open = async (label: string) => {
+    await nav.getByRole('button', { name: 'More', exact: true }).click();
+    await more.getByRole('button', { name: new RegExp(`^${label}`) }).click();
+  };
+
+  await expectBareIcon(nav.getByRole('button', { name: 'Add expense', exact: true }).locator('.m3-destination-indicator'));
+  await open('Categories');
+  await expectBareIcon(main.locator('.m3-row-icon').first());
+  await main.getByRole('button', { name: 'Create Category', exact: true }).click();
+  const categoryDialog = page.getByRole('dialog', { name: 'Create Custom Category' });
+  const food = categoryDialog.getByRole('button', { name: 'Food', exact: true });
+  await expectBareIcon(food);
+  await food.click();
+  await expect(food).toHaveAttribute('aria-pressed', 'true');
+  await expectBareIcon(food);
+  await expect(categoryDialog.getByText('Selected icon · Food')).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  await open('People');
+  await expectBareIcon(main.locator('.m3-row-icon').first());
+  await main.getByRole('button', { name: 'Add Person', exact: true }).click();
+  const personDialog = page.getByRole('dialog', { name: 'Add New Person' });
+  await expectBareIcon(personDialog.getByRole('button', { name: 'Person', exact: true }));
+  await expectBareIcon(personDialog.getByRole('button', { name: 'Group', exact: true }));
+  await page.keyboard.press('Escape');
+
+  await open('Bills & EMIs');
+  await expectBareIcon(main.locator('.m3-row-icon').first());
+  await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+  await open('Recurring');
+  const iconFor = (label: string) => main.getByText(label, { exact: true }).locator('../..').locator('.m3-row-icon');
+  const rent = iconFor('House Rent');
+  const water = iconFor('Water Bill');
+  await expectBareIcon(rent);
+  await expectBareIcon(water);
+  expect(await rent.locator('path').getAttribute('d')).not.toBe(await water.locator('path').getAttribute('d'));
+});
 
 test('quick entry asks for amount and category and defaults to today', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

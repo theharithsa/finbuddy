@@ -191,9 +191,11 @@ export function ExpenseEditor({
             {availablePeople.length > 0 && <fieldset className="m3-people-field">
               <legend>People</legend>
               <div className="m3-chip-set">
-                {availablePeople.map(({ id: personId, name }) => {
+                {availablePeople.map(({ id: personId, name, icon }) => {
                   const selected = personIds.includes(personId);
-                  return <button type="button" key={personId} className="m3-chip" aria-pressed={selected} disabled={saving} onClick={() => setPersonIds((ids) => selected ? ids.filter((item) => item !== personId) : [...ids, personId])}>{selected && <Check size={15} />}{name}</button>;
+                  return <button type="button" key={personId} className="m3-chip" aria-pressed={selected} disabled={saving} onClick={() => setPersonIds((ids) => selected ? ids.filter((item) => item !== personId) : [...ids, personId])}>
+                    {selected ? <Check size={15} /> : <ItemIcon value={icon} fallback="person" size={15} />}{name}
+                  </button>;
                 })}
               </div>
             </fieldset>}

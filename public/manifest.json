@@ -42,7 +42,7 @@
       "url": "/?action=add-expense",
       "icons": [
         {
-          "src": "/icons/buddy-add-expense-v2.png",
+          "src": "/icons/buddy-add-expense-v3.png",
           "sizes": "96x96",
           "type": "image/png"
         }
@@ -55,7 +55,7 @@
       "url": "/?action=view-budget",
       "icons": [
         {
-          "src": "/icons/buddy-view-budget-v2.png",
+          "src": "/icons/buddy-view-budget-v3.png",
           "sizes": "96x96",
           "type": "image/png"
         }

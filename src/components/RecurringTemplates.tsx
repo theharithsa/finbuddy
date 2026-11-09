@@ -1,4 +1,4 @@
-import { ItemIcon } from '@/components/brand/ItemIcon';
+import { ItemIcon, type ItemIconName } from '@/components/brand/ItemIcon';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,38 @@ interface RecurringTemplatesProps {
   customPeople?: Person[];
   publicPeople?: Person[];
 }
+
+const starterTemplateIcons: Readonly<Record<string, ItemIconName | undefined>> = {
+  rent: 'home',
+  electricity: 'utilities',
+  water: 'water',
+  gas: 'flame',
+  maintenance: 'tools',
+  phone: 'phone',
+  internet: 'wifi',
+  dth: 'tv',
+  netflix: 'entertainment',
+  hotstar: 'entertainment',
+  prime: 'entertainment',
+  spotify: 'music',
+  youtube: 'entertainment',
+  gym: 'fitness',
+  'health-insurance': 'shield',
+  petrol: 'fuel',
+  'car-emi': 'transport',
+  'bike-emi': 'bike',
+  'vehicle-insurance': 'shield',
+  'school-fees': 'education',
+  tuition: 'education',
+  milk: 'milk',
+  'grocery-delivery': 'groceries',
+  'home-loan': 'home',
+  'personal-loan': 'money',
+  'credit-card': 'card',
+  'property-tax': 'receipt',
+  'life-insurance': 'shield',
+  'income-tax': 'receipt',
+};
 
 export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTemplate, customCategories = [], customPeople = [], publicPeople = [] }: RecurringTemplatesProps) {
   const allCategories = getAllCategories(customCategories);
@@ -390,7 +422,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2 text-base"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} size={18} />{template.name}</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} fallback="receipt" size={18} />{template.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={getFrequencyBadgeVariant(template.frequency)}>
                           <Clock className="w-3 h-3 mr-1" />
@@ -491,7 +523,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 >
                   {/* Template Name */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <span className="m3-row-icon"><ItemIcon value={allCategories.find(({ name }) => name === template.category)?.icon} size={20} /></span>
+                    <span className="m3-row-icon"><ItemIcon value={starterTemplateIcons[template.id]} fallback="receipt" /></span>
                     <div>
                       <div className="font-medium">{template.name}</div>
                       <div className="text-xs text-muted-foreground">{template.description.slice(0, 30)}...</div>

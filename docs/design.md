@@ -19,7 +19,7 @@ Savings and investments use manually entered INR values, each with its own as-of
 
 ## Design system
 
-The FinBuddy glyph library uses one 24-unit grid, one 1.75-unit rounded stroke, and the surrounding text color. A glyph depicts one recognizable action or object. Navigation, forms, category badges, and recurring templates reuse the same glyphs. Legacy icon IDs map to these shapes and unknown IDs use a neutral fallback. Brand art and the official sign-in provider mark have their own assets.
+FinBuddy uses a curated set of filled Material Symbols Rounded. Each SVG uses a single path on a 24 dp grid and inherits one foreground color. Place glyphs directly on the surface with no colored tile, outline, or shadow around them. Keep interactive focus rings and clear selection labels. Categories, people, bills, and templates keep their saved icon IDs, and older emoji IDs map to the same set. The sign-in provider uses the official Google mark. [Material Symbols](https://developers.google.com/fonts/docs/material_symbols) · [Icon license](../public/icon-licenses/material-symbols.txt)
 
 - Settings offers light, dark and system display modes, nine color palettes, Black & white, and locally bundled fonts. Google Sans and Lavender are the defaults. Appearance applies immediately and persists on the device.
 - A standalone squirrel silhouette with a sweeping tail and coin is the FinBuddy mark. The favicon, wordmark, touch and install icons use the same silhouette. The in-app mark inherits the theme color.

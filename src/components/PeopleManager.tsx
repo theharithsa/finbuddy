@@ -15,10 +15,7 @@ import { Person, getAllPeople, DEFAULT_PEOPLE } from '@/lib/types';
 import { adoptPublicPerson } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-const PERSON_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-  '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
-];
+const DEFAULT_RECORD_COLOR = '#FF6B6B';
 
 const RELATIONSHIP_OPTIONS = [
   'Self', 'Family', 'Friend', 'Colleague', 'Partner', 'Child', 
@@ -53,7 +50,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
 
   const [formData, setFormData] = useState({
     name: '',
-    color: PERSON_COLORS[0],
+    color: DEFAULT_RECORD_COLOR,
     icon: 'person',
     relationship: 'Friend',
     isPublic: false
@@ -65,7 +62,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
   const resetForm = () => {
     setFormData({
       name: '',
-      color: PERSON_COLORS[0],
+      color: DEFAULT_RECORD_COLOR,
       icon: 'person',
       relationship: 'Friend',
       isPublic: false
@@ -259,23 +256,6 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
 
               <ItemIconPicker value={formData.icon} options={personIcons} onChange={(icon) => setFormData(prev => ({ ...prev, icon }))} />
 
-              <div>
-                <Label>Color</Label>
-                <div className="grid grid-cols-5 gap-2 mt-2">
-                  {PERSON_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        formData.color === color ? 'border-gray-800' : 'border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    />
-                  ))}
-                </div>
-              </div>
-
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isPublic"
@@ -331,12 +311,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {DEFAULT_PEOPLE.map((person, index) => (
               <div key={`default-${index}`} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    <ItemIcon value={person.icon} />
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (
@@ -354,12 +329,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {customPeople.map((person) => (
               <div key={person.id} className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    <ItemIcon value={person.icon} />
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (
@@ -421,12 +391,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             {publicPeople.map((person) => (
               <div key={person.id} className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: person.color }}
-                  >
-                    <ItemIcon value={person.icon} />
-                  </div>
+                  <span className="m3-row-icon"><ItemIcon value={person.icon} fallback="person" /></span>
                   <div>
                     <span className="font-medium">{person.name}</span>
                     {person.relationship && (
