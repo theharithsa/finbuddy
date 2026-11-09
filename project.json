@@ -10,8 +10,8 @@
   "decisions": {
     "product": {
       "status": "approved",
-      "value": "INR personal finance workspace with expense, budget and monthly review journeys",
-      "approval": "Revival request and issue 111"
+      "value": "Expense-first INR finance workspace with Material 3, category budgets and monthly review",
+      "approval": "Revival and Material 3 requests, tracked in issue 111"
     },
     "stack": {
       "status": "approved",

@@ -22,4 +22,4 @@ Use Node.js 24 and run `npm ci`, then `npm run dev`. Local development uses FinB
 | `mcp-server` | Local stdio MCP adapter with separate credentials and lifecycle |
 | `skills`, `schemas`, `qa` | App Launchpad catalog, contracts and evidence |
 
-See [decisions](docs/decisions.md), [service inventory](docs/services.md), [observability](docs/observability.md) and [release and rollback](docs/release-plan.md).
+See [Material 3 design](docs/design.md), [decisions](docs/decisions.md), [service inventory](docs/services.md), [observability](docs/observability.md) and [release and rollback](docs/release-plan.md).

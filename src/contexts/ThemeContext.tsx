@@ -29,7 +29,14 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        return saved === 'dark' || saved === 'light' ? saved : defaultTheme;
+      } catch {
+        return defaultTheme;
+      }
+    }
   );
 
   useEffect(() => {
@@ -37,10 +44,12 @@ export function ThemeProvider({
 
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    const surface = getComputedStyle(root).getPropertyValue('--m3-surface').trim();
+    if (surface) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surface);
   }, [theme]);
 
   const updateTheme = (newTheme: Theme) => {
-    localStorage.setItem(storageKey, newTheme);
+    try { localStorage.setItem(storageKey, newTheme); } catch { /* Apply the theme for this session. */ }
     setTheme(newTheme);
   };
 

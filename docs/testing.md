@@ -22,8 +22,9 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 
 | Case | Check |
 | --- | --- |
-| FIN-01 | Create an account, save an expense with a synthetic receipt, reload, move between months, search, edit and delete |
-| FIN-02 | Exercise primary and secondary navigation and sign out on a mobile viewport |
+| FIN-01 | Create an account, validate quick entry and save with today’s date |
+| FIN-05 | Save an expense with platform and synthetic receipt, reload, navigate months, search, edit, view the receipt and confirm deletion |
+| FIN-02 | Open each workspace destination, toggle and restore dark mode, verify keyboard dismissal and sign out at 390 × 844 |
 | FIN-03 | Check leap month, local month boundaries, legacy ISO dates and paise arithmetic |
 | FIN-04 | Verify exact deployed revision and immutable JavaScript from Hosting |
 

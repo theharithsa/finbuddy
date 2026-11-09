@@ -6,6 +6,7 @@ export default defineConfig({
   workers: 1,
   use: {
     ...devices['Desktop Chrome'],
+    actionTimeout: 10_000,
     baseURL: 'http://127.0.0.1:5173',
     channel: process.env.FINBUDDY_BROWSER_CHANNEL,
   },

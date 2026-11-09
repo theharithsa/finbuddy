@@ -207,12 +207,12 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold tracking-tight">Manage People</h2>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Users size={22} /></span>
+          <div><h1>People</h1><p>Keep track of whom you spent money for.</p></div>
         </div>
-        
+
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
@@ -330,10 +330,10 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       {success && (
-        <Alert className="border-green-200 bg-green-50 text-green-800">
+        <Alert className="border-transparent bg-positive-container text-on-positive-container">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{success}</AlertDescription>
         </Alert>
@@ -407,6 +407,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                   <Button
                     size="sm"
                     variant="outline"
+                    aria-label="Edit person"
                     onClick={() => handleEdit(person)}
                     disabled={loading}
                   >
@@ -415,6 +416,7 @@ export const PeopleManager: React.FC<PeopleManagerProps> = ({
                   <Button
                     size="sm"
                     variant="destructive"
+                    aria-label="Delete person"
                     onClick={() => handleDelete(person)}
                     disabled={loading}
                   >

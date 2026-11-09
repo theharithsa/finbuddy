@@ -265,7 +265,7 @@ export function BudgetCommunity({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Budget Templates</h2>
+          <h2 className="text-xl font-medium">Budget templates</h2>
           <p className="text-muted-foreground">
             Create budget templates and share them with the community
           </p>

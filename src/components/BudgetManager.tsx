@@ -197,7 +197,7 @@ export function BudgetManager({
     const percentage = (spent / limit) * 100;
     if (percentage >= 100) return 'bg-destructive';
     if (percentage >= 80) return 'bg-yellow-500';
-    return 'bg-accent';
+    return 'bg-primary';
   };
 
   const availableCategories = DEFAULT_CATEGORIES.filter(
@@ -206,11 +206,17 @@ export function BudgetManager({
 
   return (
     <div className="space-y-6">
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Wallet size={22} /></span>
+          <div><h1>Budgets</h1><p>Set spending limits and check how each category is tracking.</p></div>
+        </div>
+      </header>
       <Tabs defaultValue="budgets" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="budgets" className="flex items-center gap-2">
             <Wallet size={16} />
-            My Budgets
+            Limits
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
@@ -222,7 +228,7 @@ export function BudgetManager({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Wallet size={24} className="text-primary" />
-               <h2 className="text-2xl font-semibold tracking-tight">Budget Overview</h2>
+               <h2 className="text-2xl font-semibold tracking-tight">Category budgets</h2>
             </div>
             <div className="flex items-center gap-2">
               <Button 
@@ -231,7 +237,7 @@ export function BudgetManager({
                 variant="outline"
               >
                 <Calculator className="w-4 h-4" />
-                Quick Setup
+                Budget setup
               </Button>
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>

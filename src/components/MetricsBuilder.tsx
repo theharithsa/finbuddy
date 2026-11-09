@@ -1,3 +1,4 @@
+import { getChartTheme } from '@/lib/chart-theme';
 import React, { useState, useEffect, useRef } from 'react';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { useTheme } from '../contexts/ThemeContext';
@@ -302,19 +303,8 @@ export function MetricsBuilder() {
   const queryResult = currentQuery ? executeQuery(currentQuery) : null;
   
   // Theme configuration
-  const getThemeConfig = () => {
-    const isDark = theme === 'dark';
-    return {
-      colors: {
-        primary: isDark ? '#3b82f6' : '#2563eb',
-        text: isDark ? '#f1f5f9' : '#0f172a',
-        textMuted: isDark ? '#94a3b8' : '#64748b',
-        grid: isDark ? '#334155' : '#e2e8f0'
-      },
-      fontFamily: '"Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-    };
-  };
-  
+  const getThemeConfig = () => getChartTheme(theme);
+
   // Render chart
   useEffect(() => {
     if (!currentQuery || !queryResult || !chartRefs.current[selectedQuery]) return;
@@ -390,11 +380,7 @@ export function MetricsBuilder() {
         labels: queryResult.labels,
         colors: [
           themeConfig.colors.primary,
-          '#10b981',
-          '#f59e0b',
-          '#ef4444',
-          '#8b5cf6',
-          '#06b6d4'
+          ...themeConfig.seriesColors
         ],
         legend: {
           labels: {
@@ -423,11 +409,11 @@ export function MetricsBuilder() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="m3-feature-heading">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Metrics Builder</h1>
+          <h2>Query builder</h2>
           <p className="text-muted-foreground mt-1">
-            Build custom metrics with Dynatrace-style query interface
+            Choose your data, filters, and chart.
           </p>
         </div>
         <Button onClick={addQuery} className="gap-2">
@@ -466,6 +452,7 @@ export function MetricsBuilder() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={"Remove " + query.name}
                 onClick={() => removeQuery(query.id)}
                 className="h-8 w-8 p-0"
               >

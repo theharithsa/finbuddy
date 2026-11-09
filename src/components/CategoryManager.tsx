@@ -222,17 +222,12 @@ export function CategoryManager({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Swatches className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Category Manager</h2>
-          </div>
-          <p className="text-muted-foreground">
-            Create custom categories and share them with the community
-          </p>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><Swatches size={22} /></span>
+          <div><h1>Categories</h1><p>Choose how to group your expenses.</p></div>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
@@ -333,7 +328,7 @@ export function CategoryManager({
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       <Tabs defaultValue="my-categories" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 max-w-md">

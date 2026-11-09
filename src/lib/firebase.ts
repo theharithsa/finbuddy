@@ -108,9 +108,8 @@ export const deleteFile = async (path: string): Promise<void> => {
   try {
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
-  } catch (error) {
-    console.error('Error deleting file:', error);
-    // Don't throw error for delete failures to avoid blocking other operations
+  } catch {
+    // Receipt cleanup is best effort.
   }
 };
 

@@ -1,21 +1,24 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { ArrowRight, ChartNoAxesCombined, CircleHelp, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Users, Wallet, X } from 'lucide-react';
+import { ChartNoAxesCombined, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Shapes, Sparkles, Trash2, Users, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
 import { EditExpenseModal } from '@/components/EditExpenseModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useFirestoreData } from '@/hooks/useFirestoreData';
 import { deleteOwnedReceipt, logOut } from '@/lib/firebase';
-import { getAllCategories, type Expense } from '@/lib/types';
+import { getAllCategories, getAllPeople, type Expense } from '@/lib/types';
 import { APP_VERSION_DISPLAY } from '@/lib/version';
 import { UsageAnalytics } from '@/features/account/UsageAnalytics';
 import { LoginPage, Wordmark } from '@/features/account/LoginPage';
 import { Ledger } from '@/features/workspace/Ledger';
 import { Overview } from '@/features/workspace/Overview';
-import { localDate, monthRange, periodExpenses } from '@/lib/finance-period';
+import { localDate, monthRange } from '@/lib/finance-period';
 
 const BudgetManager = lazy(() => import('@/components/BudgetManager').then(({ BudgetManager }) => ({ default: BudgetManager })));
 const RecurringTemplates = lazy(() => import('@/components/RecurringTemplates').then(({ RecurringTemplates }) => ({ default: RecurringTemplates })));
@@ -24,37 +27,46 @@ const PeopleManager = lazy(() => import('@/components/PeopleManager').then(({ Pe
 const MetricsExplorer = lazy(() => import('@/components/MetricsExplorer').then(({ MetricsExplorer }) => ({ default: MetricsExplorer })));
 const AIChatPage = lazy(() => import('@/components/AIChatPage').then(({ AIChatPage }) => ({ default: AIChatPage })));
 
-const pages = [
-  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+const mainPages = [
   { id: 'expenses', label: 'Expenses', icon: ReceiptText },
+  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
   { id: 'budgets', label: 'Budgets', icon: Wallet },
-  { id: 'templates', label: 'Recurring', icon: Repeat2 },
-  { id: 'categories', label: 'Categories', icon: Shapes },
-  { id: 'people', label: 'People', icon: Users },
-  { id: 'explorer', label: 'Metrics Explorer', icon: ChartNoAxesCombined },
-  { id: 'ai-chat', label: 'KautilyaAI', icon: Sparkles },
 ] as const;
 
-type Page = (typeof pages)[number]['id'];
+const morePages = [
+  { id: 'templates', label: 'Recurring', description: 'Reuse expenses you log regularly', icon: Repeat2 },
+  { id: 'categories', label: 'Categories', description: 'Organize where your money goes', icon: Shapes },
+  { id: 'people', label: 'People', description: 'Track spending for other people', icon: Users },
+  { id: 'explorer', label: 'Metrics Explorer', description: 'Explore and compare spending patterns', icon: ChartNoAxesCombined },
+  { id: 'ai-chat', label: 'KautilyaAI', description: 'Ask questions about your spending', icon: Sparkles },
+] as const;
+
+type Page = (typeof mainPages)[number]['id'] | (typeof morePages)[number]['id'];
 
 function Workspace({ user }: { user: User }) {
   const data = useFirestoreData();
   const shortcut = new URLSearchParams(location.search).get('action');
-  const [page, setPage] = useState<Page>(shortcut === 'view-budget' ? 'budgets' : 'dashboard');
+  const [page, setPage] = useState<Page>(shortcut === 'view-budget' ? 'budgets' : 'expenses');
   const [menu, setMenu] = useState(false);
   const [adding, setAdding] = useState(shortcut === 'add-expense');
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [deleting, setDeleting] = useState<Expense | null>(null);
+  const [deletingPending, setDeletingPending] = useState(false);
   const [month, setMonth] = useState(() => localDate().slice(0, 7));
   const [range, setRange] = useState(() => monthRange(month));
   const [signingOut, setSigningOut] = useState(false);
-  const people = [...data.customPeople, ...data.publicPeople];
+  const mainRef = useRef<HTMLElement>(null);
+  const people = getAllPeople([...data.customPeople, ...data.publicPeople]);
+  const categories = getAllCategories(data.customCategories);
   const name = user.displayName || user.email || 'Your account';
-  const currentPage = pages.find(({ id }) => id === page)?.label;
+  const currentPage = [...mainPages, ...morePages].find(({ id }) => id === page)?.label;
+  const moreSelected = morePages.some(({ id }) => id === page);
 
   function navigate(next: Page) {
     setPage(next);
     setMenu(false);
     window.scrollTo(0, 0);
+    requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
   }
 
   async function addExpense(values: Omit<Expense, 'id' | 'createdAt'>) {
@@ -62,14 +74,18 @@ function Workspace({ user }: { user: User }) {
     toast.success('Expense added');
   }
 
-  async function deleteExpense(expense: Expense) {
-    if (!window.confirm('Delete this expense?')) return;
+  async function confirmDelete() {
+    if (!deleting || deletingPending) return;
+    setDeletingPending(true);
     try {
-      await data.deleteExpense(expense.id);
-      if (expense.receiptUrl) void deleteOwnedReceipt(user.uid, expense.receiptUrl);
+      await data.deleteExpense(deleting.id);
+      if (deleting.receiptUrl) void deleteOwnedReceipt(user.uid, deleting.receiptUrl);
+      setDeleting(null);
       toast.success('Expense deleted');
     } catch {
       toast.error('Could not delete the expense. Try again.');
+    } finally {
+      setDeletingPending(false);
     }
   }
 
@@ -85,67 +101,86 @@ function Workspace({ user }: { user: User }) {
   }
 
   return (
-    <div className="fb-shell">
-      <a className="fb-skip" href="#workspace">Skip to workspace</a>
-      <aside className="fb-sidebar" data-open={menu} id="workspace-nav" onKeyDown={(event) => { if (event.key === 'Escape') setMenu(false); }}>
-        <div className="fb-sidebar-brand"><Wordmark /><button className="fb-menu-close fb-icon-button" aria-label="Close navigation" onClick={() => setMenu(false)}><X size={20} /></button></div>
-        <p className="fb-nav-label">WORKSPACE</p>
+    <div className="m3-shell">
+      <a className="m3-skip" href="#workspace">Skip to workspace</a>
+      <aside className="m3-navigation">
+        <button className="m3-fab" title="Add expense" onClick={() => setAdding(true)} disabled={data.loading || data.error}>
+          <Plus size={24} /> <span>Add expense</span>
+        </button>
         <nav aria-label="Workspace">
-          {pages.map(({ id, label, icon: Icon }, index) => (
-            <div key={id}>
-              {index === 6 && <p className="fb-nav-label fb-nav-divider">INSIGHTS</p>}
-              <button aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={18} />{label}</button>
-            </div>
+          {mainPages.map(({ id, label, icon: Icon }) => (
+            <button type="button" className="m3-destination" key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
+              <span className="m3-destination-indicator"><Icon size={22} /></span><span>{label}</span>
+            </button>
           ))}
+          <Dialog open={menu} onOpenChange={setMenu}>
+            <DialogTrigger asChild>
+              <button type="button" className="m3-destination" data-selected={moreSelected || undefined}><span className="m3-destination-indicator"><Menu size={22} /></span><span>More</span></button>
+            </DialogTrigger>
+            <DialogContent className="m3-drawer">
+              <DialogHeader><DialogTitle>More</DialogTitle><DialogDescription>Manage your workspace and explore spending.</DialogDescription></DialogHeader>
+              <div className="m3-drawer-account">
+                <span className="m3-row-icon" aria-hidden="true">{name.trim().slice(0, 1).toUpperCase()}</span>
+                <div><strong title={name}>{name}</strong><small>Personal workspace</small></div>
+              </div>
+              <nav className="m3-drawer-list" aria-label="More destinations">
+                {morePages.map(({ id, label, description, icon: Icon }) => (
+                  <button type="button" key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
+                    <Icon size={21} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={18} />
+                  </button>
+                ))}
+                <a href="/docs/"><CircleHelp size={21} /><span><strong>Help center</strong></span><ChevronRight size={18} /></a>
+              </nav>
+              <div className="m3-drawer-footer">
+                <UsageAnalytics />
+                <Button variant="outline" onClick={signOut} disabled={signingOut}><LogOut size={18} />{signingOut ? 'Signing out…' : 'Sign out'}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </nav>
-        <div className="fb-sidebar-foot">
-          <a href="/docs/"><CircleHelp size={17} />Help center <ArrowRight size={14} /></a>
-          <div className="fb-account"><span className="fb-avatar" aria-hidden="true">{name.trim().slice(0, 1).toUpperCase()}</span><div><strong title={name}>{name}</strong><small>Personal workspace</small></div><button className="fb-icon-button" aria-label="Sign out" title="Sign out" disabled={signingOut} onClick={signOut}><LogOut size={16} /></button></div>
-        </div>
       </aside>
-      {menu && <button className="fb-scrim" aria-label="Dismiss navigation" onClick={() => setMenu(false)} />}
 
-      <div className="fb-main">
-        <header className="fb-topbar">
-          <div className="fb-crumb"><button className="fb-menu-open fb-icon-button" aria-label="Open navigation" aria-expanded={menu} aria-controls="workspace-nav" onClick={() => setMenu(true)}><Menu size={21} /></button><span>Workspace</span><span aria-hidden="true">/</span><strong>{currentPage}</strong></div>
-          <div className="fb-top-actions"><ThemeToggle /><button className="fb-button fb-primary" onClick={() => setAdding(true)} disabled={data.loading || Boolean(data.error)}><Plus size={17} />Add expense</button></div>
+      <div className="m3-main">
+        <header className="m3-app-bar">
+          <Wordmark />
+          <ThemeToggle />
         </header>
-
-        <main id="workspace" className="fb-workspace" tabIndex={-1}>
-          {data.error ? <section className="fb-panel fb-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><button className="fb-button fb-secondary" onClick={() => location.reload()}>Reload workspace</button></section> :
-            data.loading ? <div className="fb-loading" role="status">Loading your workspace…</div> : (
-              <Suspense fallback={<div className="fb-loading" role="status">Loading {currentPage}…</div>}>
-                {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={getAllCategories(data.customCategories)} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
-                {page === 'expenses' && <Ledger expenses={data.expenses} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={deleteExpense} />}
+        <main id="workspace" className="m3-workspace" tabIndex={-1} ref={mainRef}>
+          {data.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><Button onClick={() => location.reload()}>Reload workspace</Button></section> :
+            data.loading ? <div className="m3-loading" role="status">Loading your workspace…</div> : (
+              <Suspense fallback={<div className="m3-loading" role="status">Loading {currentPage}…</div>}>
+                {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={categories} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
+                {page === 'expenses' && <Ledger expenses={data.expenses} categories={categories} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={setDeleting} onAdd={() => setAdding(true)} />}
                 {page === 'budgets' && <BudgetManager budgets={data.budgets} expenses={data.expenses} onAddBudget={data.addBudget} onDeleteBudget={data.deleteBudget} onUpdateBudget={data.updateBudget} customCategories={data.customCategories} budgetTemplates={data.budgetTemplates} publicBudgetTemplates={data.publicBudgetTemplates} onAdoptBudgetTemplate={data.adoptBudgetTemplate} onAddBudgetTemplate={data.addBudgetTemplate} onUpdateBudgetTemplate={data.updateBudgetTemplate} onDeleteBudgetTemplate={data.deleteBudgetTemplate} />}
                 {page === 'templates' && <RecurringTemplates onAddExpense={addExpense} onAddTemplate={data.addTemplate} onDeleteTemplate={data.deleteTemplate} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
                 {page === 'categories' && <CategoryManager customCategories={data.customCategories} publicCategories={data.publicCategories} onAddCategory={data.addCustomCategory} onUpdateCategory={data.updateCustomCategory} onDeleteCategory={data.deleteCustomCategory} onAdoptCategory={data.adoptCategory} />}
                 {page === 'people' && <PeopleManager user={user} customPeople={data.customPeople} publicPeople={data.publicPeople} onAddPerson={data.addPerson} onUpdatePerson={data.updatePerson} onDeletePerson={data.deletePerson} onAdoptPerson={data.adoptPerson} />}
-                {page === 'explorer' && <MetricsExplorer expenses={periodExpenses(data.expenses, range.from, range.to)} budgets={data.budgets} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+                {page === 'explorer' && <MetricsExplorer expenses={data.expenses} budgets={data.budgets} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
                 {page === 'ai-chat' && <AIChatPage />}
               </Suspense>
             )}
-          <footer className="fb-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><UsageAnalytics /></footer>
+          <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
         </main>
       </div>
 
-      <nav className="fb-bottom-nav" aria-label="Quick navigation">
-        {pages.slice(0, 3).map(({ id, label, icon: Icon }) => <button key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} />{label}</button>)}
-        <button aria-expanded={menu} aria-controls="workspace-nav" onClick={() => setMenu(!menu)}><Menu size={20} />More</button>
-      </nav>
-
-      {adding && !data.loading && !data.error && <AddExpenseModal isOpen onClose={() => setAdding(false)} onAddExpense={addExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+      {adding && !data.loading && !data.error && <AddExpenseModal isOpen onClose={() => setAdding(false)} onAddExpense={addExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} recentCategories={data.expenses.map(({ category }) => category)} />}
       {editing && <EditExpenseModal expense={editing} isOpen onClose={() => setEditing(null)} onUpdate={data.updateExpense} customCategories={data.customCategories} customPeople={data.customPeople} publicPeople={data.publicPeople} />}
+      <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => { if (!open && !deletingPending) setDeleting(null); }}>
+        <AlertDialogContent onCloseAutoFocus={(event) => { event.preventDefault(); mainRef.current?.focus({ preventScroll: true }); }}>
+          <AlertDialogHeader><span className="m3-dialog-icon m3-danger-icon"><Trash2 size={22} /></span><AlertDialogTitle>Delete expense?</AlertDialogTitle><AlertDialogDescription>This permanently removes the expense from your ledger.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel disabled={deletingPending}>Cancel</AlertDialogCancel><Button variant="destructive" disabled={deletingPending} onClick={confirmDelete}>{deletingPending ? 'Deleting…' : 'Delete expense'}</Button></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
 function AppContent() {
   const { user, loading, redirectError } = useAuth();
-  if (loading) return <div className="fb-loading fb-fullscreen" role="status">Opening FinBuddy…</div>;
+  if (loading) return <div className="m3-loading m3-fullscreen" role="status">Opening FinBuddy…</div>;
   return user ? <Workspace key={user.uid} user={user} /> : <LoginPage redirectError={redirectError} />;
 }
 
 export default function App() {
-  return <AuthProvider><AppContent /><Toaster position="top-right" /></AuthProvider>;
+  return <AuthProvider><AppContent /><Toaster position="bottom-center" /></AuthProvider>;
 }

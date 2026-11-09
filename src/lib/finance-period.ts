@@ -1,7 +1,7 @@
 import type { Expense } from '@/lib/types';
 
 export function localDate(date = new Date()): string {
-  const year = date.getFullYear();
+  const year = String(date.getFullYear()).padStart(4, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
@@ -9,9 +9,10 @@ export function localDate(date = new Date()): string {
 
 export function monthRange(month: string) {
   const date = new Date(`${month}-01T12:00:00`);
+  date.setMonth(date.getMonth() + 1, 0);
   return {
     from: `${month}-01`,
-    to: localDate(new Date(date.getFullYear(), date.getMonth() + 1, 0)),
+    to: localDate(date),
   };
 }
 

@@ -130,16 +130,16 @@ export function BudgetSetupWizard({ open, onOpenChange, onBudgetsCreate, existin
 
   const getPriorityColor = (priority: 'essential' | 'important' | 'optional') => {
     switch (priority) {
-      case 'essential': return 'bg-red-100 text-red-800 border-red-200';
+      case 'essential': return 'bg-error-container text-on-error-container border-transparent';
       case 'important': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'optional': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'optional': return 'bg-primary-container text-on-primary-container border-transparent';
     }
   };
 
   const getProgressColor = () => {
-    if (budgetUtilization <= 80) return 'bg-green-500';
-    if (budgetUtilization <= 100) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (budgetUtilization <= 80) return 'bg-positive';
+    if (budgetUtilization <= 100) return 'bg-caution';
+    return 'bg-destructive';
   };
 
   return (
@@ -172,54 +172,21 @@ export function BudgetSetupWizard({ open, onOpenChange, onBudgetsCreate, existin
                 />
               </div>
 
-              <div>
-                <Label className="text-base font-medium mb-3 block">
-                  Choose your budgeting style:
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card 
-                    className={`cursor-pointer transition-all ${budgetType === 'conservative' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setBudgetType('conservative')}
-                  >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm">🛡️ Conservative</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Higher allocation to essentials and savings. Lower entertainment spending.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`cursor-pointer transition-all ${budgetType === 'balanced' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setBudgetType('balanced')}
-                  >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm">⚖️ Balanced</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Recommended 50/30/20 rule. Balanced approach to all categories.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className={`cursor-pointer transition-all ${budgetType === 'aggressive' ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setBudgetType('aggressive')}
-                  >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm">🚀 Aggressive</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Lower essentials, higher discretionary spending and entertainment.
-                      </p>
-                    </CardContent>
-                  </Card>
+              <fieldset className="m3-budget-styles">
+                <legend>Budgeting style</legend>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {([
+                    ['conservative', 'Conservative', 'Prioritize essentials and savings.'],
+                    ['balanced', 'Balanced', 'Spread your budget across categories.'],
+                    ['aggressive', 'Flexible', 'Allow more for discretionary spending.'],
+                  ] as const).map(([value, title, description]) => (
+                    <label className="m3-choice-card" key={value}>
+                      <input type="radio" name="budget-style" value={value} checked={budgetType === value} onChange={() => setBudgetType(value)} />
+                      <span><strong>{title}</strong><small>{description}</small></span>
+                    </label>
+                  ))}
                 </div>
-              </div>
+              </fieldset>
             </div>
 
             <div className="flex justify-end">

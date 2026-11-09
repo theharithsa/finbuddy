@@ -1,64 +1,140 @@
 import { useMemo, useState } from 'react';
-import { LayoutGrid, List, ReceiptText, Search } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Search, SlidersHorizontal, X } from 'lucide-react';
 import { ExpenseCard } from '@/components/ExpenseCard';
-import { TimeframePicker, type DateRange } from '@/components/TimeframePicker';
-import { formatCurrency, type Expense, type Person } from '@/lib/types';
-import { periodExpenses, totalAmount } from '@/lib/finance-period';
+import { ALL_DATES, TimeframePicker, type DateRange } from '@/components/TimeframePicker';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { formatCurrency, formatDate, type Category, type Expense, type Person } from '@/lib/types';
+import { localDate, monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
 
 interface LedgerProps {
   expenses: Expense[];
-  people: Person[];
+  categories: Category[];
+  people: Pick<Person, 'id' | 'name'>[];
   range: DateRange;
   onRangeChange: (range: DateRange) => void;
   onEdit: (expense: Expense) => void;
-  onDelete: (expense: Expense) => Promise<void>;
+  onDelete: (expense: Expense) => void;
+  onAdd: () => void;
 }
 
-export function Ledger({ expenses, people, range, onRangeChange, onEdit, onDelete }: LedgerProps) {
+interface Filters {
+  category: string;
+  person: string;
+  sort: 'date' | 'amount' | 'category';
+}
+
+const defaults: Filters = { category: '', person: '', sort: 'date' };
+
+export function Ledger({ expenses, categories, people, range, onRangeChange, onEdit, onDelete, onAdd }: LedgerProps) {
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [person, setPerson] = useState('');
-  const [sort, setSort] = useState('date');
-  const [view, setView] = useState<'list' | 'grid'>('list');
+  const [filters, setFilters] = useState<Filters>(defaults);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [visible, setVisible] = useState(30);
-  const categoryNames = [...new Set(expenses.map((expense) => expense.category).filter(Boolean))].sort();
+  const month = range.from.slice(0, 7);
+  const allTime = range.from === ALL_DATES.from && range.to === ALL_DATES.to;
+  const fullMonth = !allTime && range.from === monthRange(month).from && range.to === monthRange(month).to;
+  const periodLabel = allTime ? "All time" : fullMonth
+    ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(`${range.from}T12:00:00`))
+    : `${formatDate(range.from)} – ${formatDate(range.to)}`;
+  const filterCount = Number(Boolean(filters.category)) + Number(Boolean(filters.person)) + Number(filters.sort !== 'date');
+  const categoryNames = [...new Set(expenses.map(({ category }) => category).filter(Boolean))].sort();
+  const period = useMemo(() => periodExpenses(expenses, range.from, range.to), [expenses, range]);
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return periodExpenses(expenses, range.from, range.to).filter((expense) => {
-      return (!term || [expense.description, expense.category, expense.app].some((value) => value?.toLowerCase().includes(term))) &&
-        (!category || expense.category === category) &&
-        (!person || expense.peopleIds?.includes(person));
-    }).sort((a, b) => {
-      if (sort === 'amount') return b.amount - a.amount;
-      if (sort === 'category') return a.category.localeCompare(b.category);
+    return period.filter((expense) =>
+      (!term || [expense.description, expense.category, expense.app].some((value) => value?.toLowerCase().includes(term))) &&
+      (!filters.category || expense.category === filters.category) &&
+      (!filters.person || expense.peopleIds?.includes(filters.person)),
+    ).sort((a, b) => {
+      if (filters.sort === 'amount') return b.amount - a.amount;
+      if (filters.sort === 'category') return a.category.localeCompare(b.category);
       return b.date.localeCompare(a.date) || (b.createdAt || '').localeCompare(a.createdAt || '');
     });
-  }, [expenses, range, search, category, person, sort]);
+  }, [period, search, filters]);
+
+  const groups = new Map<string, Expense[]>();
+  for (const expense of filtered.slice(0, visible)) {
+    const key = filters.sort === 'date' ? expense.date.slice(0, 10) : '';
+    const group = groups.get(key) ?? [];
+    group.push(expense);
+    groups.set(key, group);
+  }
+
+  function changeRange(next: DateRange) {
+    setVisible(30);
+    onRangeChange(next);
+  }
+
+  function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
+    setVisible(30);
+    setFilters((previous) => ({ ...previous, [key]: value }));
+  }
+
+  function clearFilters() {
+    setFilters(defaults);
+    setSearch('');
+    setVisible(30);
+  }
 
   return (
     <>
-      <div className="fb-page-heading"><div><p className="fb-kicker">YOUR LEDGER</p><h1>Expenses</h1><p>Find, review and edit your transactions.</p></div></div>
-      <section className="fb-panel">
-        <div className="fb-ledger-filters">
-          <label className="fb-search"><Search size={17} /><input type="search" placeholder="Search expenses" aria-label="Search expenses" value={search} onChange={(event) => { setSearch(event.target.value); setVisible(30); }} /></label>
-          <TimeframePicker dateRange={range} onDateRangeChange={(next) => { onRangeChange(next); setVisible(30); }} />
-          <select aria-label="Filter by category" value={category} onChange={(event) => { setCategory(event.target.value); setVisible(30); }}><option value="">All categories</option>{categoryNames.map((name) => <option key={name}>{name}</option>)}</select>
-          <select aria-label="Filter by person" value={person} onChange={(event) => { setPerson(event.target.value); setVisible(30); }}><option value="">All people</option>{people.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}</select>
-          <select aria-label="Sort expenses" value={sort} onChange={(event) => { setSort(event.target.value); setVisible(30); }}><option value="date">Newest first</option><option value="amount">Highest amount</option><option value="category">Category</option></select>
+      <header className="m3-page-heading">
+        <div><h1>Expenses</h1><p>Log spending and find any past expense.</p></div>
+        {fullMonth ? <div className="m3-month-control" role="group" aria-label="Expense period">
+          <Button variant="ghost" size="icon" aria-label="Previous month" onClick={() => changeRange(monthRange(shiftMonth(month, -1)))}><ChevronLeft size={20} /></Button>
+          <span aria-live="polite"><CalendarDays size={17} />{periodLabel}</span>
+          <Button variant="ghost" size="icon" aria-label="Next month" onClick={() => changeRange(monthRange(shiftMonth(month, 1)))}><ChevronRight size={20} /></Button>
+        </div> : <div className="m3-period-label"><CalendarDays size={17} /><span>{periodLabel}</span><Button variant="ghost" size="sm" onClick={() => changeRange(monthRange(localDate().slice(0, 7)))}>This month</Button></div>}
+      </header>
+
+      <section className="m3-ledger-summary" aria-label="Spending summary">
+        <span className="m3-summary-icon"><ReceiptText size={24} /></span>
+        <div><span>Spent in this period</span><strong>{formatCurrency(totalAmount(period))}</strong></div>
+        <span className="m3-summary-count">{period.length} {period.length === 1 ? 'expense' : 'expenses'}</span>
+      </section>
+
+      <section className="m3-ledger" aria-label="Expense history">
+        <div className="m3-ledger-toolbar">
+          <label className="m3-search">
+            <Search size={20} aria-hidden="true" />
+            <input type="search" placeholder="Search expenses" aria-label="Search expenses" value={search} onChange={(event) => { setSearch(event.target.value); setVisible(30); }} />
+          </label>
+          <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+            <DialogTrigger asChild><Button variant={filterCount ? 'secondary' : 'outline'}><SlidersHorizontal size={18} />Filters{filterCount > 0 && ` (${filterCount})`}</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Filter expenses</DialogTitle><DialogDescription>Set a date range, narrow the list or change the order.</DialogDescription></DialogHeader>
+              <div className="m3-filter-fields">
+                <TimeframePicker dateRange={range} onDateRangeChange={changeRange} />
+                <label className="m3-field"><span>Category</span><select value={filters.category} onChange={(event) => updateFilter('category', event.target.value)}><option value="">All categories</option>{categoryNames.map((name) => <option key={name}>{name}</option>)}</select></label>
+                <label className="m3-field"><span>Person</span><select value={filters.person} onChange={(event) => updateFilter('person', event.target.value)}><option value="">All people</option>{people.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}</select></label>
+                <label className="m3-field"><span>Sort by</span><select value={filters.sort} onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === 'date' || value === 'amount' || value === 'category') updateFilter('sort', value);
+                }}><option value="date">Newest first</option><option value="amount">Highest amount</option><option value="category">Category</option></select></label>
+              </div>
+              <div className="m3-expense-actions"><Button variant="ghost" onClick={() => { clearFilters(); changeRange(monthRange(localDate().slice(0, 7))); }}>Reset filters</Button><Button onClick={() => setFilterOpen(false)}>Done</Button></div>
+            </DialogContent>
+          </Dialog>
         </div>
-        <div className="fb-ledger-total">
-          <span aria-live="polite"><strong>{formatCurrency(totalAmount(filtered))}</strong> · {filtered.length} {filtered.length === 1 ? 'expense' : 'expenses'}</span>
-          <div className="fb-view-toggle" aria-label="Expense layout">
-            <button aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={17} /></button>
-            <button aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><LayoutGrid size={17} /></button>
+
+        {(filterCount > 0 || search) && <div className="m3-filter-summary">
+          <span aria-live="polite">{filtered.length} {filtered.length === 1 ? 'match' : 'matches'} · {formatCurrency(totalAmount(filtered))}</span>
+          <button type="button" className="m3-chip" onClick={clearFilters}><X size={15} />Clear filters</button>
+        </div>}
+
+        {filtered.length === 0 ? <div className="m3-empty">
+          <span className="m3-row-icon"><ReceiptText size={24} /></span>
+          <h2>{period.length > 0 ? 'No matching expenses' : 'No expenses in this period'}</h2>
+          <p>{period.length > 0 ? 'Try another search or clear the filters.' : 'Log an expense to start tracking your spending.'}</p>
+          {period.length === 0 && <Button variant="secondary" onClick={onAdd}>Log your first expense</Button>}
+        </div> : [...groups].map(([date, group]) => (
+          <div className="m3-expense-group" key={date}>
+            {date && <h2>{formatDate(date)}</h2>}
+            <ul>{group.map((expense) => <ExpenseCard key={expense.id} expense={expense} categories={categories} people={people} onEdit={() => onEdit(expense)} onDelete={() => onDelete(expense)} />)}</ul>
           </div>
-        </div>
-        {filtered.length === 0 ? <div className="fb-empty"><ReceiptText size={25} /><h2>No matching expenses</h2><p>Try a different date range or filter.</p></div> : (
-          <div className={view === 'grid' ? 'fb-ledger-grid' : 'fb-ledger-list'}>
-            {filtered.slice(0, visible).map((expense) => <ExpenseCard key={expense.id} expense={expense} viewMode={view} customPeople={people} onEdit={() => onEdit(expense)} onDelete={() => onDelete(expense)} />)}
-          </div>
-        )}
-        {filtered.length > visible && <button className="fb-button fb-secondary fb-more" onClick={() => setVisible(visible + 30)}>Show more expenses</button>}
+        ))}
+        {filtered.length > visible && <Button variant="ghost" className="m3-load-more" onClick={() => setVisible(visible + 30)}>Show more expenses</Button>}
       </section>
     </>
   );

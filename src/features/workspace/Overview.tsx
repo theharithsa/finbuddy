@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { ArrowDownRight, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, CircleGauge, ReceiptText, Wallet } from 'lucide-react';
 import { formatCurrency, formatDate, type Budget, type Category, type Expense } from '@/lib/types';
 import { monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
@@ -13,7 +14,7 @@ interface OverviewProps {
   onAddExpense: () => void;
 }
 
-const colors = ['#087d71', '#7761ae', '#c27543', '#5376a5', '#a95c79'];
+const colors = ['var(--m3-primary)', 'var(--m3-tertiary)', 'var(--m3-positive)', 'var(--m3-caution)', 'var(--m3-secondary)'];
 
 export function Overview({ expenses, budgets, categories, month, onMonthChange, onOpenLedger, onOpenBudgets, onAddExpense }: OverviewProps) {
   const { from, to } = monthRange(month);
@@ -44,60 +45,60 @@ export function Overview({ expenses, budgets, categories, month, onMonthChange, 
 
   return (
     <>
-      <div className="fb-page-heading">
-        <div><p className="fb-kicker">YOUR MONEY, IN FOCUS</p><h1>Overview</h1><p>See what you spent and how it fits your plan.</p></div>
-        <div className="fb-month" aria-label="Overview month">
-          <button type="button" aria-label="Previous month" onClick={() => onMonthChange(shiftMonth(month, -1))}><ChevronLeft size={18} /></button>
+      <div className="m3-page-heading">
+        <div><h1>Overview</h1><p>See what you spent and how it fits your plan.</p></div>
+        <div className="m3-month-control" aria-label="Overview month">
+          <Button variant="ghost" size="icon" aria-label="Previous month" onClick={() => onMonthChange(shiftMonth(month, -1))}><ChevronLeft size={20} /></Button>
           <span aria-live="polite"><CalendarDays size={15} />{monthLabel}</span>
-          <button type="button" aria-label="Next month" onClick={() => onMonthChange(shiftMonth(month, 1))}><ChevronRight size={18} /></button>
+          <Button variant="ghost" size="icon" aria-label="Next month" onClick={() => onMonthChange(shiftMonth(month, 1))}><ChevronRight size={20} /></Button>
         </div>
       </div>
 
-      <div className="fb-stats">
-        <article className="fb-stat fb-stat-accent"><ArrowDownRight size={19} /><span>Total spent</span><strong>{formatCurrency(spent)}</strong><small>All expenses this month</small></article>
-        <article className="fb-stat"><Wallet size={19} /><span>Monthly budget</span><strong>{cap > 0 ? formatCurrency(cap) : '—'}</strong><button className="fb-text-button" onClick={onOpenBudgets}>{cap > 0 ? 'Manage limits' : 'Set your budget'} <ArrowRight size={13} /></button></article>
-        <article className="fb-stat"><CircleGauge size={19} /><span>{cap > 0 && remaining < 0 ? 'Over budget' : 'Budget remaining'}</span><strong>{cap > 0 ? formatCurrency(Math.abs(remaining)) : '—'}</strong><small>Budgeted categories only</small></article>
+      <div className="m3-overview-stats">
+        <article className="m3-stat m3-stat-highlight"><ArrowDownRight size={19} /><span>Total spent</span><strong>{formatCurrency(spent)}</strong><small>All expenses this month</small></article>
+        <article className="m3-stat"><Wallet size={19} /><span>Monthly budget</span><strong>{cap > 0 ? formatCurrency(cap) : '—'}</strong><button className="m3-inline-action" onClick={onOpenBudgets}>{cap > 0 ? 'Manage limits' : 'Set your budget'} <ArrowRight size={13} /></button></article>
+        <article className="m3-stat m3-stat-tertiary"><CircleGauge size={19} /><span>{cap > 0 && remaining < 0 ? 'Over budget' : 'Budget remaining'}</span><strong>{cap > 0 ? formatCurrency(Math.abs(remaining)) : '—'}</strong><small>Budgeted categories only</small></article>
       </div>
 
-      <div className="fb-insight-grid">
-        <section className="fb-panel" aria-labelledby="spending-pace">
-          <div className="fb-section-heading"><div><h2 id="spending-pace">Spending pace</h2><p>Totals by day range</p></div><span className="fb-pill">INR</span></div>
-          <div className="fb-chart">
+      <div className="m3-overview-grid">
+        <section className="m3-panel" aria-labelledby="spending-pace">
+          <div className="m3-section-heading"><div><h2 id="spending-pace">Spending pace</h2><p>Totals by day range</p></div><span className="m3-chip">INR</span></div>
+          <div className="m3-chart">
             {weeks.map(({ label, value }) => (
-              <div className="fb-chart-column" key={label}>
-                <span className="fb-chart-value">{formatCurrency(value)}</span>
-                <div className="fb-chart-track"><div style={{ height: `${Math.max(0, value / peak) * 100}%` }} /></div>
+              <div className="m3-chart-column" key={label}>
+                <span className="m3-chart-value">{formatCurrency(value)}</span>
+                <div className="m3-chart-track"><div style={{ height: `${Math.max(0, value / peak) * 100}%` }} /></div>
                 <span>{label}</span>
               </div>
             ))}
           </div>
         </section>
-        <section className="fb-panel" aria-labelledby="top-categories">
-          <div className="fb-section-heading"><div><h2 id="top-categories">Where it went</h2><p>Top spending categories</p></div></div>
+        <section className="m3-panel" aria-labelledby="top-categories">
+          <div className="m3-section-heading"><div><h2 id="top-categories">Where it went</h2><p>Top spending categories</p></div></div>
           {leaders.length > 0 ? (
-            <ul className="fb-category-list">
+            <ul className="m3-category-list">
               {leaders.map(([name, minorAmount], index) => (
                 <li key={name}>
                   <div><span>{name || 'Uncategorised'}</span><strong>{formatCurrency(minorAmount / 100)}</strong></div>
-                  <div className="fb-category-track" aria-hidden="true"><span style={{ width: `${spent > 0 ? Math.min(100, Math.max(0, minorAmount / (spent * 100) * 100)) : 0}%`, background: colors[index] }} /></div>
+                  <div className="m3-category-track" aria-hidden="true"><span style={{ width: `${spent > 0 ? Math.min(100, Math.max(0, minorAmount / (spent * 100) * 100)) : 0}%`, background: colors[index] }} /></div>
                 </li>
               ))}
             </ul>
-          ) : <p className="fb-empty-copy">Category totals will appear after you log an expense.</p>}
+          ) : <p className="m3-empty-copy">Category totals will appear after you log an expense.</p>}
         </section>
       </div>
 
-      <section className="fb-panel" aria-labelledby="recent-expenses">
-        <div className="fb-section-heading"><div><h2 id="recent-expenses">Recent expenses</h2><p>{monthLabel}</p></div><button className="fb-text-button" onClick={onOpenLedger}>View expenses <ArrowRight size={15} /></button></div>
-        {recent.length > 0 ? <ul className="fb-recent">
+      <section className="m3-panel" aria-labelledby="recent-expenses">
+        <div className="m3-section-heading"><div><h2 id="recent-expenses">Recent expenses</h2><p>{monthLabel}</p></div><button className="m3-inline-action" onClick={onOpenLedger}>View expenses <ArrowRight size={15} /></button></div>
+        {recent.length > 0 ? <ul className="m3-recent">
           {recent.map((expense) => (
             <li key={expense.id}>
-              <span className="fb-expense-icon" aria-hidden="true">{categories.find(({ name }) => name === expense.category)?.icon ?? <ReceiptText size={18} />}</span>
-              <span className="fb-expense-title"><strong>{expense.description || expense.category || 'Expense'}</strong><small>{expense.category || 'Uncategorised'} · {formatDate(expense.date)}</small></span>
+              <span className="m3-row-icon" aria-hidden="true">{categories.find(({ name }) => name === expense.category)?.icon ?? <ReceiptText size={18} />}</span>
+              <span className="m3-row-label"><strong>{expense.description && expense.description !== 'No description' ? expense.description : expense.category || 'Expense'}</strong><small>{expense.category || 'Uncategorised'} · {formatDate(expense.date)}</small></span>
               <strong>{formatCurrency(expense.amount)}</strong>
             </li>
           ))}
-        </ul> : <div className="fb-empty"><ReceiptText size={25} /><h3>No expenses this month</h3><p>Log a purchase to start seeing where your money goes.</p><button className="fb-button fb-secondary" onClick={onAddExpense}>Add an expense</button></div>}
+        </ul> : <div className="m3-empty"><ReceiptText size={25} /><h3>No expenses this month</h3><p>Log a purchase to start seeing where your money goes.</p><button className="m3-inline-action" onClick={onAddExpense}>Add an expense</button></div>}
       </section>
     </>
   );

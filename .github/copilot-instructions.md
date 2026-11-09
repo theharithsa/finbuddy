@@ -439,7 +439,7 @@ useEffect(() => {
 
 ### Custom CSS Variables Pattern
 ```css
-/* src/styles/theme.css - Theme-specific variables */
+/* src/styles/material.css - Theme-specific variables */
 :root {
   --disclaimer-bg: #f1f5f9;
   --disclaimer-border: #cbd5e1;
@@ -556,7 +556,7 @@ const firebaseConfig = {
 
 ### Design System
 - **Components**: Radix UI primitives with Tailwind CSS
-- **Theme**: Custom CSS variables in `src/styles/theme.css`
+- **Theme**: Custom CSS variables in `src/styles/material.css`
 - **Icons**: Lucide React for consistent iconography
 - **Toast Notifications**: Sonner for user feedback
 - **Loading States**: Skeleton components for better UX
@@ -941,7 +941,7 @@ Every tool takes `userId` as an optional parameter mapping to the Firebase Auth 
 - Analytics components: `src/components/analytics/`
 - Gamification system: `src/components/analytics/GamificationSystem.tsx`
 - Advanced charts: `src/components/analytics/AdvancedCharts.tsx`
-- Theme styling: `src/styles/theme.css` (custom CSS variables)
+- Theme styling: `src/styles/material.css` (custom CSS variables)
 - Developer documentation: `public/developer/` (GitHub Dark theme styling)
 - Wisdom Engine: `src/lib/wisdom/` (Arthashastra knowledge base)
 - Dynatrace monitoring: `src/hooks/useDynatraceMonitoring.ts`

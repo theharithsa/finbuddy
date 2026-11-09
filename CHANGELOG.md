@@ -2,7 +2,8 @@
 
 ## [3.0.0] - Unreleased
 
-- Rebuilt sign-in, the monthly overview, expense ledger and mobile navigation.
+- Applied Material 3 to sign-in, all workspace destinations, shared controls, dialogs, and charts.
+- Open on Expenses and log spending from any screen. Amount and category are required, and extra details are available on demand.
 - Preserved Firebase account and document paths. Restored platform labels on new expense writes.
 - Connected KautilyaAI to the existing deployed callable.
 - Adopted App Launchpad v1.9.0 and added emulator-backed browser and Hosting revision checks.

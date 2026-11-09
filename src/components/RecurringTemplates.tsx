@@ -261,15 +261,10 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <ArrowsClockwise className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Recurring Templates</h2>
-          </div>
-          <p className="text-muted-foreground">
-            Quick templates for recurring bills and subscriptions
-          </p>
+      <header className="m3-feature-heading">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="m3-feature-icon"><ArrowsClockwise size={22} /></span>
+          <div><h1>Recurring templates</h1><p>Reuse details for bills and subscriptions.</p></div>
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose}>
@@ -365,7 +360,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
       {/* Quick Tips */}
       <Card className="bg-accent/10 shadow-sm hover:shadow-md transition-shadow">
@@ -494,9 +489,9 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                 >
                   {/* Template Name */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${template.frequency === 'yearly' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${template.frequency === 'yearly' ? 'bg-tertiary-container' :
                         template.frequency === 'quarterly' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                          'bg-blue-100 dark:bg-blue-900/30'
+                          'bg-primary-container'
                       }`}>
                       {template.category === 'Food & Dining' ? '🍽️' :
                         template.category === 'Transportation' ? '🚗' :
@@ -537,7 +532,7 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                           className="h-8 w-8"
                           onClick={() => saveCustomAmount(template.id)}
                         >
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-4 h-4 text-positive" />
                         </Button>
                       </div>
                     ) : (
@@ -556,9 +551,9 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
                   <div className="col-span-2 text-center">
                     <Badge
                       variant="secondary"
-                      className={`${template.frequency === 'yearly' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                      className={`${template.frequency === 'yearly' ? 'bg-tertiary-container text-on-tertiary-container' :
                           template.frequency === 'quarterly' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            'bg-primary-container text-on-primary-container'
                         }`}
                     >
                       {template.frequency}

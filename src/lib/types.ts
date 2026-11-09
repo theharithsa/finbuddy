@@ -555,7 +555,7 @@ export const getAllCategories = (customCategories: CustomCategory[] = []): Categ
 };
 
 // Helper function to get all available people (default + custom)
-export const getAllPeople = (allPeople: Person[] = []): { name: string; color: string; icon: string; id?: string; relationship?: string }[] => {
+export const getAllPeople = (allPeople: Person[] = []): { name: string; color: string; icon: string; id: string; relationship?: string }[] => {
   const defaultPeople = DEFAULT_PEOPLE.map((person, index) => ({
     ...person,
     id: `default-${index}`
