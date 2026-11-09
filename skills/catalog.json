@@ -32,7 +32,7 @@
       "id": "project-testing",
       "kind": "workflow",
       "path": "skills/project-testing/SKILL.md",
-      "description": "Select FinBuddy foundation, web, emulator, callable and MCP checks.",
+      "description": "Select FinBuddy foundation, web, emulator and callable checks.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -41,7 +41,7 @@
       "id": "project-deployment",
       "kind": "workflow",
       "path": "skills/project-deployment/SKILL.md",
-      "description": "Verify FinBuddy Hosting, rules, Functions and local MCP releases.",
+      "description": "Verify FinBuddy Hosting, Firebase rules and callable releases.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -97,7 +97,7 @@
       "id": "mcp-builder",
       "kind": "workflow",
       "path": "skills/mcp-builder/SKILL.md",
-      "description": "Legacy protocol reference routed to the current FinBuddy MCP service.",
+      "description": "Design the planned FinBuddy MCP replacement using the service registration and protocol guidance.",
       "dependsOn": []
     },
     {
@@ -117,18 +117,6 @@
       "kind": "service",
       "path": "skills/service-firebase-functions/SKILL.md",
       "description": "Maintain the deployed callable contract and reconcile historical source.",
-      "dependsOn": [
-        "project-implementation",
-        "project-testing",
-        "project-deployment",
-        "project-observability"
-      ]
-    },
-    {
-      "id": "service-mcp-server",
-      "kind": "service",
-      "path": "skills/service-mcp-server/SKILL.md",
-      "description": "Maintain the operator-run stdio adapter and privileged Firestore access.",
       "dependsOn": [
         "project-implementation",
         "project-testing",
@@ -236,29 +224,6 @@
         "npm --prefix functions run build"
       ],
       "continuation": "skills/service-firebase-functions/continuation.md",
-      "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
-    },
-    {
-      "id": "mcp-server",
-      "skillId": "service-mcp-server",
-      "sourcePaths": [
-        "mcp-server"
-      ],
-      "entrypoints": [
-        "mcp-server/src/index.ts"
-      ],
-      "owner": "theharithsa",
-      "status": "active",
-      "dependsOn": [
-        "firebase-data"
-      ],
-      "contracts": [
-        "mcp-server/README.md"
-      ],
-      "testCommands": [
-        "npm --prefix mcp-server run build"
-      ],
-      "continuation": "skills/service-mcp-server/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
     },
     {

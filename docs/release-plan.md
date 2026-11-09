@@ -18,6 +18,5 @@ For an authorized rollback, identify the exact previously verified Hosting versi
 | Receipt Storage rules | Verify the target bucket and test owner, second-account, signed-out and legacy cases. Use the approved Storage rules target and verify its release. |
 | Firebase Auth | Verify providers and authorized domains on the target project. Capture an authorized sign-in smoke separately. |
 | Functions | Follow the [callable skill](../skills/service-firebase-functions/SKILL.md). Verify the deployed entrypoint, source revision, region, secret names, model and rollback before a scoped Functions release. |
-| Local MCP | Build and verify the [stdio adapter](../skills/service-mcp-server/SKILL.md) on the operator's machine. |
 
 Use Firebase CLI `14.20.0` for the current reproducible path. Avoid project-wide deployments from this checkout. Review [cost and quotas](../skills/project-finops/SKILL.md) if a release changes resource consumption.
