@@ -9,7 +9,7 @@ export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit:
   return (
     <>
       <header className="m3-page-heading">
-        <div><h1>Savings &amp; investments</h1><p>See the money you’ve set aside for later.</p></div>
+        <div><span className="m3-page-kicker">Set aside</span><h1>Savings &amp; investments</h1><p>Keep the latest values for the money you’ve put aside.</p></div>
         <Button onClick={() => onEdit({ kind: 'holdings' })}><Plus size={18} /> Add savings or investment</Button>
       </header>
 
@@ -19,7 +19,7 @@ export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit:
         <span className="m3-summary-count">{holdings.length} {holdings.length === 1 ? 'entry' : 'entries'}</span>
       </section>
 
-      <section className="m3-panel money-panel">
+      <section className="money-page-list">
         <header className="money-panel-heading">
           <div><h2>What you’ve set aside</h2><p>Tap an entry to update its value. Each date shows when that value was recorded.</p></div>
         </header>
@@ -32,7 +32,7 @@ export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit:
               </button>
             </li>)}
           </ul>
-        ) : <p className="money-quiet">Add any savings or investment with a name and the latest value you know.</p>}
+        ) : <p className="money-quiet">Pick one balance you already know. A name and its latest value are enough to get started.</p>}
       </section>
     </>
   );

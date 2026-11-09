@@ -17,7 +17,7 @@ const submitLabels: Record<Mode, string> = {
 };
 
 export function Wordmark() {
-  return <div className="m3-wordmark"><span><img src="/icons/buddy-mark-v1.png" alt="" width={33} height={33} /></span><strong>FinBuddy</strong></div>;
+  return <span className="m3-wordmark"><span><img src="/icons/buddy-mark-v1.png" alt="" width={33} height={33} /></span><strong>FinBuddy</strong></span>;
 }
 
 function getAuthError(error: unknown): string {
@@ -100,21 +100,22 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
           <Wordmark />
           <div className="m3-story-body">
             <img className="m3-story-mascot" src="/icons/buddy-mark-v1.png" alt="" width={144} height={144} />
-            <h1 id="finbuddy-intro">Know where your money goes.</h1>
-            <p>See what came in, what you’ve spent, and what’s left after bills.</p>
+            <span className="m3-story-kicker">Your household’s money</span>
+            <h1 id="finbuddy-intro">Make sense of the month.</h1>
+            <p>From salary day to the last chai of the month, see what came in and where it went.</p>
             <ul className="m3-story-list">
               <li><ReceiptText size={18} /> Expenses</li>
               <li><CalendarDays size={18} /> Bills &amp; EMIs</li>
               <li><Landmark size={18} /> Savings</li>
             </ul>
           </div>
-          <p className="m3-story-lock"><LockKeyhole size={16} /> Sign in to your personal workspace.</p>
+          <p className="m3-story-lock"><LockKeyhole size={16} /> Your entries stay in your account.</p>
         </section>
         <section className="m3-login-access" aria-labelledby="login-heading">
           <div className="m3-login-card">
             <div className="m3-login-toolbar"><div className="m3-mobile-wordmark"><Wordmark /></div><ThemeToggle /></div>
             <h2 id="login-heading">{headings[mode]}</h2>
-            <p>{mode === 'signin' ? 'Sign in to start tracking expenses.' : 'Use the email address for your FinBuddy account.'}</p>
+            <p>{mode === 'signin' ? 'Sign in to pick up where you left off.' : 'Use the email address for your FinBuddy account.'}</p>
             {mode === 'signin' && <>
               <Button className="m3-google" variant="outline" type="button" disabled={busy} onClick={google}><img src="/icons/google-g.png" alt="" width={20} height={20} /> Continue with Google</Button>
               <div className="m3-login-divider"><span>or use email</span></div>

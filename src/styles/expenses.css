@@ -1,7 +1,7 @@
 .m3-month-control { display: flex; align-items: center; gap: 4px; max-width: 100%; border: 1px solid var(--m3-outline-variant); border-radius: var(--m3-shape-full); background: var(--m3-surface-low); }
 .m3-month-control span { display: inline-flex; align-items: center; gap: 8px; justify-content: center; padding: 2px 6px; color: var(--m3-on-surface); font-size: .875rem; }
 .m3-month-control span svg { flex-shrink: 0; }
-.m3-ledger-summary { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 16px; padding: clamp(16px, 3vw, 24px); border-radius: 24px; background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+.m3-ledger-summary { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 16px; padding: clamp(16px, 3vw, 24px); border-radius: 24px; background: color-mix(in srgb, var(--m3-primary-container) 66%, var(--m3-surface)); color: var(--m3-on-surface); }
 .m3-ledger-summary > div { display: grid; gap: 4px; }
 .m3-ledger-summary > div > span { font-size: .875rem; font-weight: 500; }
 .m3-ledger-summary strong { font-size: clamp(1.6rem, 5vw, 2.5rem); font-weight: 500; line-height: 1.12; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -16,8 +16,8 @@
 .m3-search svg { flex-shrink: 0; }
 .m3-filter-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 0; color: var(--m3-on-surface-variant); font-size: .875rem; }
 .m3-expense-group { margin-top: 16px; }
-.m3-expense-group h2 { font: var(--m3-body-medium); font-weight: 600; color: var(--m3-on-surface-variant); margin: 0 0 8px 12px; }
-.m3-expense-group ul { background: var(--m3-surface-low); border-radius: var(--m3-shape-large); }
+.m3-expense-group h2 { font: var(--m3-body-medium); font-weight: 650; color: var(--m3-on-surface-variant); margin: 0 0 8px 12px; }
+.m3-expense-group ul { border-block: 1px solid var(--m3-outline-variant); }
 .m3-expense-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px; padding-right: 4px; }
 .m3-expense-row + .m3-expense-row { border-top: 1px solid var(--m3-outline-variant); }
 .m3-expense-row-main { display: grid; width: 100%; min-width: 0; min-height: 68px; grid-template-columns: auto minmax(0,1fr) minmax(0,max-content); align-items: center; gap: clamp(6px, 2vw, 14px); text-align: left; padding: 8px 4px 8px 12px; border-radius: 12px; }

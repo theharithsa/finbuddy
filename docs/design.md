@@ -21,12 +21,16 @@ Savings and investments use manually entered INR values, each with its own as-of
 
 - Settings offers light, dark and system display modes, five Material color palettes and locally bundled fonts. Google Sans and Lavender are the defaults. Appearance applies immediately and persists on the device.
 - A purple Indian palm squirrel holding a rupee coin is the FinBuddy mark. The favicon, wordmark, touch and install icons use the same mascot. App destinations, form actions and built-in categories use the matching rounded SVG set.
-- Compact screens use a bottom navigation bar and floating Add expense button. Medium screens use a compact rail. Expanded screens use a labeled rail and extended button. Home, Expenses, and Savings are the primary destinations. Home links to Bills & EMIs, and More groups it with Budgets, Overview, Recurring, Categories, People, Metrics Explorer, KautilyaAI, and account actions.
+- On wider screens, the app bar holds Home, Expenses, Savings, More, and Add expense. On phones, the destinations move to the bottom bar with a reachable Add expense button. More groups money tools and account options.
+- Home leads with one balance estimate and a three-row calculation. Bills and expenses use lightly divided lists. The savings section keeps a softer surface and the FinBuddy mascot.
+- Short entrance transitions give page and form changes a sense of continuity. Control states and disclosures animate briefly. The page and form motion turns off when the system requests reduced motion.
 - Shared Material controls cover filled, tonal, outlined and text buttons, cards, text fields, chips, tabs, menus, switches, progress, tables, dialogs, sheets, and snackbars. The expense form becomes a bottom sheet on phones. Charts use the same roles as the app.
 - The ledger groups transactions by day and exposes search, date presets, category, person, and sort filters. Tapping a row edits it. Its overflow menu opens the receipt or asks for confirmation before deletion.
 - Focus returns to the initiating control after dismissing the expense form. Validation gives feedback next to the form actions and moves focus to the required field. Error, pending, and empty states use the same components.
 
 [Material 3 color roles](https://m3.material.io/styles/color/the-color-system/) · [Material 3 typography](https://m3.material.io/styles/typography/applying-type) · [Material 3 lists](https://m3.material.io/components/lists/overview)
+
+The layout takes its restrained surfaces and clear selection states from Dynatrace Strato. Copilot Money and Monarch inform the separation between a quick money check-in and deeper reports. Material 3 guides the interaction states and motion. [Dynatrace’s Strato refresh](https://www.dynatrace.com/news/blog/a-design-refresh-for-every-dynatrace-app-including-yours/) · [Copilot Money for Web](https://help.copilot.money/en/articles/11780342-copilot-money-for-web) · [Getting started with Monarch](https://help.monarch.com/hc/en-us/articles/360048393272-Getting-Started-with-Monarch) · [Material motion](https://m3.material.io/styles/motion)
 
 For another React app, reuse the appearance options in `src/lib/appearance.ts`, the provider in `src/contexts/ThemeContext.tsx` and the Material palette tokens. Set an app-specific storage key to keep its browser preferences separate.
 

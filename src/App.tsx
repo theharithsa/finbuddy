@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Settings, Shapes, Sparkles, Trash2, Users, Wallet } from '@/components/brand/Icons';
 import { toast } from 'sonner';
@@ -41,17 +41,26 @@ const mainPages = [
   { id: 'savings', label: 'Savings', icon: Landmark },
 ] as const;
 
-const morePages = [
+const moneyPages = [
   { id: 'bills', label: 'Bills & EMIs', description: 'See payments still due', icon: CalendarDays },
-  { id: 'settings', label: 'Settings', description: 'Change font, colors, and display mode', icon: Settings },
   { id: 'budgets', label: 'Budgets', description: 'Set category spending limits', icon: Wallet },
   { id: 'dashboard', label: 'Overview', description: 'Review your spending by month', icon: LayoutDashboard },
   { id: 'templates', label: 'Recurring', description: 'Reuse expenses you log regularly', icon: Repeat2 },
+  { id: 'explorer', label: 'Metrics Explorer', description: 'Explore and compare spending patterns', icon: ChartNoAxesCombined },
+] as const;
+
+const workspacePages = [
+  { id: 'settings', label: 'Settings', description: 'Change font, colors, and display mode', icon: Settings },
   { id: 'categories', label: 'Categories', description: 'Organize where your money goes', icon: Shapes },
   { id: 'people', label: 'People', description: 'Track spending for other people', icon: Users },
-  { id: 'explorer', label: 'Metrics Explorer', description: 'Explore and compare spending patterns', icon: ChartNoAxesCombined },
   { id: 'ai-chat', label: 'KautilyaAI', description: 'Coming soon', icon: Sparkles },
 ] as const;
+
+const morePages = [...moneyPages, ...workspacePages];
+const moreGroups = [
+  { label: 'Money tools', pages: moneyPages },
+  { label: 'Your FinBuddy', pages: workspacePages },
+];
 
 type Page = (typeof mainPages)[number]['id'] | (typeof morePages)[number]['id'];
 
@@ -130,49 +139,63 @@ function Workspace({ user }: { user: User }) {
   return (
     <div className="m3-shell">
       <a className="m3-skip" href="#workspace">Skip to workspace</a>
-      <aside className="m3-navigation">
-        <button className="m3-fab" title="Add expense" onClick={() => setAdding(true)} disabled={data.loading || data.error}>
-          <Plus size={24} /> <span>Add expense</span>
-        </button>
-        <nav aria-label="Workspace">
-          {mainPages.map(({ id, label, icon: Icon }) => (
-            <button type="button" className="m3-destination" key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
-              <span className="m3-destination-indicator"><Icon size={22} /></span><span>{label}</span>
-            </button>
-          ))}
-          <Dialog open={menu} onOpenChange={setMenu}>
-            <DialogTrigger asChild>
-              <button type="button" className="m3-destination" data-selected={moreSelected || undefined}><span className="m3-destination-indicator"><Menu size={22} /></span><span>More</span></button>
-            </DialogTrigger>
-            <DialogContent className="m3-drawer">
-              <DialogHeader><DialogTitle>More</DialogTitle><DialogDescription>Manage your workspace and explore spending.</DialogDescription></DialogHeader>
-              <div className="m3-drawer-account">
-                <span className="m3-row-icon" aria-hidden="true">{name.trim().slice(0, 1).toUpperCase()}</span>
-                <div><strong title={name}>{name}</strong><small>Personal workspace</small></div>
-              </div>
-              <nav className="m3-drawer-list" aria-label="More destinations">
-                {morePages.map(({ id, label, description, icon: Icon }) => (
-                  <button type="button" key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
-                    <Icon size={21} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={18} />
+      <header className="m3-app-bar">
+        <div className="m3-app-bar-inner">
+          <button className="m3-brand-link" type="button" aria-label="FinBuddy home" onClick={() => navigate('home')}><Wordmark /></button>
+          <nav className="m3-navigation" aria-label="Workspace">
+            {mainPages.map(({ id, label, icon: Icon }) => (
+              <Fragment key={id}>
+                {id === 'savings' && (
+                  <button className="m3-destination m3-mobile-expense" type="button" aria-label="Add expense" onClick={() => setAdding(true)} disabled={data.loading || data.error}>
+                    <span className="m3-destination-indicator"><Plus size={22} /></span><span>Add</span>
                   </button>
-                ))}
-                <a href="/docs/"><CircleHelp size={21} /><span><strong>Help center</strong></span><ChevronRight size={18} /></a>
-              </nav>
-              <div className="m3-drawer-footer">
-                <UsageAnalytics />
-                <Button variant="outline" onClick={signOut} disabled={signingOut}><LogOut size={18} />{signingOut ? 'Signing out…' : 'Sign out'}</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </nav>
-      </aside>
+                )}
+                <button type="button" className="m3-destination" aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
+                  <span className="m3-destination-indicator"><Icon size={22} /></span><span>{label}</span>
+                </button>
+              </Fragment>
+            ))}
+            <Dialog open={menu} onOpenChange={setMenu}>
+              <DialogTrigger asChild>
+                <button type="button" className="m3-destination" data-selected={moreSelected || undefined}><span className="m3-destination-indicator"><Menu size={22} /></span><span>More</span></button>
+              </DialogTrigger>
+              <DialogContent className="m3-drawer">
+                <DialogHeader><DialogTitle>More</DialogTitle><DialogDescription>Find bills, spending tools, and your settings.</DialogDescription></DialogHeader>
+                <div className="m3-drawer-account">
+                  <span className="m3-row-icon" aria-hidden="true">{name.trim().slice(0, 1).toUpperCase()}</span>
+                  <div><strong title={name}>{name}</strong><small>FinBuddy account</small></div>
+                </div>
+                <nav className="m3-drawer-list" aria-label="More destinations">
+                  {moreGroups.map(({ label, pages }) => (
+                    <div className="m3-drawer-group" role="group" aria-label={label} key={label}>
+                      <p>{label}</p>
+                      {pages.map(({ id, label, description, icon: Icon }) => (
+                        <button type="button" key={id} aria-current={page === id ? 'page' : undefined} onClick={() => navigate(id)}>
+                          <Icon size={21} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={18} />
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                  <a href="/docs/"><CircleHelp size={21} /><span><strong>Help center</strong></span><ChevronRight size={18} /></a>
+                </nav>
+                <div className="m3-drawer-footer">
+                  <UsageAnalytics />
+                  <Button variant="outline" onClick={signOut} disabled={signingOut}><LogOut size={18} />{signingOut ? 'Signing out…' : 'Sign out'}</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </nav>
+          <div className="m3-app-actions">
+            <ThemeToggle />
+            <button className="m3-fab" type="button" onClick={() => setAdding(true)} disabled={data.loading || data.error}>
+              <Plus size={21} /> <span>Add expense</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <div className="m3-main">
-        <header className="m3-app-bar">
-          <Wordmark />
-          <ThemeToggle />
-        </header>
-        <main id="workspace" className="m3-workspace" tabIndex={-1} ref={mainRef}>
+      <main id="workspace" className="m3-workspace" tabIndex={-1} ref={mainRef}>
+        <div key={page} className="m3-route">
           {expenseDependentPage && data.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load your workspace</h1><p>Check your connection and try again.</p><Button onClick={() => location.reload()}>Reload workspace</Button></section> :
             expenseDependentPage && data.loading ? <div className="m3-loading" role="status">Loading your workspace…</div> :
             householdPage && household.error ? <section className="m3-empty" role="alert"><h1>Couldn’t load household money</h1><p>Check your connection and try again.</p><Button onClick={household.retry}>Try again</Button></section> :
@@ -202,9 +225,9 @@ function Workspace({ user }: { user: User }) {
                 {page === 'ai-chat' && <KautilyaComingSoon onHome={() => navigate('home')} />}
               </Suspense>
             )}
-          <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
-        </main>
-      </div>
+        </div>
+        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
+      </main>
 
       {entryEditor && <HouseholdEditor uid={user.uid} editor={entryEditor} onClose={() => setEntryEditor(null)} />}
       {paymentEditor && <BillPaymentEditor uid={user.uid} occurrence={paymentEditor} expenses={data.expenses} onClose={() => setPaymentEditor(null)} />}

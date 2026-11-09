@@ -8,7 +8,7 @@ async function createAccount(page: Page, openLedger = true) {
   await page.getByLabel('Email', { exact: true }).fill(`workspace-${randomUUID()}@example.test`);
   await page.getByLabel('Password', { exact: true }).fill('Synthetic-only-password-2026');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Home', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your money, in view.', exact: true })).toBeVisible();
   if (openLedger) await openExpenses(page);
 }
 
@@ -108,6 +108,10 @@ test('navigation, secondary screens and dark mode work on a phone', async ({ pag
   await createAccount(page, false);
   const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
   await expect(nav.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(nav.getByRole('button', { name: 'Add expense', exact: true })).toBeVisible();
+  await expect(page.locator('.m3-route')).toHaveCSS('animation-name', 'm3-page-enter');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('.m3-route')).toHaveCSS('animation-name', 'none');
   await nav.getByRole('button', { name: 'Savings', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Savings & investments', exact: true })).toBeVisible();
 

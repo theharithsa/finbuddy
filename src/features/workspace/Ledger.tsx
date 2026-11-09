@@ -80,7 +80,7 @@ export function Ledger({ expenses, categories, people, range, onRangeChange, onE
   return (
     <>
       <header className="m3-page-heading">
-        <div><h1>Expenses</h1><p>Log spending and find any past expense.</p></div>
+        <div><span className="m3-page-kicker">Everyday money</span><h1>Expenses</h1><p>See where it went, one day at a time.</p></div>
         {fullMonth ? <div className="m3-month-control" role="group" aria-label="Expense period">
           <Button variant="ghost" size="icon" aria-label="Previous month" onClick={() => changeRange(monthRange(shiftMonth(month, -1)))}><ChevronLeft size={20} /></Button>
           <span aria-live="polite"><CalendarDays size={17} />{periodLabel}</span>
@@ -126,7 +126,7 @@ export function Ledger({ expenses, categories, people, range, onRangeChange, onE
         {filtered.length === 0 ? <div className="m3-empty">
           <span className="m3-row-icon"><ReceiptText size={24} /></span>
           <h2>{period.length > 0 ? 'No matching expenses' : 'No expenses in this period'}</h2>
-          <p>{period.length > 0 ? 'Try another search or clear the filters.' : 'Log an expense to start tracking your spending.'}</p>
+          <p>{period.length > 0 ? 'Try another search or clear the filters.' : 'A grocery run, a ride home, or a cup of chai. Start with something you remember.'}</p>
           {period.length === 0 && <Button variant="secondary" onClick={onAdd}>Log your first expense</Button>}
         </div> : [...groups].map(([date, group]) => (
           <div className="m3-expense-group" key={date}>
