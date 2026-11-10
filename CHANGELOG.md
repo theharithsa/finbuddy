@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
-- Add the FinBuddy REST API, Swagger reference, and expiring personal API tokens in Developer Options.
+## [3.1.0] - 2026-11-10
 
+- Add the FinBuddy REST API, Swagger reference, and personal API tokens with a Never expires option.
+- Open Settings to Preferences and give Developer Options a separate destination in the Settings sidebar.
 - Retired the local MCP adapter and its editor registration. Removed unused browser modules, dependencies and legacy build and deployment scripts.
 
 ## [3.0.0] - Unreleased

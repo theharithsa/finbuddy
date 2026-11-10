@@ -9,6 +9,7 @@ Read the [continuation](continuation.md), [API guide](../../docs/api.md), and [r
 
 - Derive the owner UID from the validated credential. Admin SDK calls bypass Firestore rules, so use only the owned collection for data requests. Keep `finbuddyApiTokens` and `finbuddyDeveloper` outside the browser-owned data tree.
 - Store the verifier hash and token metadata. Only return the raw credential on successful issuance. Keep private responses uncached and accept Firebase ID tokens only at the Developer Options routes.
+- The token contract uses a UTC timestamp for dated credentials and `expiresAt: null` for non-expiring credentials. Apply the same expiry check when authenticating, listing, and pruning tokens. Revocation and account disablement apply to both kinds.
 - Keep write validators, operation routing, and Swagger schemas aligned. Use the shared household transaction for bill payments and the create transaction's idempotency record for retries.
 - Protect receipt references with the owner prefix, configured bucket, and response size cap. Do not fetch arbitrary receipt URLs or return their download tokens.
 - Use the isolated Auth, Firestore, Functions and Storage emulators. Keep optional OTel resource identity `finbuddy-api` and emit only the registered route, method and status.

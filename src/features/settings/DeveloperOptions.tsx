@@ -36,7 +36,7 @@ const displayDate = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' });
 function accessLabel(access: Token['access']) { return access === 'read' ? 'Read only' : 'Read and write'; }
 function message(error: unknown) { return error instanceof Error && !(error instanceof z.ZodError) ? error.message : 'Try again in a moment.'; }
 
-function TokenManager({ user }: { user: User }) {
+export function DeveloperOptions({ user }: { user: User }) {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [revealed, setRevealed] = useState<string>();
   const [error, setError] = useState('');
@@ -79,8 +79,9 @@ function TokenManager({ user }: { user: User }) {
   function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
+    const expiry = fields.get('days');
     const data = tokenCreate.safeParse({
-      name: fields.get('name'), access: fields.get('access'), days: Number(fields.get('days')),
+      name: fields.get('name'), access: fields.get('access'), days: expiry === 'never' ? null : Number(expiry),
     });
     if (!data.success) { setError('Enter a name and choose the token access and expiry.'); return; }
     void run(async () => {
@@ -88,7 +89,7 @@ function TokenManager({ user }: { user: User }) {
       setTokens((current) => [info, ...current]);
       setRevealed(token);
       form.current?.reset();
-      setNotice('Token generated. Copy it before closing this section.');
+      setNotice('Token generated. Copy it before leaving Developer Options.');
     });
   }
 
@@ -117,13 +118,16 @@ function TokenManager({ user }: { user: User }) {
   }
 
   return (
-    <div className="developer-content">
-      <p>Create a token for a script or integration you trust. Start with read-only access.</p>
+    <section className="m3-panel developer-content" aria-labelledby="developer-heading">
+      <div className="settings-section-heading">
+        <h2 id="developer-heading">Developer Options</h2>
+        <p>Create a token for a script or integration you trust. Start with read-only access.</p>
+      </div>
       <a href="/api/v1/docs" target="_blank" rel="noopener noreferrer">Open Swagger API reference</a>
       <form className="developer-form" ref={form} onSubmit={create}>
         <label className="m3-field"><span>Token name</span><input name="name" placeholder="Monthly expense export" maxLength={60} required /></label>
         <label className="m3-field"><span>Access</span><select name="access" defaultValue="read"><option value="read">Read only</option><option value="read-write">Read and write</option></select></label>
-        <label className="m3-field"><span>Expires in</span><select name="days" defaultValue="30"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option></select></label>
+        <label className="m3-field"><span>Expires in</span><select name="days" defaultValue="30"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="never">Never expires</option></select></label>
         <Button type="submit" disabled={busy || loading}>Generate token</Button>
       </form>
       {revealed && (
@@ -144,7 +148,7 @@ function TokenManager({ user }: { user: User }) {
         <ul className="developer-tokens">
           {tokens.map((token) => (
             <li key={token.id}>
-              <div><strong>{token.name}</strong><p>{accessLabel(token.access)} · Expires {displayDate.format(new Date(token.expiresAt))}</p></div>
+              <div><strong>{token.name}</strong><p>{accessLabel(token.access)} · {token.expiresAt === null ? 'Never expires' : `Expires ${displayDate.format(new Date(token.expiresAt))}`}</p></div>
               <Button variant="ghost" disabled={busy} onClick={() => setToRevoke(token)} aria-label={`Revoke ${token.name}`}>Revoke</Button>
             </li>
           ))}
@@ -159,16 +163,6 @@ function TokenManager({ user }: { user: User }) {
           <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={revoke}>Revoke token</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-}
-
-export function DeveloperOptions({ user }: { user: User }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <details className="m3-panel developer-options" onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary>Developer Options</summary>
-      {open && <TokenManager key={user.uid} user={user} />}
-    </details>
+    </section>
   );
 }

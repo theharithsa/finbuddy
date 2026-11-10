@@ -12,6 +12,10 @@ const ownerTokens = z.object({ tokens: z.array(tokenInfo).max(maxTokens) });
 type Token = z.infer<typeof tokenInfo>;
 type Access = Token['access'];
 
+function isExpired(token: Token, now: number): boolean {
+  return token.expiresAt !== null && Date.parse(token.expiresAt) <= now;
+}
+
 function invalidToken() {
   return new ApiError(401, 'invalid_token', 'Provide an active FinBuddy API token.');
 }
@@ -47,7 +51,7 @@ export async function authenticate(db: Firestore, auth: Auth, token: string, wri
   const parts = tokenPattern.exec(token);
   if (!parts) throw invalidToken();
   const row = storedToken.safeParse((await db.collection('finbuddyApiTokens').doc(parts[1]).get()).data());
-  if (!row.success || Date.parse(row.data.expiresAt) <= Date.now() ||
+  if (!row.success || isExpired(row.data, Date.now()) ||
       !timingSafeEqual(Buffer.from(row.data.digest, 'hex'), Buffer.from(digest(token), 'hex'))) throw invalidToken();
   if (write && row.data.access !== 'read-write') {
     throw new ApiError(403, 'insufficient_access', 'This API token is read-only.');
@@ -67,7 +71,7 @@ function readTokens(value: unknown): Token[] {
   return value === undefined ? [] : ownerTokens.parse(value).tokens;
 }
 function active(tokens: Token[], now: number): Token[] {
-  return tokens.filter((token) => Date.parse(token.expiresAt) > now);
+  return tokens.filter((token) => !isExpired(token, now));
 }
 
 export async function listTokens(db: Firestore, uid: string): Promise<Token[]> {
@@ -80,7 +84,8 @@ export async function createToken(db: Firestore, uid: string, input: z.infer<typ
   const token = `fbp_${id}.${randomBytes(32).toString('base64url')}`;
   const now = Date.now();
   const access: Access = input.access;
-  const info = { id, name: input.name, access, createdAt: new Date(now).toISOString(), expiresAt: new Date(now + input.days * 86_400_000).toISOString() };
+  const expiresAt = input.days === null ? null : new Date(now + input.days * 86_400_000).toISOString();
+  const info = { id, name: input.name, access, createdAt: new Date(now).toISOString(), expiresAt };
   const owner = db.collection('finbuddyDeveloper').doc(uid);
   const lookup = db.collection('finbuddyApiTokens');
   await db.runTransaction(async (tx) => {
@@ -88,7 +93,7 @@ export async function createToken(db: Firestore, uid: string, input: z.infer<typ
     const tokens = active(all, now);
     if (tokens.length >= maxTokens) throw new ApiError(409, 'token_limit', 'Revoke a token before creating another.');
     for (const old of all) {
-      if (Date.parse(old.expiresAt) <= now) tx.delete(lookup.doc(old.id));
+      if (isExpired(old, now)) tx.delete(lookup.doc(old.id));
     }
     tx.create(lookup.doc(id), { ...info, owner: uid, digest: digest(token) });
     tx.set(owner, { tokens: [info, ...tokens] });

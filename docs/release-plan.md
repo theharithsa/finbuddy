@@ -27,4 +27,6 @@ For an authorized rollback, identify the exact previously verified Hosting versi
 3. Verify the deployed function with `node scripts/verify-api.mjs https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi`. Then allow the verified Hosting artifact to publish its `/api/v1/**` rewrite. The Hosting workflow repeats the same checks through the public site. Open Swagger and run the authorized token smoke with a dedicated synthetic account.
 4. Record the function revision and Hosting version as separate release identities. To roll back, restore the previous Hosting version and, when the API changed, restore the corresponding verified function revision separately.
 
+For non-expiring tokens, deploy the API before the Settings update. The previous function and Settings bundle expect a timestamp for every token. Once an account has a non-expiring token with `expiresAt: null`, keep a compatible API and Settings revision when recovering from a release issue. This schema change needs no Firestore backfill.
+
 Use Firebase CLI `14.20.0` for the current reproducible path. Avoid project-wide deployments from this checkout. Review [cost and quotas](../skills/project-finops/SKILL.md) if a release changes resource consumption.

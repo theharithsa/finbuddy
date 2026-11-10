@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { tokenCreated, tokenInfo } from '../shared/developer';
 
 const project = 'demo-finbuddy';
 const base = `http://127.0.0.1:5001/${project}/asia-south1/finbuddyApi/api/v1`;
@@ -37,11 +38,11 @@ function api(path: string, token?: string, method = 'GET', data?: unknown, key?:
   });
 }
 
-async function mint(session: string, access: 'read' | 'read-write') {
-  const response = await api('/developer/tokens', session, 'POST', { name: 'Emulator test', access, days: 7 });
+async function mint(session: string, access: 'read' | 'read-write', days: 7 | null = 7) {
+  const response = await api('/developer/tokens', session, 'POST', { name: 'Emulator test', access, days });
   assert.equal(response.status, 201);
   assert.match(response.headers.get('cache-control') ?? '', /no-store/);
-  return await response.json() as { id: string; token: string };
+  return tokenCreated.parse(await response.json());
 }
 
 const expense = { amount: 125.99, category: 'Food & Dining', description: 'Synthetic expense', date: '2026-01-12' };
@@ -162,9 +163,31 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal((await api(`/expenses/${expenseId}/receipt`, read.token)).status, 404);
   });
 
-  await t.test('rejects expired and revoked tokens', async () => {
-    await db.collection('finbuddyApiTokens').doc(read.id).update({ expiresAt: '2026-01-01T00:00:00.000Z' });
+  await t.test('keeps non-expiring tokens active alongside dated tokens and revokes either kind', async () => {
+    const never = await mint(first.idToken, 'read', null);
+    assert.equal(never.expiresAt, null);
+    assert.ok(write.expiresAt);
+    assert.equal(Date.parse(write.expiresAt) - Date.parse(write.createdAt), 7 * 86_400_000);
+    const owned = db.collection('finbuddyDeveloper').doc(first.localId);
+    const readLookup = db.collection('finbuddyApiTokens').doc(read.id);
+    const expiresAt = '2000-01-01T00:00:00.000Z';
+    const existing = tokenInfo.array().parse((await owned.get()).data()?.tokens);
+    await owned.update({ tokens: existing.map((row) => row.id === read.id ? { ...row, expiresAt } : row) });
+    await readLookup.update({ expiresAt });
     assert.equal((await api('/profile', read.token)).status, 401);
+    const another = await mint(first.idToken, 'read');
+    assert.equal((await readLookup.get()).exists, false);
+    const listing = await api('/developer/tokens', first.idToken);
+    assert.equal(listing.status, 200);
+    const listed = tokenInfo.array().parse(await listing.json());
+    assert.deepEqual(listed.map(({ id }) => id), [another.id, never.id, write.id]);
+    assert.equal(listed[1].expiresAt, null);
+    assert.equal((await api('/profile', never.token)).status, 200);
+    assert.equal((await api('/expenses', never.token, 'POST', expense, 'never-read-denied')).status, 403);
+    assert.equal((await api(`/developer/tokens/${never.id}`, second.idToken, 'DELETE')).status, 204);
+    assert.equal((await api('/profile', never.token)).status, 200);
+    assert.equal((await api(`/developer/tokens/${never.id}`, first.idToken, 'DELETE')).status, 204);
+    assert.equal((await api('/profile', never.token)).status, 401);
     assert.equal((await api(`/developer/tokens/${write.id}`, first.idToken, 'DELETE')).status, 204);
     assert.equal((await api('/profile', write.token)).status, 401);
   });

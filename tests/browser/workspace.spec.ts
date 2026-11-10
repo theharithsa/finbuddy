@@ -417,15 +417,15 @@ test('appearance loads real fonts, follows the device and keeps choices after re
   await expect(page.getByRole('radio', { name: 'Light' })).toBeChecked();
 });
 
-test('Developer Options shows a token once and lets the signed-in owner revoke it', async ({ page }) => {
-  const info = { id: 'a'.repeat(32), name: 'Monthly export', access: 'read', createdAt: '2026-11-10T00:00:00.000Z', expiresAt: '2026-12-10T00:00:00.000Z' };
+test('Settings separates Preferences and Developer Options and supports revocable tokens without expiry', async ({ page }) => {
+  const info = { id: 'a'.repeat(32), name: 'Monthly export', access: 'read', createdAt: '2026-11-10T00:00:00.000Z', expiresAt: null };
   const syntheticToken = `fbp_${info.id}.${'Z'.repeat(43)}`;
   let issued = false;
   await page.route('**/api/v1/developer/tokens**', async (route) => {
     const request = route.request();
     expect(Boolean(request.headers().authorization?.startsWith('Bearer '))).toBe(true);
     if (request.method() === 'POST') {
-      expect(request.postDataJSON()).toEqual({ name: 'Monthly export', access: 'read', days: 30 });
+      expect(request.postDataJSON()).toEqual({ name: 'Monthly export', access: 'read', days: null });
       issued = true;
       await route.fulfill({ status: 201, json: { ...info, token: syntheticToken } });
     } else if (request.method() === 'DELETE') {
@@ -435,21 +435,47 @@ test('Developer Options shows a token once and lets the signed-in owner revoke i
       await route.fulfill({ json: issued ? [info] : [] });
     }
   });
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 1280, height: 800 });
   await createAccount(page, false);
   await page.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('button', { name: 'More', exact: true }).click();
   await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: /^Settings/ }).click();
-  const developer = page.getByText('Developer Options', { exact: true });
-  await developer.click();
+  const settings = page.getByRole('navigation', { name: 'Settings sections' });
+  const preferences = settings.getByRole('button', { name: 'Preferences', exact: true });
+  const developer = settings.getByRole('button', { name: 'Developer Options', exact: true });
+  const preferencesPanel = page.getByRole('region', { name: 'Preferences', exact: true });
+  const developerPanel = page.getByRole('region', { name: 'Developer Options', exact: true });
+  await expect(preferences).toHaveAttribute('aria-current', 'page');
+  await expect(preferencesPanel.getByRole('group', { name: 'Color palette' })).toBeVisible();
+  await expect(developerPanel).toHaveCount(0);
+  const sidebar = await settings.boundingBox();
+  const content = await preferencesPanel.boundingBox();
+  if (!sidebar || !content) throw new Error('Settings sidebar and Preferences should be visible.');
+  expect(sidebar.x + sidebar.width).toBeLessThan(content.x);
+
+  await developer.focus();
+  await developer.press('Enter');
+  await expect(developer).toHaveAttribute('aria-current', 'page');
+  await expect(preferencesPanel).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Open Swagger API reference' })).toHaveAttribute('href', '/api/v1/docs');
+  await page.setViewportSize({ width: 320, height: 740 });
+  const mobileNav = await settings.boundingBox();
+  const mobileContent = await developerPanel.boundingBox();
+  if (!mobileNav || !mobileContent) throw new Error('Settings navigation and Developer Options should be visible.');
+  expect(mobileNav.y + mobileNav.height).toBeLessThan(mobileContent.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  const expiry = page.getByLabel('Expires in');
+  await expect(expiry).toHaveValue('30');
+  await expiry.selectOption({ label: 'Never expires' });
   await page.getByLabel('Token name').fill(info.name);
   await page.getByRole('button', { name: 'Generate token' }).click();
   const reveal = page.getByLabel(/Copy this token now/);
   await expect(reveal).toHaveValue(syntheticToken);
-  await developer.click();
+  await expect(page.getByText('Read only · Never expires')).toBeVisible();
+  await preferences.click();
   await expect(reveal).toHaveCount(0);
   await developer.click();
   await expect(page.getByText(info.name, { exact: true })).toBeVisible();
+  await expect(page.getByText('Read only · Never expires')).toBeVisible();
   await expect(reveal).toHaveCount(0);
   await page.getByRole('button', { name: 'Revoke Monthly export' }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Revoke token' }).click();
@@ -492,6 +518,11 @@ test('visitors can explore sample spending without Firebase account requests', a
   await expect(page.getByRole('main').getByText('Coming soon', { exact: true })).toBeVisible();
   const footer = await page.locator('.m3-footer').boundingBox();
   expect(footer && footer.y + footer.height).toBeGreaterThan(730);
+  await nav.getByRole('button', { name: 'More', exact: true }).click();
+  await more.getByRole('button', { name: /^Settings/ }).click();
+  const settings = page.getByRole('navigation', { name: 'Settings sections' });
+  await expect(settings.getByRole('button', { name: 'Preferences' })).toHaveAttribute('aria-current', 'page');
+  await expect(settings.getByRole('button', { name: 'Developer Options' })).toHaveCount(0);
   expect(backendRequests).toEqual([]);
   await page.getByRole('link', { name: 'Back to sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Welcome to FinBuddy' })).toBeVisible();
