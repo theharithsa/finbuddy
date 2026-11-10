@@ -11,3 +11,4 @@ Start with [FinBuddy's signal map](../../docs/observability.md) and the [App Lau
 - Separate browser SDK results from durable Firestore outcomes. Treat the deployed callable and its source as separate until their revisions and telemetry are reconciled.
 - Verify actual ingestion and searchability before reporting a Dynatrace signal as live. Keep monetary amounts, account identifiers, receipt details, prompts, secret values and raw errors out of telemetry.
 - Use GitHub Actions for checked build and test facts and Firebase Hosting for deployment and served revision facts. Route cost and quota questions to [FinOps](../project-finops/SKILL.md).
+- Use the pinned Thoth observer for FinBuddy GitHub Actions telemetry. Keep its credentials scoped to the observer, review the verified SDK digest when updating Thoth, and follow the signal map for setup and run-to-tenant verification.

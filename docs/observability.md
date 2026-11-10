@@ -14,7 +14,17 @@ See the [Firebase data handoff](../skills/service-firebase-data/continuation.md)
 
 ## Delivery
 
-GitHub Actions records the actual lint, unit, isolated browser, build and Hosting smoke outcomes. The production job verifies the Git revision and asset cache headers from live Hosting. Automated export of GitHub outcomes to Dynatrace requires a trusted metadata-only observer and a confirmed ingestion route. PR checks use no cloud or Dynatrace credentials.
+GitHub Actions records lint, unit, isolated browser, build, and Hosting smoke outcomes. The production job verifies the Git revision and asset cache headers from live Hosting.
+
+The [Dynatrace CI observer](../.github/workflows/dynatrace-ci.yml) uses [Thoth v5.67.0](https://github.com/plengauer/Thoth/releases/tag/v5.67.0) to export workflow, job, and step spans plus count and duration metrics as `finbuddy-ci`. It observes completed `push` runs on `main` from this repository for **FinBuddy checks and Hosting** and **Foundation checks**, including failures. Thoth reads GitHub logs to reconstruct timing, with OTLP log export and debug output disabled. It uses a read-only Actions token in a separate job. The Dynatrace ingest secret is referenced only by the observer.
+
+### Enable and verify CI export
+
+1. In [FinBuddy Actions settings](https://github.com/theharithsa/finbuddy/settings/secrets/actions), add `DYNATRACE_OTLP_TOKEN` as a secret. Use a Dynatrace Platform Token with `openpipeline:traces:ingest` and `openpipeline:metrics:ingest`.
+2. Set the repository Actions variable `DYNATRACE_OTLP_ENDPOINT` to the approved `https://<environment-id>.live.dynatrace.com/api/v2/otlp` base URL. The observer skips export while the variable is empty. See the [Dynatrace OTLP API docs](https://docs.dynatrace.com/docs/ingest-from/opentelemetry/otlp-api).
+3. After the observer reaches `main`, use the next ordinary `main` workflow run. Match its GitHub run ID, attempt, and revision against spans for `finbuddy-ci`. Verify points for `github.actions.workflows` and `github.actions.jobs` in the same time window, then record the run and tenant evidence. A successful observer run alone does not establish ingestion.
+
+Remove the endpoint variable to pause export. Retry the observer only for a diagnosed delivery failure. A replay can duplicate spans and metrics. Thoth's step spans describe workflow execution. Individual test results and release events require their own structured sources. Live CI export is pending credentials, merge, and tenant verification.
 
 | Journey | Signal | Authority |
 | --- | --- | --- |

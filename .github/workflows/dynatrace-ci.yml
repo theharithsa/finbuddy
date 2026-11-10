@@ -1,0 +1,59 @@
+name: Dynatrace CI telemetry
+
+on:
+  workflow_run:
+    workflows: [FinBuddy checks and Hosting, Foundation checks]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  export:
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.id == github.event.repository.id &&
+      vars.DYNATRACE_OTLP_ENDPOINT != ''
+    permissions:
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Validate Dynatrace configuration
+        env:
+          DYNATRACE_OTLP_ENDPOINT: ${{ vars.DYNATRACE_OTLP_ENDPOINT }}
+          DYNATRACE_OTLP_TOKEN: ${{ secrets.DYNATRACE_OTLP_TOKEN }}
+        run: |
+          if [[ ! "$DYNATRACE_OTLP_ENDPOINT" =~ ^https://[a-z0-9-]+\.live\.dynatrace\.com/api/v2/otlp$ ]]; then
+            echo '::error::DYNATRACE_OTLP_ENDPOINT must be a Dynatrace SaaS OTLP base URL.'
+            exit 1
+          fi
+          if [[ -z "$DYNATRACE_OTLP_TOKEN" ]]; then
+            echo '::error::Configure the DYNATRACE_OTLP_TOKEN Actions secret.'
+            exit 1
+          fi
+
+      - name: Install verified Thoth SDK
+        run: |
+          package="$RUNNER_TEMP/opentelemetry-shell_5.67.0_amd64.deb"
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            --output "$package" "https://github.com/plengauer/Thoth/releases/download/v5.67.0/${package##*/}"
+          printf '%s  %s\n' a53b3ec2a25e9ad82b8cabad329affe3d7a76b14942ec0f0f1a34adfe36a1a53 "$package" | sha256sum --check
+          sudo apt-get install -y "$package" curl wget jq sed unzip parallel
+          # Thoth's installer skips its release fallback when otel.sh is on PATH.
+          command -v otel.sh >/dev/null
+
+      - name: Export workflow spans and metrics
+        uses: plengauer/Thoth/actions/instrument/workflow@af82b8c3e169f06062ac75ffa55f40e221299d36 # v5.67.0
+        with:
+          self_monitoring: 'false'
+          debug: '' # Thoth v5.67.0 treats any nonempty value as enabled.
+        env:
+          OTEL_SERVICE_NAME: finbuddy-ci
+          OTEL_TRACES_EXPORTER: otlp
+          OTEL_METRICS_EXPORTER: otlp
+          OTEL_LOGS_EXPORTER: none
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.DYNATRACE_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: Authorization=Bearer%20${{ secrets.DYNATRACE_OTLP_TOKEN }}
+          OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+          OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: delta
