@@ -23,7 +23,7 @@ For an authorized rollback, identify the exact previously verified Hosting versi
 ## REST API and Hosting cutover
 
 1. Validate the API using the [isolated emulator suite](api.md#local-verification). Review runtime identity access to Firestore, Firebase Auth user lookup, and reads from the FinBuddy receipt bucket. Confirm that the public HTTP invoker is allowed and that application auth denies unauthenticated finance requests.
-2. With production authorization, install from `api/package-lock.json` and deploy the checked source with `npx --yes firebase-tools@14.20.0 deploy --only functions:finbuddy-api --project finbuddy-2025`. Keep the historical callable codebase out of this command.
+2. With production authorization, install from `api/package-lock.json` and deploy the checked source with `npx --yes firebase-tools@14.20.0 deploy --config firebase.api.json --only functions:finbuddy-api --project finbuddy-2025`. The isolated configuration lists only the API codebase.
 3. Verify the deployed function with `node scripts/verify-api.mjs https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi`. Then allow the verified Hosting artifact to publish its `/api/v1/**` rewrite. The Hosting workflow repeats the same checks through the public site. Open Swagger and run the authorized token smoke with a dedicated synthetic account.
 4. Record the function revision and Hosting version as separate release identities. To roll back, restore the previous Hosting version and, when the API changed, restore the corresponding verified function revision separately.
 

@@ -35,12 +35,12 @@ Expense and budget amounts are in INR with up to two decimal places. Household a
 
 ## Local verification
 
-Use Node.js 22 for the API runtime and Java 21 for the Firestore and Storage emulators. Run the root app with `VITE_FIREBASE_EMULATORS=true` and the [isolated emulator configuration](../firebase.api-test.json). The Vite development server forwards `/api/v1` to the local function. The demo project keeps all synthetic writes out of production.
+Use Node.js 22 for the API runtime and Java 21 for the Firestore and Storage emulators. Run the root app with `VITE_FIREBASE_EMULATORS=true` and the [isolated API configuration](../firebase.api.json). The Vite development server forwards `/api/v1` to the local function. The demo project keeps all synthetic writes out of production.
 
 ```sh
 npm --prefix api ci
 npm --prefix api test
-npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api-test.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
 ```
 
 See the [release procedure](release-plan.md) for the first API deployment and Hosting cutover.

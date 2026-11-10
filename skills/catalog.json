@@ -283,12 +283,13 @@
       ],
       "contracts": [
         "firebase.json",
+        "firebase.api.json",
         "docs/api.md",
         "docs/observability.md"
       ],
       "testCommands": [
         "npm --prefix api test",
-        "npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api-test.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
+        "npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
       ],
       "continuation": "skills/service-api/continuation.md",
       "lastReviewedRevision": null
