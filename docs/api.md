@@ -1,6 +1,6 @@
 # FinBuddy API v1
 
-Developer Options lives under **Settings** in the signed-in workspace. Generate a token, copy it once, and choose **Authorize** in the Swagger reference. Use a read-only token for exports and a read/write token for automations that change records.
+Open **More → Settings → Developer Options** in the signed-in workspace. Generate a token, copy it once, and choose **Authorize** in the Swagger reference. Use a read-only token for exports and a read/write token for automations that change records.
 
 ## Endpoints
 
@@ -20,7 +20,7 @@ The API uses the same account data as the workspace. Device-local appearance, de
 
 ## Authentication and requests
 
-A token expires after 7, 30, or 90 days and can be revoked in Settings. Token generation requires a recent sign-in. A personal API token can access only the account that created it. Developer Options uses Firebase ID tokens and is the only route family that accepts them. The OpenAPI reference keeps Swagger authorization in memory for the current tab.
+Choose 7, 30, or 90 days, or **Never expires**. The default in Settings is 30 days. Send `days: null` in the create request for a non-expiring token. The API returns `expiresAt: null` for that token and a UTC timestamp for dated tokens. Both kinds can be revoked in Developer Options. Token generation requires a recent sign-in. A personal API token can access only the account that created it. Developer Options uses Firebase ID tokens and is the only route family that accepts them. The OpenAPI reference keeps Swagger authorization in memory for the current tab.
 
 Send the token in the `Authorization: Bearer` header. Keep it in your integration's secret store. The API is same-origin for browsers and can be called by server-side HTTP clients.
 

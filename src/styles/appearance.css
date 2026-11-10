@@ -1,5 +1,49 @@
-.appearance-panel { display: grid; gap: 22px; max-width: 760px; }
-.appearance-panel h2 { font: var(--m3-title-large); }
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: clamp(16px, 2.6vw, 28px);
+  align-items: start;
+}
+.settings-nav {
+  display: grid;
+  gap: 4px;
+  padding-inline-end: 12px;
+  border-inline-end: 1px solid var(--m3-outline-variant);
+}
+.settings-nav button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--m3-shape-medium);
+  color: var(--m3-on-surface-variant);
+  font: var(--m3-body-medium);
+  text-align: start;
+}
+.settings-nav svg { flex-shrink: 0; }
+.settings-nav button:hover { background: var(--m3-surface-high); }
+.settings-nav button[aria-current] {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  font-weight: 650;
+}
+.settings-nav button:focus-visible { outline: 2px solid var(--m3-primary); outline-offset: 2px; }
+.settings-section-heading { display: grid; gap: 6px; }
+.settings-section-heading h2 { font: var(--m3-title-large); }
+.settings-section-heading p { color: var(--m3-on-surface-variant); }
+
+@media (max-width: 640px) {
+  .settings-layout { grid-template-columns: minmax(0, 1fr); }
+  .settings-nav {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+    padding: 0 0 8px;
+    border: 0;
+    border-block-end: 1px solid var(--m3-outline-variant);
+  }
+}
+
+.appearance-panel { display: grid; gap: 22px; }
 .appearance-group { min-width: 0; }
 .appearance-group legend { margin-bottom: 8px; font: var(--m3-title-medium); }
 .appearance-choices { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -18,26 +62,16 @@
 .appearance-preview p { font: var(--m3-title-medium); }
 .appearance-preview strong { font: var(--m3-headline-small); font-weight: 600; }
 .appearance-footer { display: flex; justify-content: flex-start; }
-.developer-options {
-  margin-block-start: 1rem;
-}
-
-.developer-options > summary {
-  cursor: pointer;
-  font-size: 1.125rem;
-  font-weight: 650;
-}
-
 .developer-content, .developer-form, .developer-reveal {
   display: grid;
   gap: 0.875rem;
-  margin-block-start: 1rem;
 }
 
 .developer-form {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
   align-items: end;
 }
+.developer-form > button { grid-column: 1 / -1; justify-self: start; }
 
 .developer-content a {
   width: fit-content;
@@ -60,4 +94,5 @@
 .developer-tokens li {
   justify-content: space-between;
   padding-block: 0.5rem;
+  overflow-wrap: anywhere;
 }
