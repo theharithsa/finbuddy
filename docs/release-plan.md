@@ -18,5 +18,13 @@ For an authorized rollback, identify the exact previously verified Hosting versi
 | Receipt Storage rules | Verify the target bucket and test owner, second-account, signed-out and legacy cases. Use the approved Storage rules target and verify its release. |
 | Firebase Auth | Verify providers and authorized domains on the target project. Capture an authorized sign-in smoke separately. |
 | Functions | Follow the [callable skill](../skills/service-firebase-functions/SKILL.md). Verify the deployed entrypoint, source revision, region, secret names, model and rollback before a scoped Functions release. |
+| REST API | Deploy the isolated `finbuddy-api` codebase before the first Hosting release that enables its rewrite. Follow the sequence below. |
+
+## REST API and Hosting cutover
+
+1. Validate the API using the [isolated emulator suite](api.md#local-verification). Review runtime identity access to Firestore, Firebase Auth user lookup, and reads from the FinBuddy receipt bucket. Confirm that the public HTTP invoker is allowed and that application auth denies unauthenticated finance requests.
+2. With production authorization, install from `api/package-lock.json` and deploy the checked source with `npx --yes firebase-tools@14.20.0 deploy --config firebase.api.json --only functions:finbuddy-api --project finbuddy-2025`. The isolated configuration lists only the API codebase.
+3. Verify the deployed function with `node scripts/verify-api.mjs https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi`. Then allow the verified Hosting artifact to publish its `/api/v1/**` rewrite. The Hosting workflow repeats the same checks through the public site. Open Swagger and run the authorized token smoke with a dedicated synthetic account.
+4. Record the function revision and Hosting version as separate release identities. To roll back, restore the previous Hosting version and, when the API changed, restore the corresponding verified function revision separately.
 
 Use Firebase CLI `14.20.0` for the current reproducible path. Avoid project-wide deployments from this checkout. Review [cost and quotas](../skills/project-finops/SKILL.md) if a release changes resource consumption.

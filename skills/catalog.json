@@ -144,6 +144,18 @@
       "dependsOn": [
         "app-launchpad"
       ]
+    },
+    {
+      "id": "service-api",
+      "kind": "service",
+      "path": "skills/service-api/SKILL.md",
+      "description": "Maintain the FinBuddy REST API, personal tokens, and Swagger reference.",
+      "dependsOn": [
+        "project-implementation",
+        "project-testing",
+        "project-deployment",
+        "project-observability"
+      ]
     }
   ],
   "services": [
@@ -253,6 +265,34 @@
       ],
       "continuation": "skills/service-firebase-data/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
+    },
+    {
+      "id": "api",
+      "skillId": "service-api",
+      "sourcePaths": [
+        "api"
+      ],
+      "entrypoints": [
+        "api/src/index.ts",
+        "api/src/openapi.ts"
+      ],
+      "owner": "theharithsa",
+      "status": "active",
+      "dependsOn": [
+        "firebase-data"
+      ],
+      "contracts": [
+        "firebase.json",
+        "firebase.api.json",
+        "docs/api.md",
+        "docs/observability.md"
+      ],
+      "testCommands": [
+        "npm --prefix api test",
+        "npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
+      ],
+      "continuation": "skills/service-api/continuation.md",
+      "lastReviewedRevision": null
     }
   ]
 }
