@@ -87,3 +87,5 @@ jobs:
           firebaseToolsVersion: '14.20.0'
       - name: Verify live revision and asset
         run: node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$GITHUB_SHA"
+      - name: Verify live API routes
+        run: node scripts/verify-api.mjs https://finbuddy-2025.web.app
