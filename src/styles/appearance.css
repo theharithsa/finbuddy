@@ -18,3 +18,46 @@
 .appearance-preview p { font: var(--m3-title-medium); }
 .appearance-preview strong { font: var(--m3-headline-small); font-weight: 600; }
 .appearance-footer { display: flex; justify-content: flex-start; }
+.developer-options {
+  margin-block-start: 1rem;
+}
+
+.developer-options > summary {
+  cursor: pointer;
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.developer-content, .developer-form, .developer-reveal {
+  display: grid;
+  gap: 0.875rem;
+  margin-block-start: 1rem;
+}
+
+.developer-form {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  align-items: end;
+}
+
+.developer-content a {
+  width: fit-content;
+  text-decoration: underline;
+}
+
+.developer-reveal {
+  padding: 1rem;
+  border: 1px solid var(--m3-outline-variant, currentColor);
+  border-radius: 1rem;
+}
+
+.developer-actions, .developer-tokens li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.developer-tokens li {
+  justify-content: space-between;
+  padding-block: 0.5rem;
+}

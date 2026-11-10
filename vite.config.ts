@@ -19,13 +19,20 @@ export default defineConfig({
     __APP_NAME__: JSON.stringify(packageJson.name),
   },
   resolve: {
+    dedupe: ['zod'],
     alias: {
       "@": resolve(projectRoot, "./src"),
     },
   },
   server: {
     host: true,
-    port: 5000
+    port: 5000,
+    proxy: process.env.VITE_FIREBASE_EMULATORS === 'true' ? {
+      '/api/v1/': {
+        target: 'http://127.0.0.1:5001',
+        rewrite: (path) => `/demo-finbuddy/asia-south1/finbuddyApi${path}`,
+      },
+    } : undefined,
   },
   build: {
     rollupOptions: {

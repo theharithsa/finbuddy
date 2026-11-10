@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { fonts, isAppearanceOption, palettes, type DisplayMode } from '@/lib/appearance';
+import type { User } from 'firebase/auth';
+import { DeveloperOptions } from './DeveloperOptions';
 
 const modes: { id: DisplayMode; label: string }[] = [
   { id: 'light', label: 'Light' },
@@ -8,13 +10,13 @@ const modes: { id: DisplayMode; label: string }[] = [
   { id: 'system', label: 'System' },
 ];
 
-export function SettingsPage() {
+export function SettingsPage({ user }: { user?: User }) {
   const { displayMode, font, palette, setFont, setTheme, setPalette, resetAppearance } = useTheme();
 
   return (
     <>
       <header className="m3-page-heading">
-        <div><h1>Settings</h1><p>Choose how FinBuddy looks on this device.</p></div>
+        <div><h1>Settings</h1><p>{user ? 'Make FinBuddy yours and connect your own tools.' : 'Choose how FinBuddy looks on this device.'}</p></div>
       </header>
       <section className="m3-panel appearance-panel" aria-labelledby="appearance-heading">
         <h2 id="appearance-heading">Appearance</h2>
@@ -58,6 +60,7 @@ export function SettingsPage() {
         </div>
         <div className="appearance-footer"><Button variant="ghost" onClick={resetAppearance}>Reset appearance</Button></div>
       </section>
+      {user && <DeveloperOptions user={user} />}
     </>
   );
 }

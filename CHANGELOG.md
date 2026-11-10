@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add the FinBuddy REST API, Swagger reference, and expiring personal API tokens in Developer Options.
+
 - Retired the local MCP adapter and its editor registration. Removed unused browser modules, dependencies and legacy build and deployment scripts.
 
 ## [3.0.0] - Unreleased

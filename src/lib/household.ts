@@ -2,36 +2,8 @@ import { z } from 'zod';
 import { monthRange, shiftMonth } from '@/lib/finance-period';
 import { formatCurrency, type Expense } from '@/lib/types';
 
-const label = z.string().trim().min(1).max(80);
-const maxPaise = 100_000_000_000;
-const nonnegativePaise = z.number().int().min(0).max(maxPaise);
-const positivePaise = nonnegativePaise.min(1);
-
-export const incomeSchema = z.object({
-  name: label,
-  amountPaise: positivePaise,
-  date: z.iso.date(),
-});
-
-export const billSchema = z.object({
-  name: label,
-  amountPaise: positivePaise,
-  dueDate: z.iso.date(),
-  repeat: z.enum(['once', 'monthly', 'yearly']),
-});
-
-export const holdingKinds = ['Savings', 'Mutual fund / SIP', 'FD / RD', 'EPF / PPF / NPS', 'Gold', 'Shares', 'Other'] as const;
-export const holdingSchema = z.object({
-  name: label,
-  amountPaise: nonnegativePaise,
-  kind: z.enum(holdingKinds),
-  asOf: z.iso.date(),
-});
-
-export const paymentSchema = z.object({
-  expenseId: z.string().min(1).refine((value) => !value.includes('/')),
-  dueDate: z.iso.date(),
-});
+import { billDateInMonth, billPaymentKey, billSchema, holdingSchema, incomeSchema, maxPaise, paymentSchema } from '../../api/shared/household';
+export { billDateInMonth, billPaymentKey, billSchema, holdingKinds, holdingSchema, incomeSchema, paymentSchema } from '../../api/shared/household';
 
 export type IncomeDraft = z.infer<typeof incomeSchema>;
 export type BillDraft = z.infer<typeof billSchema>;
@@ -59,20 +31,6 @@ export function parsePaise(value: FormDataEntryValue | null, allowZero = false):
   const paise = Number(rupees) * 100 + Number(decimal.padEnd(2, '0'));
   if (!Number.isSafeInteger(paise) || paise > maxPaise || paise < (allowZero ? 0 : 1)) return undefined;
   return paise;
-}
-
-export function billDateInMonth(bill: BillDraft, month: string): string | undefined {
-  const firstMonth = bill.dueDate.slice(0, 7);
-  if (month < firstMonth) return undefined;
-  if (bill.repeat === 'once') return month === firstMonth ? bill.dueDate : undefined;
-  if (bill.repeat === 'yearly' && firstMonth.slice(5) !== month.slice(5)) return undefined;
-  const lastDay = Number(monthRange(month).to.slice(-2));
-  const day = Math.min(lastDay, Number(bill.dueDate.slice(-2)));
-  return `${month}-${String(day).padStart(2, '0')}`;
-}
-
-export function billPaymentKey(billId: string, dueDate: string): string {
-  return `${billId}_${dueDate.slice(0, 7)}`;
 }
 
 export interface BillOccurrence {

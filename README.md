@@ -19,7 +19,8 @@ Use Node.js 24 and run `npm ci`, then `npm run dev`. Local development uses FinB
 | `src/features/workspace` | Monthly overview, spending calculations and expense ledger |
 | `src/components` | Feature screens, expense dialogs and shared controls |
 | `src/lib/firebase.ts` | Firebase client and existing document contracts |
+| `api` | Versioned REST API, Swagger reference, and token management |
 | `functions` | Historical callable source. Live Kautilya deployment differs. |
 | `skills`, `schemas`, `qa` | App Launchpad catalog, contracts and evidence |
 
-See [Material 3 design](docs/design.md), [decisions](docs/decisions.md), [service inventory](docs/services.md), [observability](docs/observability.md) and [release and rollback](docs/release-plan.md).
+See [Material 3 design](docs/design.md), [decisions](docs/decisions.md), [API and Developer Options](docs/api.md), [service inventory](docs/services.md), [observability](docs/observability.md) and [release and rollback](docs/release-plan.md).

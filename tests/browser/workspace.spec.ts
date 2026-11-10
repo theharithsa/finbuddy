@@ -417,6 +417,46 @@ test('appearance loads real fonts, follows the device and keeps choices after re
   await expect(page.getByRole('radio', { name: 'Light' })).toBeChecked();
 });
 
+test('Developer Options shows a token once and lets the signed-in owner revoke it', async ({ page }) => {
+  const info = { id: 'a'.repeat(32), name: 'Monthly export', access: 'read', createdAt: '2026-11-10T00:00:00.000Z', expiresAt: '2026-12-10T00:00:00.000Z' };
+  const syntheticToken = `fbp_${info.id}.${'Z'.repeat(43)}`;
+  let issued = false;
+  await page.route('**/api/v1/developer/tokens**', async (route) => {
+    const request = route.request();
+    expect(Boolean(request.headers().authorization?.startsWith('Bearer '))).toBe(true);
+    if (request.method() === 'POST') {
+      expect(request.postDataJSON()).toEqual({ name: 'Monthly export', access: 'read', days: 30 });
+      issued = true;
+      await route.fulfill({ status: 201, json: { ...info, token: syntheticToken } });
+    } else if (request.method() === 'DELETE') {
+      issued = false;
+      await route.fulfill({ status: 204 });
+    } else {
+      await route.fulfill({ json: issued ? [info] : [] });
+    }
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await createAccount(page, false);
+  await page.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('button', { name: 'More', exact: true }).click();
+  await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: /^Settings/ }).click();
+  const developer = page.getByText('Developer Options', { exact: true });
+  await developer.click();
+  await expect(page.getByRole('link', { name: 'Open Swagger API reference' })).toHaveAttribute('href', '/api/v1/docs');
+  await page.getByLabel('Token name').fill(info.name);
+  await page.getByRole('button', { name: 'Generate token' }).click();
+  const reveal = page.getByLabel(/Copy this token now/);
+  await expect(reveal).toHaveValue(syntheticToken);
+  await developer.click();
+  await expect(reveal).toHaveCount(0);
+  await developer.click();
+  await expect(page.getByText(info.name, { exact: true })).toBeVisible();
+  await expect(reveal).toHaveCount(0);
+  await page.getByRole('button', { name: 'Revoke Monthly export' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Revoke token' }).click();
+  await expect(page.getByText('Token revoked.', { exact: true })).toBeVisible();
+  await expect(page.getByText('No active tokens.', { exact: true })).toBeVisible();
+});
+
 test('visitors can explore sample spending without Firebase account requests', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');

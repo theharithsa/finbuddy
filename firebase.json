@@ -12,6 +12,10 @@
     ],
     "rewrites": [
       {
+        "source": "/api/v1/**",
+        "function": { "functionId": "finbuddyApi", "region": "asia-south1", "pinTag": true }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
@@ -60,6 +64,12 @@
     "rules": "storage.rules"
   },
   "functions": [
+    {
+      "source": "api",
+      "codebase": "finbuddy-api",
+      "ignore": ["node_modules", ".git", "tests", "dist/tests", "*.local", "firebase-debug*.log"],
+      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+    },
     {
       "source": "functions",
       "codebase": "default",

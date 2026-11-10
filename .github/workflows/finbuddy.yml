@@ -44,9 +44,29 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  verify-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm --prefix api ci
+      - run: npm --prefix api test
+      - run: npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api-test.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: verify
+    needs: [verify, verify-api]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
