@@ -3,9 +3,9 @@ name: service-foundation-tooling
 description: Maintain the foundation validators, service registration and opt-in ruleset tooling.
 ---
 
-# Foundation tooling
+# FinBuddy foundation tooling
 
-Owner: theharithsa. Scope: Python standard-library repository tooling; no application runtime/cloud deployment. Read [catalog](../catalog.json), [continuation](continuation.md) and the [service contract](../../.agents/skills/app-launchpad/references/services.md).
+Owner is theharithsa. Scope is the Python repository tooling and GitHub foundation check. Use the continuation for FinBuddy provider and revision evidence. Read [catalog](../catalog.json), [continuation](continuation.md) and the [service contract](../../.agents/skills/app-launchpad/references/services.md).
 
 | Entry/module | Contract and extension point |
 | --- | --- |

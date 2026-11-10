@@ -1,11 +1,13 @@
 ---
 name: project-deployment
-description: Prepare, execute and verify authorized releases and rollback.
+description: Prepare or verify FinBuddy Hosting, Firebase rules and Functions releases.
 ---
 
-# Project Deployment
+# FinBuddy deployment
 
-- Read the service operations context and release impact plan. [Service context](../../.agents/skills/app-launchpad/references/services.md).
-- Resolve provider/environment/identity and authorization. [Boundaries](../../.agents/skills/app-launchpad/references/safety.md).
-- Follow current-head checks, immutable delivery and rollback steps. [Release procedure](../../.agents/skills/app-launchpad/references/github-release.md).
-- Record source/deployment/runtime states separately. [Evidence](../../.agents/skills/app-launchpad/references/evidence.md).
+Read the [release plan](../../docs/release-plan.md) and the affected service continuation. Verify the target, authorized action, checked Git revision, and rollback source before any provider change.
+
+- Hosting publishes the checked `dist/` artifact through the `main` workflow. Verify the served SHA, cache headers and brand assets. If the first check sees an older revision, retain that CI result and retry the read-only smoke check within a bounded window.
+- Rules, indexes and Functions have independent release boundaries. Inspect the [data](../service-firebase-data/SKILL.md) or [Functions](../service-firebase-functions/SKILL.md) handoff before selecting a scoped command.
+- Track a tag, GitHub merge, provider release and runtime verification separately. Use a new immutable application tag for a new published version and preserve the App Launchpad template version independently.
+- Include [FinOps](../project-finops/SKILL.md) when a release changes resource usage, billing or quotas. Confirm rollback through the same runtime smoke check.

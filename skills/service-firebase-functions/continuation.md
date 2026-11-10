@@ -1,3 +1,7 @@
-# Callable continuation
+# Firebase Functions continuation
 
-Firebase reports an active Node.js 22 Gen 2 callable named `chatWithKautilya` in `us-central1`. The checked-in source exports a different callable. The web release uses the active contract and leaves the deployed function in place. Reconcile source, secrets by name and test coverage before a separate Functions release. See [release boundaries](../../docs/release-plan.md).
+Inspected source at `22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115` on 10 November 2026. The Firebase CLI lists the live `chatWithKautilya` Gen 2 entrypoint, Node.js 22, `us-central1`. This establishes deployment metadata.
+
+- The checked-in exports are `chatWithGemini` and `getFinancialInsights`. The active web route is Coming soon. The historical source declares the `GEMINI_API_KEY` secret by name.
+- The historical Functions package build passed locally. The Hosting rollout was separate from Functions. Callable response, live source revision, invocation volume and Dynatrace tenant ingestion require separate evidence.
+- Before a callable release, reconcile an authorized source revision, verify owner-only access and safe model inputs in tests, review provider model availability and quotas, and record the exact deployed function revision and rollback artifact.

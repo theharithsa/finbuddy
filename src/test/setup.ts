@@ -13,9 +13,7 @@ vi.mock('@/lib/firebase', () => ({
     signOut: vi.fn(),
   },
   logOut: vi.fn(),
-  debugFirebaseConfig: vi.fn(),
   addExpenseToFirestore: vi.fn(),
-  checkFirebaseReady: vi.fn(),
 }))
 
 // Mock Vite environment variables

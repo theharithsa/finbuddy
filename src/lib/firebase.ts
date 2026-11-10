@@ -3,9 +3,7 @@ import { initializeApp, FirebaseError } from 'firebase/app';
 import { getAuth, connectAuthEmulator, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User, sendSignInLinkToEmail, signInWithEmailLink, isSignInWithEmailLink, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, increment, deleteField, type FieldValue, Unsubscribe } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
 import type { Budget, Expense, Person } from './types';
-// import { log } from './logger';
 
 // Firebase configuration - Replace with your Firebase project config
 // To set up Firebase:
@@ -26,36 +24,6 @@ const firebaseConfig = {
   measurementId: "G-ESNPQSYLCB"
 };
 
-// Debug function to check Firebase configuration
-export const debugFirebaseConfig = () => {
-  // Debug info available for development
-};
-
-// Check if Firebase is properly initialized and user is authenticated
-export const checkFirebaseReady = (user: any): boolean => {
-  if (!auth) {
-    console.error('Firebase auth not initialized');
-    return false;
-  }
-  
-  if (!db) {
-    console.error('Firestore not initialized');
-    return false;
-  }
-  
-  if (!user) {
-    console.error('User not authenticated');
-    return false;
-  }
-  
-  if (!user.uid) {
-    console.error('User ID not available');
-    return false;
-  }
-  
-  return true;
-};
-
 // Initialize Firebase
 const useEmulators = import.meta.env.DEV && import.meta.env.VITE_FIREBASE_EMULATORS === 'true';
 const app = initializeApp(useEmulators ? {
@@ -67,7 +35,6 @@ const app = initializeApp(useEmulators ? {
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app);
 if (useEmulators) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
@@ -155,7 +122,7 @@ export const validateReceiptFile = (file: File): boolean => {
   return true;
 };
 
-export { storage, auth, db, functions };
+export { storage, auth, db };
 
 // Authentication functions
 export async function signInWithGoogle(useRedirect = false): Promise<User> {

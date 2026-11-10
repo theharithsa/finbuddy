@@ -13,7 +13,7 @@
       "id": "project-design",
       "kind": "workflow",
       "path": "skills/project-design/SKILL.md",
-      "description": "Design product journeys, UI and service contracts before changing application behavior.",
+      "description": "Design FinBuddy journeys, Material 3 screens and financial data contracts.",
       "dependsOn": [
         "app-launchpad",
         "ian-xiaohei-illustrations"
@@ -23,7 +23,7 @@
       "id": "project-implementation",
       "kind": "workflow",
       "path": "skills/project-implementation/SKILL.md",
-      "description": "Implement or enhance application code using the affected service skills and verified contracts.",
+      "description": "Implement issue-linked FinBuddy changes within the affected service boundaries.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -32,7 +32,7 @@
       "id": "project-testing",
       "kind": "workflow",
       "path": "skills/project-testing/SKILL.md",
-      "description": "Select and execute meaningful project and service tests, preserving actual results and limitations.",
+      "description": "Select FinBuddy foundation, web, emulator and callable checks.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -41,7 +41,7 @@
       "id": "project-deployment",
       "kind": "workflow",
       "path": "skills/project-deployment/SKILL.md",
-      "description": "Prepare, execute when authorized, and verify project-specific releases, deployments and rollback.",
+      "description": "Verify FinBuddy Hosting, Firebase rules and callable releases.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -50,7 +50,7 @@
       "id": "project-observability",
       "kind": "workflow",
       "path": "skills/project-observability/SKILL.md",
-      "description": "Maintain service runtime and development lifecycle observability with bounded verification evidence.",
+      "description": "Maintain FinBuddy RUM, callable telemetry and GitHub delivery evidence.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -59,7 +59,7 @@
       "id": "project-handoff",
       "kind": "workflow",
       "path": "skills/project-handoff/SKILL.md",
-      "description": "Resume work or leave a verified continuation record for the next AI agent.",
+      "description": "Resume or hand off FinBuddy with checked source, runtime and release evidence.",
       "dependsOn": [
         "app-launchpad"
       ]
@@ -68,7 +68,7 @@
       "id": "service-foundation-tooling",
       "kind": "service",
       "path": "skills/service-foundation-tooling/SKILL.md",
-      "description": "Maintain the foundation-tooling service; read its implementation and continuation context.",
+      "description": "Maintain FinBuddy foundation checks, metadata and service registration.",
       "dependsOn": [
         "project-implementation",
         "project-testing",
@@ -87,7 +87,7 @@
       "id": "project-documentation",
       "kind": "workflow",
       "path": "skills/project-documentation/SKILL.md",
-      "description": "Maintain project and user documentation with accurate examples, useful illustrations and versioned handoff context.",
+      "description": "Maintain FinBuddy user help, service references and release evidence.",
       "dependsOn": [
         "app-launchpad",
         "ian-xiaohei-illustrations"
@@ -97,14 +97,14 @@
       "id": "mcp-builder",
       "kind": "workflow",
       "path": "skills/mcp-builder/SKILL.md",
-      "description": "Existing MCP development reference",
+      "description": "Design the planned FinBuddy MCP replacement using the service registration and protocol guidance.",
       "dependsOn": []
     },
     {
       "id": "service-web",
       "kind": "service",
       "path": "skills/service-web/SKILL.md",
-      "description": "Maintain the web service; read its implementation and continuation context.",
+      "description": "Maintain the React workspace, account and demo entrypoints and Hosting artifact.",
       "dependsOn": [
         "project-implementation",
         "project-testing",
@@ -116,7 +116,7 @@
       "id": "service-firebase-functions",
       "kind": "service",
       "path": "skills/service-firebase-functions/SKILL.md",
-      "description": "Maintain the firebase-functions service; read its implementation and continuation context.",
+      "description": "Maintain the deployed callable contract and reconcile historical source.",
       "dependsOn": [
         "project-implementation",
         "project-testing",
@@ -125,15 +125,24 @@
       ]
     },
     {
-      "id": "service-mcp-server",
+      "id": "service-firebase-data",
       "kind": "service",
-      "path": "skills/service-mcp-server/SKILL.md",
-      "description": "Maintain the mcp-server service; read its implementation and continuation context.",
+      "path": "skills/service-firebase-data/SKILL.md",
+      "description": "Maintain Firebase identity boundaries, Firestore records and indexes, and receipt rules.",
       "dependsOn": [
         "project-implementation",
         "project-testing",
         "project-deployment",
         "project-observability"
+      ]
+    },
+    {
+      "id": "project-finops",
+      "kind": "workflow",
+      "path": "skills/project-finops/SKILL.md",
+      "description": "Review FinBuddy cloud cost, provider usage, quotas and budget controls.",
+      "dependsOn": [
+        "app-launchpad"
       ]
     }
   ],
@@ -161,7 +170,7 @@
         "sh scripts/check.sh"
       ],
       "continuation": "skills/service-foundation-tooling/continuation.md",
-      "lastReviewedRevision": "953717c787dd37d1500c04767f818f4e0a0faffd"
+      "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
     },
     {
       "id": "web",
@@ -175,18 +184,23 @@
       ],
       "owner": "theharithsa",
       "status": "active",
-      "dependsOn": [],
+      "dependsOn": [
+        "firebase-data"
+      ],
       "contracts": [
         "firebase.json",
-        "docs/observability.md"
+        "docs/observability.md",
+        "docs/design.md",
+        "docs/release-plan.md"
       ],
       "testCommands": [
+        "npm run lint -- --quiet",
         "npm run build",
         "npm run test:run",
-        "npm run test:browser"
+        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
       "continuation": "skills/service-web/continuation.md",
-      "lastReviewedRevision": "fc9a049b0615769af2922f633df5f2bc8a44d161"
+      "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
     },
     {
       "id": "firebase-functions",
@@ -199,7 +213,9 @@
       ],
       "owner": "theharithsa",
       "status": "active",
-      "dependsOn": [],
+      "dependsOn": [
+        "firebase-data"
+      ],
       "contracts": [
         "docs/release-plan.md",
         "docs/observability.md"
@@ -208,28 +224,35 @@
         "npm --prefix functions run build"
       ],
       "continuation": "skills/service-firebase-functions/continuation.md",
-      "lastReviewedRevision": "fc9a049b0615769af2922f633df5f2bc8a44d161"
+      "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
     },
     {
-      "id": "mcp-server",
-      "skillId": "service-mcp-server",
+      "id": "firebase-data",
+      "skillId": "service-firebase-data",
       "sourcePaths": [
-        "mcp-server"
+        "src/lib"
       ],
       "entrypoints": [
-        "mcp-server/src/index.ts"
+        "firestore.rules",
+        "storage.rules",
+        "src/lib/firebase.ts",
+        "src/lib/household-firestore.ts"
       ],
       "owner": "theharithsa",
       "status": "active",
       "dependsOn": [],
       "contracts": [
-        "mcp-server/README.md"
+        "firebase.json",
+        "firestore.indexes.json",
+        "docs/testing.md",
+        "docs/release-plan.md"
       ],
       "testCommands": [
-        "npm --prefix mcp-server run build"
+        "npm run test:run",
+        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
-      "continuation": "skills/service-mcp-server/continuation.md",
-      "lastReviewedRevision": "fc9a049b0615769af2922f633df5f2bc8a44d161"
+      "continuation": "skills/service-firebase-data/continuation.md",
+      "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
     }
   ]
 }

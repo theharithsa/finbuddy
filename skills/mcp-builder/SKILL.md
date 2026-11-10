@@ -6,6 +6,11 @@ license: Complete terms in LICENSE.txt
 
 # MCP Server Development Guide
 
+## FinBuddy usage
+
+The replacement FinBuddy MCP service is planned. Read the [Firebase data boundary](../service-firebase-data/SKILL.md) and agree on operator identity, authorized data access, transport, and tool contracts before implementation. Register the new service through the [catalog procedure](../README.md). Use the [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) and its pinned version for implementation.
+
+
 ## Overview
 
 Create MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. The quality of an MCP server is measured by how well it enables LLMs to accomplish real-world tasks.

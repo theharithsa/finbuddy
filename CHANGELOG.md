@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Retired the local MCP adapter and its editor registration. Removed unused browser modules, dependencies and legacy build and deployment scripts.
+
 ## [3.0.0] - Unreleased
 
 - Applied Material 3 to sign-in, all workspace destinations, shared controls, dialogs, and charts.

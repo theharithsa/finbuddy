@@ -1,7 +1,6 @@
 type Operation =
   | 'expense.create' | 'expense.update' | 'expense.delete'
   | 'budget.create' | 'budget.update' | 'budget.delete'
-  | 'ai.ask'
   | 'household.save' | 'household.remove' | 'bill.payment'
   | 'auth.google' | 'auth.email' | 'auth.signup' | 'auth.reset' | 'auth.magic_link';
 
@@ -16,7 +15,6 @@ interface RumClassic {
 }
 
 const knownErrors = new Set([
-  'functions/unauthenticated', 'functions/unavailable', 'functions/deadline-exceeded',
   'permission-denied', 'unavailable', 'unauthenticated', 'invalid-argument', 'not-found',
   'auth/network-request-failed', 'auth/popup-blocked', 'auth/popup-closed-by-user',
   'auth/invalid-credential', 'auth/unauthorized-domain', 'auth/too-many-requests',
