@@ -10,6 +10,7 @@ Read [catalog.json](catalog.json), select the workflow and service skills for th
 | Verification and tests | [Testing](project-testing/SKILL.md) |
 | Deployments and rollback | [Deployment](project-deployment/SKILL.md) |
 | Dynatrace and delivery evidence | [Observability](project-observability/SKILL.md) |
+| Portable Dynatrace and Thoth instrumentation | [dt-obs](../.agents/skills/dt-obs/SKILL.md) |
 | Billing, usage, budgets and quotas | [FinOps](project-finops/SKILL.md) |
 | Resume or hand off | [Handoff](project-handoff/SKILL.md) |
 | User help, docs and evidence | [Documentation](project-documentation/SKILL.md) |
@@ -34,6 +35,6 @@ python3 scripts/add_service_skill.py --id SERVICE_ID --source-path ACTUAL_SOURCE
 
 Fill the generated skill, continuation, and catalog from current source and verified execution. Use concise name and description frontmatter. Add supporting references only where the task needs them. Register a workflow in `catalog.json` with its path and dependencies. Run `sh scripts/check.sh` and validate changed skill frontmatter.
 
-Template provenance lives in [project.json](../project.json). The App Launchpad workflow and bundled Ian Xiaohei skill are kept at the verified template revision. Ian Xiaohei has its own [version](ian-xiaohei-illustrations/VERSION) and [notice](ian-xiaohei-illustrations/NOTICE.md). FinBuddy-specific guidance lives in the consumer skills. The MCP builder retains its license and protocol references for the planned replacement. Register the replacement in the service catalog when implementation begins.
+Template provenance lives in [project.json](../project.json). The bundled App Launchpad and dt-obs skills follow the [tagged template version and sync procedure](../docs/versioning.md). Ian Xiaohei has its own [version](ian-xiaohei-illustrations/VERSION) and [notice](ian-xiaohei-illustrations/NOTICE.md). FinBuddy-specific guidance lives in the consumer skills. The MCP builder retains its license and protocol references for the planned replacement. Register the replacement in the service catalog when implementation begins.
 
 See the [catalog schema](../schemas/catalog.schema.json), [evidence schema](../schemas/evidence.schema.json), [policy ownership map](../docs/policy-map.md), [test catalog](../docs/testing.md), and [service inventory](../docs/services.md).

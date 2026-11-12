@@ -1,5 +1,21 @@
 # Template changelog
 
+## [1.12.0] - 2026-11-12
+
+- Bundle portable dt-obs v1.4.1 alongside App Launchpad v1.12.0, with Thoth guidance and a tagged cross-device sync procedure.
+- Require version updates in template CI when bundled skill content changes.
+- Document Project purpose and updates, sub-issues and blockers, focused views, Insights, and native workflow verification.
+
+## [1.11.0] - 2026-11-12
+
+- Classify new issues through Bug, Feature, and Task forms. Personal repositories reconcile missing types with repository labels.
+- Save sprint or date-based Roadmap and Status-based Kanban views and surface the type on issues and Project cards.
+
+## [1.10.0] - 2026-11-12
+
+- Require a linked GitHub Project, public by default, and milestone coverage for every issue and PR, including Dependabot.
+- Document milestone and sprint views, native intake, historical backfill, and orphan checks for template consumers.
+
 ## [1.9.0] - 2026-10-29
 
 - Consolidate first-party instruction routing and shared policy owners; retain technical requirements in linked references.
