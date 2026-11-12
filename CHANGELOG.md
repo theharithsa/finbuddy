@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-11-12
+
+- Updated Radix Select and the Vite SWC React plugin. Removed the unused Babel React plugin.
+- Updated Firebase Admin and Firebase Functions for the REST API and removed its transitive `uuid` dependency.
+- Updated `node-forge`, `protobufjs`, and `fast-xml-parser` in the historical Firebase Functions source lockfile.
+
 ## [3.1.0] - 2026-11-10
 
 - Add the FinBuddy REST API, Swagger reference, and personal API tokens with a Never expires option.

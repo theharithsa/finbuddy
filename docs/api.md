@@ -40,7 +40,7 @@ Use Node.js 22 for the API runtime and Java 21 for the Firestore and Storage emu
 ```sh
 npm --prefix api ci
 npm --prefix api test
-npx --yes firebase-tools@14.20.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+npx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
 ```
 
 See the [release procedure](release-plan.md) for the first API deployment and Hosting cutover.
