@@ -2,7 +2,7 @@
 
 FinBuddy is an INR-first household finance workspace for tracking income, everyday spending, upcoming bills and EMIs, and the latest value of savings and investments.
 
-Template version: **1.12.0** · [App Launchpad adoption](project.json) · [FinBuddy release plan](docs/release-plan.md)
+Template version: **1.12.1** · [App Launchpad adoption](project.json) · [FinBuddy release plan](docs/release-plan.md)
 
 [Open FinBuddy](https://finbuddy-2025.web.app) · [User help](https://finbuddy-2025.web.app/docs/) · [Report an issue](https://github.com/theharithsa/finbuddy/issues/new/choose)
 

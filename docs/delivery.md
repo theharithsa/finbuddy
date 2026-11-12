@@ -13,7 +13,9 @@ Review open work at the start and end of each sprint, check dependencies before 
 
 [FinVision discovery](https://github.com/theharithsa/finbuddy/issues/125) tracks account and data ownership, the first page and sync contract, and verification and rollout as linked sub-issues. Their dependencies and current sprint are in GitHub.
 
-FinBuddy adopted the bundled skills and foundation validation from [App Launchpad v1.12.0](https://github.com/theharithsa/app-launchpad-template/tree/v1.12.0). [Project metadata](../project.json) records the source commit.
+FinBuddy uses the bundled skills and foundation validation from [App Launchpad v1.12.1](https://github.com/theharithsa/app-launchpad-template/tree/v1.12.1). [Project metadata](../project.json) records the source commit.
+
+GitHub automatically deletes eligible head branches after a pull request merges. See the [branch cleanup procedure](../.agents/skills/app-launchpad/references/github-release.md#automatic-branch-cleanup) for verification.
 
 - [Issue-to-merge and release procedure](../.agents/skills/app-launchpad/references/github-release.md)
 - [Authorization and safety](../.agents/skills/app-launchpad/references/safety.md)
