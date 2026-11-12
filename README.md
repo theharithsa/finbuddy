@@ -43,4 +43,4 @@ Open the address printed by Vite and add `?demo=1`. Use the testing guide for em
 
 Start with a linked GitHub issue, keep changes focused, and include verification in your PR. Use synthetic data in public artifacts. Report suspected security issues privately through the repository's Security tab. [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Issue forms](https://github.com/theharithsa/finbuddy/issues/new/choose) · [Project board](https://github.com/users/theharithsa/projects/1)
 
-Licensed under [MIT](LICENSE). Template version: **1.12.2** · [App Launchpad provenance](project.json)
+Licensed under [MIT](LICENSE). Template version: **1.13.0** · [App Launchpad provenance](project.json)
