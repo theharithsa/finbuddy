@@ -1,26 +1,46 @@
 # FinBuddy
 
-FinBuddy is an INR-first household finance workspace for tracking income, everyday spending, upcoming bills and EMIs, and the latest value of savings and investments.
+FinBuddy is an INR-first household finance workspace. See what came in this month, review what went out, check bills and EMIs, and keep dated records of savings and investments.
 
-Template version: **1.12.2** · [App Launchpad adoption](project.json) · [FinBuddy release plan](docs/release-plan.md)
+[Open FinBuddy](https://finbuddy-2025.web.app/) · [Try the sample household](https://finbuddy-2025.web.app/?demo=1) · [Watch the product tour](https://theharithsa.github.io/finbuddy/#tour) · [Help center](https://finbuddy-2025.web.app/docs/)
 
-[Open FinBuddy](https://finbuddy-2025.web.app) · [User help](https://finbuddy-2025.web.app/docs/) · [Report an issue](https://github.com/theharithsa/finbuddy/issues/new/choose)
+## A month in FinBuddy
+
+The public demo opens without an account and uses a fictional household. Screenshots below show the running demo.
+
+| Monthly Home | Expense ledger |
+| --- | --- |
+| ![Monthly Home with recorded income, spending and upcoming bills](site/media/home.jpg) | ![Expense ledger showing sample transactions and period controls](site/media/expenses.jpg) |
+| **Bills & EMIs** | **Savings** |
+| ![Bills and EMIs showing paid and upcoming sample payments](site/media/bills.jpg) | ![Savings showing recorded values for an emergency fund, SIP and deposit](site/media/savings.jpg) |
+
+The signed-in workspace adds expense entry and receipts, category budgets, recurring expense templates, and Developer Options for the REST API. The Savings view shows recorded values with an as-of date. [User guide](https://finbuddy-2025.web.app/docs/) · [API and Developer Options](docs/api.md)
+
+## How it works
+
+| Layer | Implementation |
+| --- | --- |
+| Web app | React, TypeScript, and Vite with Material 3 styles. Feature routes live in `src/features/`. |
+| Account and data | Firebase Authentication, Firestore for financial records, and Cloud Storage for receipt attachments. |
+| REST API | Firebase Functions serve `/api/v1` through Firebase Hosting. Developer Options issues scoped personal tokens. OpenAPI and Swagger describe the supported operations. |
+| Money and dates | The household model stores integer paise. The monthly views use local calendar boundaries, and bill payments link to expense records. |
+| Delivery | GitHub Actions runs foundation, web, browser, and API checks. Firebase Hosting serves the app. GitHub Pages publishes the product site from `site/`. |
+
+[Service inventory](docs/services.md) · [Material 3 design](docs/design.md) · [Observability](docs/observability.md) · [Release and rollback](docs/release-plan.md)
 
 ## Run locally
 
-Use Node.js 24 and run `npm ci`, then `npm run dev`. Local development uses FinBuddy’s Firebase project by default. To work with synthetic accounts and transactions, start the isolated Firebase emulators and follow the [testing guide](docs/testing.md).
+Use Node.js 24. Start with the demo to explore the UI. Use the Firebase emulators before testing account creation, transaction writes, or token management.
 
-## Repository map
+```sh
+npm ci
+npm run dev
+```
 
-| Path | Responsibility |
-| --- | --- |
-| `src/features/account` | Sign-in, registration and recovery |
-| `src/features/household` | Monthly Home, bill payments, savings and investment values |
-| `src/features/workspace` | Monthly overview, spending calculations and expense ledger |
-| `src/components` | Feature screens, expense dialogs and shared controls |
-| `src/lib/firebase.ts` | Firebase client and existing document contracts |
-| `api` | Versioned REST API, Swagger reference, and token management |
-| `functions` | Historical callable source. Live Kautilya deployment differs. |
-| `skills`, `schemas`, `qa` | App Launchpad catalog, contracts and evidence |
+Open the address printed by Vite and add `?demo=1`. Use the testing guide for emulator commands and the API's Node.js 22 runtime. [Testing guide](docs/testing.md)
 
-See [Material 3 design](docs/design.md), [decisions](docs/decisions.md), [API and Developer Options](docs/api.md), [service inventory](docs/services.md), [observability](docs/observability.md) and [release and rollback](docs/release-plan.md).
+## Contribute and report issues
+
+Start with a linked GitHub issue, keep changes focused, and include verification in your PR. Use synthetic data in public artifacts. Report suspected security issues privately through the repository's Security tab. [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Issue forms](https://github.com/theharithsa/finbuddy/issues/new/choose) · [Project board](https://github.com/users/theharithsa/projects/1)
+
+Licensed under [MIT](LICENSE). Template version: **1.12.2** · [App Launchpad provenance](project.json)
