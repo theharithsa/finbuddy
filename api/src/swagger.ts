@@ -1,6 +1,6 @@
 import { createReadStream } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
-import type { Response } from 'express';
+import type { Response } from 'firebase-functions/v2/https';
 
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>FinBuddy API</title>

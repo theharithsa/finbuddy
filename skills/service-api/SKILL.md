@@ -13,3 +13,4 @@ Read the [continuation](continuation.md), [API guide](../../docs/api.md), and [r
 - Keep write validators, operation routing, and Swagger schemas aligned. Use the shared household transaction for bill payments and the create transaction's idempotency record for retries.
 - Protect receipt references with the owner prefix, configured bucket, and response size cap. Do not fetch arbitrary receipt URLs or return their download tokens.
 - Use the isolated Auth, Firestore, Functions and Storage emulators. Keep optional OTel resource identity `finbuddy-api` and emit only the registered route, method and status.
+- Keep the Firebase Admin and Functions SDK versions compatible. Import the HTTP request and response types from the Functions SDK so they match the Express version it runs.

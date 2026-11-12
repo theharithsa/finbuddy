@@ -1,10 +1,9 @@
 import { pipeline } from 'node:stream/promises';
-import type { Response } from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth, type UserRecord } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
-import { onRequest, type Request } from 'firebase-functions/v2/https';
+import { onRequest, type Request, type Response } from 'firebase-functions/v2/https';
 import { BillPaymentError } from '../shared/household';
 import { DEFAULT_CATEGORIES, DEFAULT_INDIAN_APPS, getDefaultPeople } from '../shared/catalog';
 import { documentId, pageQuery, paymentInput, resources, tokenCreate, tokenInfo, type ResourceName } from './contracts';
