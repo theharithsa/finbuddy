@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Added the Help Center handbook, development roadmap and versioned release history to the FinBuddy website and GitHub Pages.
+
 ## [3.1.1] - 2026-11-12
 
 - Updated Radix Select and the Vite SWC React plugin. Removed the unused Babel React plugin.

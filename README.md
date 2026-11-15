@@ -4,6 +4,8 @@ FinBuddy is an INR-first household finance workspace. See what came in this mont
 
 [Open FinBuddy](https://finbuddy-2025.web.app/) · [Try the sample household](https://finbuddy-2025.web.app/?demo=1) · [Watch the product tour](https://theharithsa.github.io/finbuddy/#tour) · [Help center](https://finbuddy-2025.web.app/docs/) · [Project handbook](https://theharithsa.github.io/finbuddy/docs/product.html)
 
+[Roadmap](https://theharithsa.github.io/finbuddy/docs/roadmap.html) · [Release history](https://theharithsa.github.io/finbuddy/docs/releases.html)
+
 ## A month in FinBuddy
 
 The public demo opens without an account and uses a fictional household. Screenshots below show the running demo.
@@ -30,7 +32,7 @@ The signed-in workspace adds expense entry and receipts, category budgets, recur
 
 ## Run locally
 
-Use Node.js 24. Start with the demo to explore the UI. Use the Firebase emulators before testing account creation, transaction writes, or token management.
+Use Node.js 24 and Python 3.12. Start with the demo to explore the UI. Use the Firebase emulators before testing account creation, transaction writes, or token management.
 
 ```sh
 npm ci

@@ -21,6 +21,8 @@ class PublicDocsTests(unittest.TestCase):
         shutil.copytree(ROOT / 'site', root / 'site')
         (root / 'docs').mkdir()
         shutil.copyfile(ROOT / 'docs/public-guides.json', root / 'docs/public-guides.json')
+        shutil.copyfile(ROOT / 'index.html', root / 'index.html')
+        shutil.copytree(ROOT / 'public/docs', root / 'public/docs', ignore=shutil.ignore_patterns('handbook'))
         return root
 
     def test_build_publishes_only_curated_content_with_revision(self):
@@ -38,7 +40,8 @@ class PublicDocsTests(unittest.TestCase):
                 build(root, output)
             self.assertEqual(
                 {path.name for path in (output / 'docs').iterdir()},
-                {'product.html', 'technical.html', 'settings.html', 'sdlc.html', 'pipeline.html'},
+                {'product.html', 'technical.html', 'settings.html', 'sdlc.html', 'pipeline.html',
+                 'roadmap.html', 'releases.html'},
             )
             self.assertFalse((output / 'internal.html').exists())
             self.assertFalse((output / 'docs/private-runbook.md').exists())
@@ -47,6 +50,25 @@ class PublicDocsTests(unittest.TestCase):
             guide = (output / 'docs/settings.html').read_text(encoding='utf-8')
             self.assertIn('&lt;b&gt;Example&lt;/b&gt;', guide)
             self.assertIn('name="source-revision" content="' + 'a' * 40, guide)
+
+    def test_hosting_build_checks_help_hub_and_release_anchors(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            parent = Path(scratch)
+            root = self.scaffold(parent)
+            output = root / 'public/docs/handbook'
+            with patch.dict(os.environ, {'GITHUB_SHA': 'b' * 40}):
+                build(root, output, hosting=True)
+            releases = (output / 'releases.html').read_text(encoding='utf-8')
+            self.assertIn('id="v3-1-1"', releases)
+            self.assertIn('href="#v3-1-1"', releases)
+            self.assertIn('name="source-revision" content="' + 'b' * 40, releases)
+            self.assertFalse((output / 'media/finbuddy-tour.mp4').exists())
+            self.assertTrue((output / 'media/google-sans-latin-wght-normal.woff2').is_file())
+            hub = root / 'public/docs/index.html'
+            hub.write_text(hub.read_text(encoding='utf-8').replace('#troubleshooting', '#missing'), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'missing anchor'):
+                build(root, output, hosting=True)
+            self.assertEqual(releases, (output / 'releases.html').read_text(encoding='utf-8'))
 
     def test_build_rejects_missing_anchor_without_touching_output(self):
         with tempfile.TemporaryDirectory() as scratch:
