@@ -1,5 +1,11 @@
 # FinBuddy release and rollback
 
+Follow the [FinBuddy SDLC](sdlc.md) from issue intake through release verification. In the implementation PR, review the README, changelog, security guidance, and affected user, settings, technical, or delivery guides. Record what changed or why the existing documentation still applies.
+
+## Product site and handbook
+
+The [Pages workflow](../.github/workflows/product-pages.yml) builds and validates the landing page and five guides from the merged source. Check the Pages deployment and open the changed pages on the [live product site](https://theharithsa.github.io/finbuddy/). Each guide includes a `source-revision` meta tag for verification. Confirm the links and product media that the change touches. If a publication needs recovery, revert the scoped site or guide change through a PR and verify the replacement Pages deployment.
+
 ## Web Hosting
 
 1. Open an issue-linked PR and run the [checks](testing.md) for the exact head. Obtain the review required by GitHub and verify the merge commit.

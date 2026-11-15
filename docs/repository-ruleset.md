@@ -1,5 +1,7 @@
 # Baseline repository protection
 
+FinBuddy uses its existing [Main-Branch-Protection ruleset](https://github.com/theharithsa/finbuddy/rules/11722952). Its [SDLC](sdlc.md) records the required foundation, web, and API checks. Use the effective rules command below to audit this repository. The template script manages a separate ruleset name for new setups.
+
 This is an opt-in repository administration change under the [authorization policy](../.agents/skills/app-launchpad/references/safety.md). Template generation and CI never execute it.
 
 Preview the exact target and payload locally (no GitHub request):

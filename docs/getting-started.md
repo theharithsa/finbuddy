@@ -1,5 +1,7 @@
 # Getting started
 
+For changes to the existing FinBuddy repository, start with [Contributing](../CONTRIBUTING.md) and the [FinBuddy SDLC](sdlc.md). The steps below describe starting a new project from App Launchpad.
+
 1. Read [AGENTS.md](../AGENTS.md), the [catalog](../skills/README.md) and the task's [policy owner](policy-map.md).
 2. Generate from the confirmed GitHub template destination; the partial bootstrap no longer exists. Record source TEMPLATE_VERSION and exact source commit in `project.json`.
 3. Complete the brief and [decisions](decisions.md). See [synthetic examples](../examples/README.md) for shape, never actual facts. Run `sh scripts/check.sh` and the `--ready` discovery gate documented in README.
