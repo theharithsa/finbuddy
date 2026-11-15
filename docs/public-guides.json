@@ -2,47 +2,226 @@
   "project": "FinBuddy",
   "guides": {
     "product": {
-      "intro": "FinBuddy is a household money tracker built around the Indian rupee and the calendar month. Explore the sample household from the product site without signing in.",
+      "intro": "FinBuddy tracks what came in, what went out, and what’s due for an INR household. Try the sample household to see a full month before starting your own.",
       "sections": [
-        ["Start with the month", "Record income and expenses as they happen. Home shows what came in, what went out, and what is due. Use the ledger to review individual entries and attach a receipt where it helps."],
-        ["Plan upcoming bills", "Track rent, fees, and EMIs in Bills & EMIs. Link payments to expenses and use category budgets to see how recorded spending compares with your plan."],
-        ["Update savings when values change", "Record dated balances for emergency savings, fixed deposits, and SIPs. The Savings view shows the amount and the date you recorded it."]
+        ["Set up a monthly check-in", "Sign in with Google or email and start on Home. Record your salary and other money received under Income. Use the month selector to review the period you want. Home uses the records for that calendar month."],
+        ["Log your first expense", "Choose Add expense. Enter the amount and category, check the date, and save. Add a note, platform, person, or receipt when it helps. Open Expenses to find and edit an entry, or use it to review a past period."],
+        ["Pay a bill without counting it twice", "Open Bills & EMIs and add the amount and due date. When you pay, choose the matching expense if it is already in your ledger. You can also create the expense while recording the payment. This keeps the bill and the ledger connected."],
+        ["See how spending fits your plan", "Set a monthly amount for a category in Budgets. Open More, then Overview, to see category spending and the month’s highlights. Review the expense list before changing a budget based on the totals."],
+        ["Update savings when values change", "Open Savings and add a balance for an emergency fund, fixed deposit, SIP, or other holding. Add the date you checked it. Update the recorded value when it changes. Savings values come from your entries."],
+        ["Troubleshooting", "For sign-in, use the same provider you used to create your account. If a record seems missing, check your account, date range, and filters first. To investigate a bill total, open the bill and look for its linked expense. For old savings balances, check the date displayed beside the holding."]
+      ],
+      "links": [
+        ["Try the sample household", "https://finbuddy-2025.web.app/?demo=1"],
+        ["Open FinBuddy", "https://finbuddy-2025.web.app/"],
+        ["Find appearance and token settings", "settings.html"],
+        ["See what’s in development", "roadmap.html"],
+        ["See what shipped", "releases.html"]
       ]
     },
     "technical": {
-      "intro": "FinBuddy uses a React and TypeScript frontend with Vite and Firebase for sign-in, records, receipts, and the REST API.",
+      "intro": "FinBuddy is a React and TypeScript web app built with Vite and served by Firebase Hosting.",
       "sections": [
-        ["Account and storage boundaries", "Firebase Authentication identifies the account. Cloud Firestore stores financial records and Cloud Storage holds receipt attachments. Firebase emulators support isolated testing with fictional data."],
-        ["Money and calendar dates", "FinBuddy stores amounts in integer paise and uses local calendar boundaries for monthly views. A bill payment can link to its expense record."],
-        ["Web and API delivery", "Firebase Hosting serves the app and routes /api/v1 to a separately deployed Firebase Functions codebase. OpenAPI and Swagger describe the API operations. GitHub Pages serves this product site and handbook."]
+        ["Account and storage", "Firebase Authentication identifies the account. Cloud Firestore stores financial records and Cloud Storage holds receipt attachments. Security rules govern application access to those resources. Test account access and writes against Firebase emulators with fictional records."],
+        ["Money and dates", "FinBuddy stores amounts in integer paise and uses local calendar dates for monthly views. Bill payments can reference individual ledger entries. Savings hold recorded values with an as-of date."],
+        ["REST API", "Firebase Hosting routes /api/v1 to the separately deployed Firebase Functions API. Swagger lists operations for the supported resources, including expenses, budgets, bills, income and savings. Developer Options grants scoped tokens to the signed-in account."],
+        ["Local development", "Use Node.js 24 for the web app, Python 3.12 for public docs, and Java 21 for Firebase emulators. From the repository, run npm ci and npm run dev. Use the demo for inspection and the repository’s emulator commands to test data writes. The API codebase uses Node.js 22 in CI."],
+        ["Public documentation", "The product handbook and release pages are built from shared source. Firebase hosts the Help Center. GitHub Pages hosts the product site. Both builds validate internal links and publish a source revision."]
+      ],
+      "links": [
+        ["Swagger reference", "https://finbuddy-2025.web.app/api/v1/docs"],
+        ["OpenAPI 3.1", "https://finbuddy-2025.web.app/api/v1/openapi.json"],
+        ["Local setup and contributing", "https://github.com/theharithsa/finbuddy/blob/main/CONTRIBUTING.md"],
+        ["Security and private reporting", "https://github.com/theharithsa/finbuddy/security/policy"],
+        ["CI/CD pipeline", "pipeline.html"]
       ]
     },
     "settings": {
-      "intro": "Open More, then Settings, in the signed-in workspace. Use Preferences for appearance and Developer Options for API access.",
+      "intro": "In the signed-in app, open More → Settings. Settings opens to Preferences. Developer Options is a separate section in the Settings sidebar.",
       "sections": [
-        ["Preferences", "Choose a display mode, accent palette, and font. Appearance changes apply to the current device. Reset appearance to return to the defaults."],
-        ["Developer Options", "Generate read-only and read/write personal API tokens for your account. The default lifetime is 30 days. You can choose 7 days, 90 days, or Never expires. Token generation requires a recent sign-in."],
-        ["Token storage and revocation", "Copy a token when it is shown and store it in your integration’s secret store. Revoke any dated or non-expiring token from Developer Options when you are done using it."]
+        ["Display mode", "Light is the default. Choose Dark or System to follow your device’s light or dark preference. It takes effect immediately on this device."],
+        ["Color palette", "Lavender is the default. Choose another palette, including Black & white, under Color palette. It applies immediately to this device. Black & white sets the palette and works with your chosen display mode."],
+        ["Font", "Google Sans is the default. You can choose Source Sans 3, Source Code Pro, Lato, Open Sans, Ubuntu, Source Serif 4, Lora, or Roboto. Use Reset appearance to restore the display, palette, and font defaults on this device."],
+        ["Token scope and expiration", "In Developer Options, choose read-only for exports or read/write for integrations that change records. The default lifetime is 30 days. You can select 7 days, 90 days, or Never expires. Generating a token requires a recent sign-in, and the token is scoped to the account that created it."],
+        ["Copy or revoke a token", "Copy the token when it is displayed and save it in your integration’s secret store. In Swagger, use Authorize to test the scope. Revoke a token in Developer Options when an integration stops using it or you need to replace it."]
+      ],
+      "links": [
+        ["Swagger reference", "https://finbuddy-2025.web.app/api/v1/docs"],
+        ["API setup and examples", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md"]
       ]
     },
     "sdlc": {
-      "intro": "FinBuddy follows the App Launchpad v1.14.0 solo-maintainer workflow from a tracked issue to a verified release.",
+      "intro": "FinBuddy follows the App Launchpad v1.14.0 solo-maintainer workflow. The GitHub Project records the work and the implementation PR records the release decision.",
       "sections": [
-        ["Plan the change", "Track the outcome, acceptance criteria, dependencies, and milestone in the FinBuddy GitHub Project. Use a short-lived branch and link the pull request to its issue."],
-        ["Check the candidate", "Every pull request records its documentation impact. The maintainer reviews the current diff and the required foundation, web, and API checks. Use Firebase emulators and approved previews when a change needs isolated testing or review."],
-        ["Verify the release", "Merge to main after review and successful checks. Confirm each affected live surface against the released revision. The repository’s release and rollback guide records the procedure for Hosting, the API, and GitHub Pages."]
+        ["Intake and planning", "Give the issue an owner, type, and milestone. Describe the household outcome and how to verify it. Use dependencies to order scheduled work on the GitHub Project."],
+        ["Development and documentation", "Use a short-lived branch and link the implementation PR to the issue. Include the tests you ran and describe migration, rollout, and recovery where relevant. Record which guides changed or why the current guidance still applies."],
+        ["Review and merge", "Review the current candidate and resolve review threads. Foundation, web, and API checks must pass with the candidate up to date with main. The solo-maintainer policy requires zero independent approvals."],
+        ["Release and recovery", "Use synthetic fixtures in Firebase emulators and the approved preview channel if a hosted review is needed. A merge to main sends the tested web artifact to Hosting. Verify each deployed surface and use its documented recovery process if needed."]
+      ],
+      "links": [
+        ["FinBuddy Project", "https://github.com/users/theharithsa/projects/1"],
+        ["Repository delivery procedure", "https://github.com/theharithsa/finbuddy/blob/main/docs/sdlc.md"],
+        ["Release and rollback guide", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"]
       ]
     },
     "pipeline": {
-      "intro": "GitHub Actions checks proposed changes and publishes the verified app and documentation through their respective delivery workflows.",
-      "stages": [
-        ["Pull request", "Foundation checks validate the documentation decision and public guide build. Web and API jobs run unit checks and exercise the Firebase emulators."],
-        ["Review and merge", "The maintainer reviews the current candidate and resolves review threads. GitHub checks the candidate against the current default branch."],
-        ["Publish", "On main, the Hosting workflow deploys the web artifact that passed CI. For product site and guide changes, GitHub Pages publishes the curated artifact."],
-        ["Verify", "The Hosting job checks the live revision, assets, and API routes. Verify affected Pages guides and media against the Pages publication and its source revision."]
-      ],
+      "intro": "GitHub Actions checks each pull request. After merge, Firebase Hosting publishes the verified application artifact and GitHub Pages publishes the product site on changes that affect it.",
       "sections": [
-        ["When a check fails", "Fix the failure and check the new PR candidate. For a post-merge release failure, record the failed surface and its revision in the linked work before retrying or using the recovery procedure."]
+        ["What CI verifies", "Foundation checks project contracts, Markdown links, the PR documentation decision, and both public docs builds. The web job runs lint, unit tests, and browser scenarios with Firebase emulators. The API job runs unit and emulator tests with its own configuration."],
+        ["When publication fails", "Review the job for the affected host and verify the revision it serves. The release guide records when to retry a checked artifact, revert a documentation change, or restore a prior Hosting release."]
+      ],
+      "stages": [
+        ["Pull request", "Check documentation impact, repository contracts, the web and API, and the public docs builds."],
+        ["Merge to main", "Re-run the web and API checks for the merge revision. The web build includes the Firebase Help Center and attaches the artifact used by Hosting."],
+        ["Publish", "Deploy the verified web artifact on Firebase Hosting. A separate packaging and publishing workflow deploys the GitHub Pages product site and guides."],
+        ["Verify live", "Check the Hosting revision, assets, and API health. Open the changed guides, check links, and compare each guide’s source revision with the deployed commit."]
+      ],
+      "links": [
+        ["FinBuddy Actions runs", "https://github.com/theharithsa/finbuddy/actions"],
+        ["Live Firebase Help Center", "https://finbuddy-2025.web.app/docs/"],
+        ["Pages product site", "https://theharithsa.github.io/finbuddy/"],
+        ["Release and rollback guide", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"]
+      ]
+    },
+    "roadmap": {
+      "intro": "See what households can use today and the checks that planned work must pass before wider access.",
+      "sections": [
+        ["Available now", "The signed-in workspace supports income, expenses, budgets, bills and EMIs, and dated savings values. Anyone can tour the sample household without signing in."],
+        ["FinVision integration · In discovery", "The first slice aims to give signed-in FinBuddy users a place to see an agreed set of FinVision information. The current milestone covers planning and verification criteria. The implementation window follows agreement on identity, data ownership, and sync behavior."],
+        ["KautilyaAI and Metrics Explorer · Coming soon", "Both appear as Coming soon in the app. Their rollout windows are unscheduled. For current month-by-month spending insights, use Overview."],
+        ["Replacement MCP integration · Backlog", "Discovery will scope an agent connection, permitted actions, and account access. The intended audience is users who choose to connect an integration. This work has no scheduled rollout window."]
+      ],
+      "stages": [
+        ["Discovery · Current milestone", "Map account identity and decide who owns each record before any cross-app sync."],
+        ["First slice · After the contract is agreed", "Plan the smallest FinVision page and specify the source of truth, sync direction, and conflict behavior."],
+        ["Pilot · After isolated verification", "Verify access boundaries, sync behavior, and recovery in emulators with fictional accounts before a limited release."],
+        ["Wider rollout · After the pilot", "Review pilot evidence and approve the release scope. A public date follows those checks."]
+      ],
+      "links": [
+        ["Track FinVision discovery", "https://github.com/theharithsa/finbuddy/issues/125"],
+        ["Track replacement MCP discovery", "https://github.com/theharithsa/finbuddy/issues/126"],
+        ["FinBuddy planning board", "https://github.com/users/theharithsa/projects/1"],
+        ["See releases already available", "releases.html"]
+      ]
+    },
+    "releases": {
+      "intro": "Browse FinBuddy by version. Each entry identifies whether its evidence comes from production, a source tag, or the changelog.",
+      "sections": [
+        ["How to read this history", "A production entry links to deployment or release evidence. Source tags and changelog entries document earlier work and may describe features that have since changed."]
+      ],
+      "releases": [
+        {
+          "version": "3.1.1",
+          "status": "Current production version line · November 2026",
+          "summary": "Updated web UI dependencies and the REST API’s Firebase dependencies. The site links a verified production build for the 3.1.1 version line.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.1.1"],
+            ["Verified production build", "https://github.com/theharithsa/finbuddy/actions/runs/43697981435"]
+          ]
+        },
+        {
+          "version": "3.1.0",
+          "status": "Verified production · 10 November 2026",
+          "summary": "Added the REST API and Swagger, scoped personal tokens with a Never expires option, and a dedicated Developer Options section. Retired the earlier MCP adapter.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.1.0"],
+            ["Production deployment", "https://github.com/theharithsa/finbuddy/actions/runs/42808228351"]
+          ]
+        },
+        {
+          "version": "3.0.0",
+          "status": "Verified production · November 2026",
+          "summary": "Introduced the Material 3 household workspace, public demo, monthly Home, expense quick entry, bills and EMIs, and dated savings.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.0.0"],
+            ["Verified build", "https://github.com/theharithsa/finbuddy/actions/runs/42698413859"]
+          ]
+        },
+        {
+          "version": "2.901.0",
+          "status": "Tagged history",
+          "summary": "Recorded an update to the original KautilyaAI implementation.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.901.0"]
+          ]
+        },
+        {
+          "version": "2.9.0",
+          "status": "Tagged history",
+          "summary": "Introduced the original MCP adapter. The 3.1.0 update retired this adapter.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.9.0"]
+          ]
+        },
+        {
+          "version": "2.8.1",
+          "status": "Tagged history",
+          "summary": "Added editable expense templates, search, and default amounts.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.8.1"]
+          ]
+        },
+        {
+          "version": "2.8.0",
+          "status": "Changelog history",
+          "summary": "Introduced app and platform categorisation for expenses.",
+          "links": [
+            ["Changelog", "https://github.com/theharithsa/finbuddy/blob/main/CHANGELOG.md"]
+          ]
+        },
+        {
+          "version": "2.7.0",
+          "status": "Earlier release notes",
+          "summary": "Documented the first Metrics Explorer beta. The current app marks Metrics Explorer Coming soon.",
+          "links": [
+            ["Earlier release notes", "https://finbuddy-2025.web.app/docs/release-notes.html"]
+          ]
+        },
+        {
+          "version": "2.6.0",
+          "status": "Tagged history",
+          "summary": "Documented the original KautilyaAI assistant.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.6.0"]
+          ]
+        },
+        {
+          "version": "2.5.5",
+          "status": "Tagged history",
+          "summary": "Added historical budget analysis with a month selector.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.5"]
+          ]
+        },
+        {
+          "version": "2.5.4",
+          "status": "Tagged history",
+          "summary": "Updated the app’s visual styles and typography.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.4"]
+          ]
+        },
+        {
+          "version": "2.5.3",
+          "status": "Tagged history",
+          "summary": "Updated achievement presentation and scoring.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.3"]
+          ]
+        },
+        {
+          "version": "2.5.1",
+          "status": "Tagged history",
+          "summary": "Updated authentication and Firebase integration.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.1"]
+          ]
+        }
+      ],
+      "links": [
+        ["Full changelog", "https://github.com/theharithsa/finbuddy/blob/main/CHANGELOG.md"],
+        ["Earlier release notes", "https://finbuddy-2025.web.app/docs/release-notes.html"],
+        ["See what’s planned", "roadmap.html"]
       ]
     }
   }

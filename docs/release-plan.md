@@ -4,7 +4,7 @@ Follow the [FinBuddy SDLC](sdlc.md) from issue intake through release verificati
 
 ## Product site and handbook
 
-The [Pages workflow](../.github/workflows/product-pages.yml) builds and validates the landing page and five guides from the merged source. Check the Pages deployment and open the changed pages on the [live product site](https://theharithsa.github.io/finbuddy/). Each guide includes a `source-revision` meta tag for verification. Confirm the links and product media that the change touches. If a publication needs recovery, revert the scoped site or guide change through a PR and verify the replacement Pages deployment.
+The [Pages workflow](../.github/workflows/product-pages.yml) builds the product site, handbook, roadmap, and release history. The [Hosting workflow](../.github/workflows/finbuddy.yml) builds the same guides for the Help Center. Verify the changed pages from the [live product site](https://theharithsa.github.io/finbuddy/) and the [live Help Center](https://finbuddy-2025.web.app/docs/), including the `source-revision` meta tag, links, and affected product media at desktop and phone widths. Document features that are already verified in production. If a publication needs recovery, revert the scoped site or guide change through a PR and verify the replacement deployment.
 
 ## Web Hosting
 

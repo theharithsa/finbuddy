@@ -135,6 +135,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             {mode === 'signin' && <div className="m3-demo-invite">
               <p>See a sample household before making an account.</p>
               <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
+              <div className="m3-login-links"><a href="/docs/">Open the Help Center</a></div>
             </div>}
           </div>
         </section>

@@ -123,7 +123,7 @@ export function WorkspaceShell({ page, mainRef, onNavigate, onAddExpense, addExp
           <Button asChild variant="outline" size="sm"><a href="/">Back to sign in</a></Button>
         </div>}
         <div key={page} className="m3-route">{children}</div>
-        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
+        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/">Help</a><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
       </main>
     </div>
   );
