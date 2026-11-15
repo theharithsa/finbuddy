@@ -7,13 +7,7 @@ on:
       - 'docs/public-guides.json'
       - 'scripts/build_public_docs.py'
       - '.github/workflows/product-pages.yml'
-  push:
-    paths:
-      - 'site/**'
-      - 'docs/public-guides.json'
-      - 'scripts/build_public_docs.py'
-      - '.github/workflows/product-pages.yml'
-  workflow_dispatch:
+  workflow_call:
 
 permissions: {}
 

@@ -22,6 +22,6 @@ For a Dependabot PR, the maintainer reviews the dependency impact and adds the d
 
 Use the [testing guide](testing.md) to choose local checks. For sign-in, data writes, permissions, or migrations, include tests for the affected boundary and existing data. Record the rollout order and recovery method in the PR when they differ by service.
 
-On merge, GitHub Actions builds and checks the merged source. The Hosting job publishes the exact verified web artifact and checks the live revision and API routes. Pages publishes the product site and handbook through its own workflow. Record where each affected release can be verified and recovered. See the [release and rollback guide](release-plan.md) for the service-specific steps.
+On merge, GitHub Actions builds and checks the merged source. The Hosting job publishes the exact verified web artifact and checks the live revision and API routes. After Hosting passes, the release workflow calls the Pages workflow for the same revision. Record where each affected release can be verified and recovered. See the [release and rollback guide](release-plan.md) for the service-specific steps.
 
 The same checks apply to urgent fixes. Keep this baseline stable and revisit it when the maintainer, release topology, or data and access risks change, or when a documented delivery failure shows a gap. Record any policy change in an issue and PR. Track application releases separately from the pinned [template version](versioning.md).

@@ -89,6 +89,15 @@ jobs:
           projectId: finbuddy-2025
           firebaseToolsVersion: '14.20.0'
       - name: Verify live revision and asset
-        run: node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$GITHUB_SHA"
+        run: node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$GITHUB_SHA" --wait-for-revision
       - name: Verify live API routes
         run: node scripts/verify-api.mjs https://finbuddy-2025.web.app
+
+  publish-product-site:
+    if: github.event.repository.has_pages && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/product-pages.yml
