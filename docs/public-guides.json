@@ -1,0 +1,49 @@
+{
+  "project": "FinBuddy",
+  "guides": {
+    "product": {
+      "intro": "FinBuddy is a household money tracker built around the Indian rupee and the calendar month. Explore the sample household from the product site without signing in.",
+      "sections": [
+        ["Start with the month", "Record income and expenses as they happen. Home shows what came in, what went out, and what is due. Use the ledger to review individual entries and attach a receipt where it helps."],
+        ["Plan upcoming bills", "Track rent, fees, and EMIs in Bills & EMIs. Link payments to expenses and use category budgets to see how recorded spending compares with your plan."],
+        ["Update savings when values change", "Record dated balances for emergency savings, fixed deposits, and SIPs. The Savings view shows the amount and the date you recorded it."]
+      ]
+    },
+    "technical": {
+      "intro": "FinBuddy uses a React and TypeScript frontend with Vite and Firebase for sign-in, records, receipts, and the REST API.",
+      "sections": [
+        ["Account and storage boundaries", "Firebase Authentication identifies the account. Cloud Firestore stores financial records and Cloud Storage holds receipt attachments. Firebase emulators support isolated testing with fictional data."],
+        ["Money and calendar dates", "FinBuddy stores amounts in integer paise and uses local calendar boundaries for monthly views. A bill payment can link to its expense record."],
+        ["Web and API delivery", "Firebase Hosting serves the app and routes /api/v1 to a separately deployed Firebase Functions codebase. OpenAPI and Swagger describe the API operations. GitHub Pages serves this product site and handbook."]
+      ]
+    },
+    "settings": {
+      "intro": "Open More, then Settings, in the signed-in workspace. Use Preferences for appearance and Developer Options for API access.",
+      "sections": [
+        ["Preferences", "Choose a display mode, accent palette, and font. Appearance changes apply to the current device. Reset appearance to return to the defaults."],
+        ["Developer Options", "Generate read-only and read/write personal API tokens for your account. The default lifetime is 30 days. You can choose 7 days, 90 days, or Never expires. Token generation requires a recent sign-in."],
+        ["Token storage and revocation", "Copy a token when it is shown and store it in your integration’s secret store. Revoke any dated or non-expiring token from Developer Options when you are done using it."]
+      ]
+    },
+    "sdlc": {
+      "intro": "FinBuddy follows the App Launchpad v1.14.0 solo-maintainer workflow from a tracked issue to a verified release.",
+      "sections": [
+        ["Plan the change", "Track the outcome, acceptance criteria, dependencies, and milestone in the FinBuddy GitHub Project. Use a short-lived branch and link the pull request to its issue."],
+        ["Check the candidate", "Every pull request records its documentation impact. The maintainer reviews the current diff and the required foundation, web, and API checks. Use Firebase emulators and approved previews when a change needs isolated testing or review."],
+        ["Verify the release", "Merge to main after review and successful checks. Confirm each affected live surface against the released revision. The repository’s release and rollback guide records the procedure for Hosting, the API, and GitHub Pages."]
+      ]
+    },
+    "pipeline": {
+      "intro": "GitHub Actions checks proposed changes and publishes the verified app and documentation through their respective delivery workflows.",
+      "stages": [
+        ["Pull request", "Foundation checks validate the documentation decision and public guide build. Web and API jobs run unit checks and exercise the Firebase emulators."],
+        ["Review and merge", "The maintainer reviews the current candidate and resolves review threads. GitHub checks the candidate against the current default branch."],
+        ["Publish", "On main, the Hosting workflow deploys the web artifact that passed CI. For product site and guide changes, GitHub Pages publishes the curated artifact."],
+        ["Verify", "The Hosting job checks the live revision, assets, and API routes. Verify affected Pages guides and media against the Pages publication and its source revision."]
+      ],
+      "sections": [
+        ["When a check fails", "Fix the failure and check the new PR candidate. For a post-merge release failure, record the failed surface and its revision in the linked work before retrying or using the recovery procedure."]
+      ]
+    }
+  }
+}

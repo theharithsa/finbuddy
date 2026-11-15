@@ -1,5 +1,23 @@
 # Template changelog
 
+## [1.14.0] - 2026-11-14
+
+- Require a documentation impact decision in pull requests. The foundation check also builds the public handbook and checks local links.
+- Add reusable product, technical, settings, SDLC and CI/CD guides to the GitHub Pages starter. Existing projects can adopt the PR check and keep their current docs generator. No project schema migration is required.
+
+## [1.13.3] - 2026-11-14
+
+- Document an opt-in weekly production cadence with frequent staging builds, checked promotion, release milestones and an urgent patch path. Existing projects can adopt the guidance without a schema migration.
+- Add a solo-maintainer delivery path for projects with or without pre-production. Consolidate PR guidance and document risk-based checks, effective access verification, restore evidence and selective adoption.
+
+## [1.13.2] - 2026-11-13
+
+- Document how to publish a public roadmap and backfill versioned release notes with verified dates, clear pilot gates, and accessible diagrams. Existing projects can adopt the guidance without a schema migration.
+
+## [1.13.1] - 2026-11-13
+
+- Schedule dependent pilots and rollouts after their prerequisite gates, then verify the sequence across issues, milestones, and the Project roadmap. Existing apps can adopt the guidance without changing their project schema.
+
 ## [1.13.0] - 2026-11-12
 
 - Bundle a product README example, contribution and security guides, screenshot and `/brag` video guidance, and a responsive GitHub Pages starter.

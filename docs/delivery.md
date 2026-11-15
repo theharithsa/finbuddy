@@ -13,9 +13,9 @@ Review open work at the start and end of each sprint, check dependencies before 
 
 [FinVision discovery](https://github.com/theharithsa/finbuddy/issues/125) tracks account and data ownership, the first page and sync contract, and verification and rollout as linked sub-issues. Their dependencies and current sprint are in GitHub.
 
-FinBuddy uses the bundled skills and foundation validation from [App Launchpad v1.13.0](https://github.com/theharithsa/app-launchpad-template/tree/v1.13.0). [Project metadata](../project.json) records the source commit.
+FinBuddy uses the bundled skill and foundation validation from [App Launchpad v1.14.0](https://github.com/theharithsa/app-launchpad-template/tree/v1.14.0). [Project metadata](../project.json) records the source commit and the [FinBuddy SDLC](sdlc.md) records how the standard applies to this repository.
 
-The [FinBuddy product page](https://theharithsa.github.io/finbuddy/) uses the shared GitHub Pages workflow. Maintain its copy and sample household media under `site/` using the [product launch procedure](../.agents/skills/app-launchpad/references/product-launch.md).
+GitHub Pages publishes the [FinBuddy product site](https://theharithsa.github.io/finbuddy/) and the [handbook](https://theharithsa.github.io/finbuddy/docs/product.html) from the curated site build. Maintain the landing page and sample household media under `site/` and the handbook in [public-guides.json](public-guides.json). Use the [product launch procedure](../.agents/skills/app-launchpad/references/product-launch.md).
 
 GitHub automatically deletes eligible head branches after a pull request merges. See the [branch cleanup procedure](../.agents/skills/app-launchpad/references/github-release.md#automatic-branch-cleanup) for verification.
 

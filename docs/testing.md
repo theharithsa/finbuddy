@@ -4,12 +4,13 @@ Use Node.js 24, Python 3 and Java 21 for CI-equivalent checks. On Windows, put G
 
 ```sh
 python scripts/check_foundation.py --ready
-python scripts/check_links.py
-python -m unittest discover -s tests
+sh scripts/check.sh
 npm run lint -- --quiet
 npm run test:run
 npm run build
 ```
+
+The foundation check validates the PR's **Documentation impact** section in CI and builds the public handbook with its internal links and anchors. For a local handbook check, run `python scripts/build_public_docs.py`. Use the [FinBuddy SDLC](sdlc.md) to map the change to the required CI and release checks.
 
 To run the real browser scenarios against Firebase Auth, Firestore and Storage emulators:
 
