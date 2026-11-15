@@ -24,6 +24,11 @@ GUIDES = {
 MEDIA_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.avif', '.mp4', '.webm', '.vtt', '.woff2'}
 MEDIA_LICENSES = {'google-sans-OFL.txt'}
 HANDBOOK_MEDIA = {'buddy-mark-v2.png', 'google-sans-latin-wght-normal.woff2', *MEDIA_LICENSES}
+GUIDE_GROUPS = {
+    'Using FinBuddy': ('product', 'settings'),
+    'For developers': ('technical', 'sdlc', 'pipeline'),
+    'Project updates': ('roadmap', 'releases'),
+}
 
 
 class Page(HTMLParser):
@@ -80,33 +85,62 @@ def render_releases(releases):
     for release, (_, anchor) in zip(releases, index):
         version = escape(release['version'])
         notes.append(f'''<article class="release" id="{anchor[1:]}">
-  <h2>v{version}</h2>
+  <h2>{escape(release.get('title', f'FinBuddy v{version}'))}</h2>
+  <p class="release-version">v{version}</p>
   <p class="release-status">{escape(release['status'])}</p>
   <p>{escape(release['summary'])}</p>
-  <ul class="related">{render_links(release['links'])}</ul>
+  <details class="release-sources"><summary>Sources for v{version}</summary><ul class="related">{render_links(release['links'])}</ul></details>
 </article>''')
     return f'<nav aria-label="Versions"><ul class="version-index">{render_links(index)}</ul></nav>' + ''.join(notes)
+
+
+def render_section(section, assets):
+    aliases = ''.join(f'<span class="anchor-alias" id="{name}"></span>' for name in section.get('aliases', []))
+    body = ''.join(f'<p>{escape(paragraph)}</p>' for paragraph in section.get('paragraphs', []))
+    if section.get('steps'):
+        body += '<ol class="task-steps">' + ''.join(f'<li>{escape(step)}</li>' for step in section['steps']) + '</ol>'
+    if section.get('table'):
+        headings, *rows = section['table']
+        header = ''.join(f'<th scope="col">{escape(item)}</th>' for item in headings)
+        cells = ''.join('<tr>' + ''.join(f'<td>{escape(item)}</td>' for item in row) + '</tr>' for row in rows)
+        body += f'<table><thead><tr>{header}</tr></thead><tbody>{cells}</tbody></table>'
+    if section.get('code'):
+        body += f'<pre><code>{escape(section["code"])}</code></pre>'
+    if section.get('links'):
+        body += f'<ul class="related">{render_links(section["links"])}</ul>'
+    if section.get('figure'):
+        name, alt, caption = section['figure']
+        body += (f'<figure><a href="{assets}media/{escape(name)}" aria-label="Open the full-size screenshot">'
+                 f'<img src="{assets}media/{escape(name)}" alt="{escape(alt)}" width="1280" height="800" loading="lazy"></a>'
+                 f'<figcaption>{escape(caption)}</figcaption></figure>')
+    if section.get('note'):
+        body += f'<p class="guide-note">{escape(section["note"])}</p>'
+    return f'<section id="{section["id"]}">{aliases}<h2>{escape(section["title"])}</h2>{body}</section>'
+
+
+def render_flow(title, stages):
+    nodes = ''.join(f'<li><h3>{escape(stage)}</h3><p>{escape(result)}</p></li>' for stage, result in stages)
+    return f'<section id="sequence"><h2>{title}</h2><ol class="guide-flow">{nodes}</ol></section>'
 
 
 def render(slug, data, hosting=False):
     title = GUIDES[slug]
     assets = './' if hosting else '../'
-    menu = ''.join(
-        f'<a href="{key}.html"' + (' aria-current="page"' if key == slug else '')
-        + f'>{label}</a>'
-        for key, label in GUIDES.items()
-    )
-    sections = []
-    for heading, body in data['sections']:
-        anchor = re.sub(r'[^a-z0-9]+', '-', heading.lower()).strip('-')
-        sections.append(f'<section id="{anchor}"><h2>{escape(heading)}</h2><p>{escape(body)}</p></section>')
-    sections = ''.join(sections)
-    if slug in {'pipeline', 'roadmap'}:
-        flow_title = 'Delivery flow' if slug == 'pipeline' else 'FinVision rollout gates'
-        sections += f'<section><h2>{flow_title}</h2><ol class="pipeline">' + ''.join(
-            f'<li><strong>{escape(stage)}</strong><span>{escape(result)}</span></li>'
-            for stage, result in data['stages']
-        ) + '</ol></section>'
+    home = '../index.html' if hosting else '../'
+    menu = []
+    for group, guides in GUIDE_GROUPS.items():
+        links = ''.join(f'<li><a href="{key}.html"' + (' aria-current="page"' if key == slug else '')
+                        + f'>{GUIDES[key]}</a></li>' for key in guides)
+        menu.append(f'<div class="guide-nav-group"><p>{group}</p><ul>{links}</ul></div>')
+    menu = ''.join(menu)
+    flow_title = {'pipeline': 'From pull request to production', 'roadmap': 'FinVision rollout gates'}.get(slug)
+    contents = [(section['title'], '#' + section['id']) for section in data['sections']]
+    if flow_title:
+        contents.insert(0, (flow_title, '#sequence'))
+    index = '' if slug == 'releases' else f'<nav class="guide-index" aria-label="On this page"><ul>{render_links(contents)}</ul></nav>'
+    sections = ''.join(render_section(section, assets) for section in data['sections'])
+    if flow_title:
+        sections = render_flow(flow_title, data['stages']) + sections
     if slug == 'releases':
         sections += render_releases(data['releases'])
     if data.get('links'):
@@ -123,15 +157,24 @@ def render(slug, data, hosting=False):
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <header class="wrap header">
-    <a class="wordmark" href="../"><span class="mark" aria-hidden="true"></span>{escape(data['project'])}</a>
-    <nav aria-label="Documentation">{menu}</nav>
+  <header class="wrap header guide-header">
+    <a class="wordmark" href="{home}"><span class="mark" aria-hidden="true"></span>{escape(data['project'])}</a>
+    <a class="button small outline" href="https://finbuddy-2025.web.app/">Open FinBuddy</a>
   </header>
-  <main id="main" class="wrap guide">
-    <h1>{title}</h1>
-    <p class="lead">{escape(data['intro'])}</p>
-    {sections}
-  </main>
+  <div class="wrap guide-layout">
+    <nav class="guide-sidebar" aria-label="Documentation"><div class="guide-nav-desktop">{menu}</div>
+      <details class="guide-nav-mobile"><summary>Browse guides</summary>{menu}</details>
+    </nav>
+    <main id="main" class="guide" tabindex="-1">
+      <h1>{title}</h1>
+      <p class="lead">{escape(data['intro'])}</p>
+      {index}
+      {sections}
+    </main>
+  </div>
+  <footer class="footer wrap"><a href="{home}">{escape(data['project'])}</a><nav aria-label="Footer">
+    <a href="https://finbuddy-2025.web.app/docs/">Help Center</a><a href="https://github.com/theharithsa/finbuddy">Source code</a>
+  </nav></footer>
 </body>
 </html>
 '''
@@ -140,11 +183,7 @@ def render(slug, data, hosting=False):
 def validate_guide(slug, data):
     if not data['intro'].strip():
         raise ValueError(f'{slug}: introduction is required')
-    fields = ['sections']
-    if slug in {'pipeline', 'roadmap'}:
-        fields.append('stages')
-    if 'links' in data:
-        fields.append('links')
+    fields = [field for field in ('stages', 'links') if field in data]
     for field in fields:
         entries = data[field]
         if not isinstance(entries, list) or not entries or any(
@@ -154,6 +193,22 @@ def validate_guide(slug, data):
         ):
             raise ValueError(f'{slug}: {field} must contain title and text pairs')
     links = list(data.get('links', []))
+    sections = data['sections']
+    anchors = [anchor for section in sections for anchor in (section['id'], *section.get('aliases', []))]
+    if not sections or len(set(anchors)) != len(anchors):
+        raise ValueError(f'{slug}: section IDs are required and must be unique')
+    if any(not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', anchor) or anchor == 'sequence' for anchor in anchors):
+        raise ValueError(f'{slug}: invalid section ID')
+    for section in sections:
+        if not section['title'].strip() or not any(section.get(field) for field in ('paragraphs', 'steps', 'table', 'code', 'links')):
+            raise ValueError(f'{slug}: each section needs a title and content')
+        if 'table' in section:
+            header, *rows = section['table']
+            if not rows or not header or any(not isinstance(row, list) or len(row) != len(header) for row in rows):
+                raise ValueError(f'{slug}: tables need headings and matching rows')
+        links.extend(section.get('links', []))
+        if section.get('figure') and not re.fullmatch(r'[a-z0-9-]+\.jpg', section['figure'][0]):
+            raise ValueError(f'{slug}: expected a guide screenshot filename')
     if slug == 'releases':
         versions = [release['version'] for release in data['releases']]
         if not versions or len(set(versions)) != len(versions) or any(
@@ -174,6 +229,8 @@ def build(root, output, hosting=False):
     config = json.loads((root / 'docs/public-guides.json').read_text(encoding='utf-8'))
     if not config['project'].strip() or set(config['guides']) != set(GUIDES):
         raise ValueError('Public guide slugs must match the handbook, roadmap and release history.')
+    guide_media = {section['figure'][0] for data in config['guides'].values()
+                   for section in data['sections'] if section.get('figure')}
     revision = os.getenv('GITHUB_SHA') or (os.getenv('VITE_RELEASE_REVISION') if hosting else None)
     if revision and not re.fullmatch('[0-9a-f]{40}', revision):
         raise ValueError('Invalid GitHub source revision')
@@ -202,7 +259,7 @@ def build(root, output, hosting=False):
             for source in sorted(media.iterdir()):
                 allowed = source.suffix.lower() in MEDIA_SUFFIXES or source.name in MEDIA_LICENSES
                 if hosting:
-                    allowed = source.name in HANDBOOK_MEDIA
+                    allowed = source.name in HANDBOOK_MEDIA or source.name in guide_media
                 if allowed and source.is_file() and not source.is_symlink():
                     destination = assets / 'media' / source.name
                     destination.parent.mkdir(exist_ok=True)

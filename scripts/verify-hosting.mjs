@@ -1,17 +1,31 @@
 import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
 
-const [url, revision] = process.argv.slice(2);
+const [url, revision, mode] = process.argv.slice(2);
 if (!url || !/^[a-f0-9]{40}$/.test(revision ?? '')) {
   throw new Error('Usage: node scripts/verify-hosting.mjs <site URL> <40-character Git SHA>');
 }
 const origin = new URL(url);
 assert.equal(origin.protocol, 'https:');
 assert.match(origin.hostname, /^finbuddy-2025(?:--[a-z0-9-]+)?\.web\.app$/);
-const response = await fetch(new URL('/', origin), { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
-assert.equal(response.status, 200);
-assert.match(response.headers.get('cache-control') ?? '', /no-cache/);
-const html = await response.text();
-assert.ok(html.includes(`name="finbuddy-revision" content="${revision}"`), 'Hosting revision mismatch');
+const waits = mode === '--wait-for-revision' ? [0, 5_000, 10_000, 15_000] : [0];
+async function readLiveIndex() {
+  let servedRevision;
+  for (const wait of waits) {
+    if (wait) await delay(wait);
+    const response = await fetch(new URL('/', origin), { cache: 'no-store', signal: AbortSignal.timeout(10_000) });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('cache-control') ?? '', /no-cache/);
+    const html = await response.text();
+    servedRevision = html.match(/name="finbuddy-revision" content="([a-f0-9]{40})"/)?.[1];
+    assert.ok(servedRevision, 'Missing Hosting revision marker');
+    if (servedRevision === revision) return html;
+    process.stderr.write(`Hosting served ${servedRevision}; waiting for ${revision} if retries remain.\n`);
+  }
+  assert.equal(servedRevision, revision, 'Hosting revision mismatch');
+}
+
+const html = await readLiveIndex();
 const asset = html.match(/<script[^>]+src="(\/assets\/[^"]+)"/)?.[1];
 assert.ok(asset, 'Missing application JavaScript');
 const module = await fetch(new URL(asset, origin), { signal: AbortSignal.timeout(15_000) });
