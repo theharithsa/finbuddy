@@ -126,6 +126,7 @@ def render_flow(title, stages):
 def render(slug, data, hosting=False):
     title = GUIDES[slug]
     assets = './' if hosting else '../'
+    home = '../index.html' if hosting else '../'
     menu = []
     for group, guides in GUIDE_GROUPS.items():
         links = ''.join(f'<li><a href="{key}.html"' + (' aria-current="page"' if key == slug else '')
@@ -157,7 +158,7 @@ def render(slug, data, hosting=False):
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="wrap header guide-header">
-    <a class="wordmark" href="../"><span class="mark" aria-hidden="true"></span>{escape(data['project'])}</a>
+    <a class="wordmark" href="{home}"><span class="mark" aria-hidden="true"></span>{escape(data['project'])}</a>
     <a class="button small outline" href="https://finbuddy-2025.web.app/">Open FinBuddy</a>
   </header>
   <div class="wrap guide-layout">
@@ -171,7 +172,7 @@ def render(slug, data, hosting=False):
       {sections}
     </main>
   </div>
-  <footer class="footer wrap"><a href="../">{escape(data['project'])}</a><nav aria-label="Footer">
+  <footer class="footer wrap"><a href="{home}">{escape(data['project'])}</a><nav aria-label="Footer">
     <a href="https://finbuddy-2025.web.app/docs/">Help Center</a><a href="https://github.com/theharithsa/finbuddy">Source code</a>
   </nav></footer>
 </body>

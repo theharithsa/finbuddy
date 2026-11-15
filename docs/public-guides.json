@@ -172,7 +172,7 @@
             "Install Git, Node.js 24 and Python 3.12. Run these commands in a terminal. The FinBuddy handbook is generated before Vite starts."
           ],
           "code": "git clone https://github.com/theharithsa/finbuddy.git\ncd finbuddy\nnpm ci\nnpm run dev",
-          "note": "Open the local URL printed by Vite and add ?demo=1. Open /docs/ on the same server to see the Help Center. The sample household is the quickest path when you’re inspecting the UI."
+        "note": "Open the local URL printed by Vite and add ?demo=1. Open /docs/index.html on the same server to see the Help Center. The sample household is the quickest path when you’re inspecting the UI."
         },
         {
           "id": "account-and-storage",
