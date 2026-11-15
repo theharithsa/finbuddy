@@ -2,22 +2,43 @@
   "project": "FinBuddy",
   "guides": {
     "product": {
-      "intro": "Set up one month with a salary, a few expenses, and the bills still due. Then use the same routine each month. All examples below use fictional records.",
+      "intro": "Start with the sample household or sign in to manage your own. Choose a task below to see which controls to use, what FinBuddy saves, and where you can check the result.",
       "sections": [
         {
           "id": "set-up-a-monthly-check-in",
-          "title": "Try one month in the demo",
+          "title": "Explore the sample household",
           "paragraphs": [
-            "Open the sample household and read the Home card. This household recorded ₹84,000 in income and ₹12,740 in expenses. It still has ₹25,700 in bills due, leaving an estimated ₹45,560.",
-            "Home calculates Left after bills from the income and expenses logged for the selected month, minus bills still due. The figure changes as you log records. Savings are shown separately."
+            "The sample household opens without an account and shows fictional records. Use it to get familiar with Home, Expenses, Savings, Bills & EMIs, and Overview before you log your own records."
+          ],
+          "steps": [
+            "Open the sample household. On Home, find Left after bills and the three amounts under How it adds up.",
+            "Select Expenses to inspect the sample transactions. Open More to find Bills & EMIs and Overview.",
+            "Use Back to sign in when you’re ready to start your own household. Sample records stay in the demo."
           ],
           "figure": [
             "home.jpg",
             "Monthly Home showing income, expenses, bills due and ₹45,560 left after bills",
-            "In this sample month, ₹84,000 − ₹12,740 − ₹25,700 = ₹45,560. Use the arrows beside the month to review earlier periods."
+            "The sample screenshot shows ₹84,000 recorded income, ₹12,740 logged expenses, and ₹25,700 still due. The estimate is ₹45,560."
           ],
+          "note": "Add income and Add expense are available in the signed-in workspace. The sample household is for exploring.",
           "links": [
             ["Open the sample household", "https://finbuddy-2025.web.app/?demo=1"]
+          ]
+        },
+        {
+          "id": "create-account",
+          "title": "Sign in or create an account",
+          "paragraphs": [
+            "You’ll need a signed-in account to save financial records, upload receipts, or generate an API token."
+          ],
+          "steps": [
+            "Open FinBuddy. Use Continue with Google, or choose Create account to set up an email and password.",
+            "If you already use email, enter the address and password, or choose Email me a sign-in link. Use the same account and method you started with to return to your records.",
+            "After signing in, Home is your starting page. Use More → Sign out when you’re done on a shared device."
+          ],
+          "note": "Choose Forgot password? from sign-in if you use an email password and need a reset.",
+          "links": [
+            ["Open FinBuddy sign-in", "https://finbuddy-2025.web.app/"]
           ]
         },
         {
@@ -51,6 +72,16 @@
           ]
         },
         {
+          "id": "manage-expenses-and-receipts",
+          "title": "Correct an expense or manage a receipt",
+          "steps": [
+            "Open Expenses. Choose a date range that includes the entry and search by a term you remember.",
+            "Open the row’s edit action. Correct the amount, date, category, or description. Expand the extra details to add a receipt or choose Remove receipt if it is already attached.",
+            "Choose Save changes. If you changed the date, use the new date range to confirm the corrected row."
+          ],
+          "note": "Check whether an expense is linked to a bill before deleting it. Deleting a linked expense can make the bill show as due again."
+        },
+        {
           "id": "pay-a-bill-without-counting-it-twice",
           "title": "Pay a bill without counting it twice",
           "steps": [
@@ -65,6 +96,19 @@
             "Marking a bill paid moves its occurrence to Paid. Link the existing ledger entry if you already recorded the payment."
           ],
           "note": "A repeated rent or EMI gets a new occurrence for its next due period. Linking applies to the occurrence you’re paying."
+        },
+        {
+          "id": "reuse-an-expense",
+          "title": "Reuse a purchase you log regularly",
+          "paragraphs": [
+            "Recurring templates prefill an expense when you choose to log it. Bills & EMIs is where you track what’s due and whether it’s been paid."
+          ],
+          "steps": [
+            "Open More → Recurring. Choose a common bill template, or choose Create Template and enter a name, default amount, category and frequency.",
+            "Choose Add Expense on the template. Check the actual amount and date, then save the expense.",
+            "If you already track the obligation under Bills & EMIs, use Record payment → Already logged it? to link the expense."
+          ],
+          "note": "A recurring template does not add a ledger entry on its own. Creating one does not create a due bill."
         },
         {
           "id": "see-how-spending-fits-your-plan",
@@ -92,6 +136,16 @@
             "The date beside a holding tells you when that balance was entered."
           ],
           "note": "FinBuddy shows recorded values. Keep cash-flow entries in Income and Expenses, and balances in Savings."
+        },
+        {
+          "id": "categories-and-people",
+          "title": "Organize expenses with categories and people",
+          "steps": [
+            "Open More → Categories → Create Category to name a category for your own expenses. Leave Share with community off for a private category.",
+            "Open More → People → Add Person to label whom an expense was for. Choose a relationship and leave Share publicly for others to use off for a private label.",
+            "When logging or editing an expense, select its category and optionally select a person in the extra details. People labels organize records and do not give someone access to your household."
+          ],
+          "note": "The category and person libraries can show voluntarily shared labels to other signed-in users. Use generic names for anything you choose to share."
         },
         {
           "id": "troubleshooting",
@@ -141,9 +195,9 @@
           "title": "Create a token for one integration",
           "steps": [
             "In Settings, choose Developer Options in the Settings sidebar.",
-            "Give the token a name you’ll recognise, such as Monthly export. Select read-only for reports or read/write when the integration needs to change records.",
+            "Enter a Token name such as Monthly export. Access defaults to Read only. Choose Read and write only when the integration needs to change records.",
             "Choose an expiration. The default is 30 days. Other choices are 7 days, 90 days, and Never expires.",
-            "Generate the token and complete recent sign-in if prompted. Copy the displayed token before leaving Developer Options."
+            "Choose Generate token and complete recent sign-in if prompted. Choose Copy token while it is displayed. Return to Active tokens to revoke it later."
           ],
           "note": "The token accesses the FinBuddy account that created it. Store it in your integration’s secret store and keep it out of screenshots, source code, and support requests."
         },
@@ -163,16 +217,38 @@
       ]
     },
     "technical": {
-      "intro": "Run the workspace with sample data, trace where records go, and make your first read-only API request.",
+      "intro": "Choose a starting point. Check that the hosted API responds, run the sample household from a clean clone, or follow a record through FinBuddy’s browser, API, and storage.",
       "sections": [
         {
-          "id": "local-development",
-          "title": "Run the demo locally",
+          "id": "check-the-hosted-api",
+          "title": "Check the hosted API without an account",
           "paragraphs": [
-            "Install Git, Node.js 24 and Python 3.12. Run these commands in a terminal. The FinBuddy handbook is generated before Vite starts."
+            "The health route lets you check the base URL before generating a token. Open it in a phone or desktop browser, or run the command below in a terminal."
+          ],
+          "code": "curl --fail-with-body https://finbuddy-2025.web.app/api/v1/health",
+          "note": "Expected HTTP 200 with {\"status\":\"ok\"}. This checks whether the API responds. To verify access to your own records, run the authenticated profile request below.",
+          "links": [
+            ["Open the health response", "https://finbuddy-2025.web.app/api/v1/health"],
+            ["Browse endpoints in Swagger", "https://finbuddy-2025.web.app/api/v1/docs"],
+            ["Try an authenticated request", "#rest-api"]
+          ]
+        },
+        {
+          "id": "local-development",
+          "title": "Run the demo from a clean clone",
+          "paragraphs": [
+            "Install Git, Node.js 24 and Python 3.12. Check that node --version and python --version work before installing FinBuddy. Type these commands in a terminal, one line at a time."
           ],
           "code": "git clone https://github.com/theharithsa/finbuddy.git\ncd finbuddy\nnpm ci\nnpm run dev",
-        "note": "Open the local URL printed by Vite and add ?demo=1. Open /docs/index.html on the same server to see the Help Center. The sample household is the quickest path when you’re inspecting the UI."
+          "steps": [
+            "Open the Local URL Vite prints, then add ?demo=1. You should see Sample household data on Home.",
+            "From the demo’s footer, choose Help. The Help Center should open on the same local origin. Its direct route is /docs/index.html.",
+            "Keep the Vite terminal open while testing. Press Ctrl+C to stop the dev server."
+          ],
+          "note": "The sample path runs without Firebase credentials or a sign-in. Use the emulator instructions below to test sign-in or writes on a local machine.",
+          "links": [
+            ["Troubleshoot local setup", "#developer-troubleshooting"]
+          ]
         },
         {
           "id": "account-and-storage",
@@ -194,20 +270,21 @@
         },
         {
           "id": "rest-api",
-          "title": "Make your first API request",
+          "title": "Read your own account profile",
           "paragraphs": [
-            "Use Swagger first, or copy the Bash example below (Git Bash also works on Windows). It prompts for the token privately and clears the variable afterward."
+            "Open Swagger in a browser. A saved token can be used from a terminal if you prefer. Start with Read only for this request."
           ],
           "steps": [
-            "Create a read-only token in More → Settings → Developer Options.",
-            "In Swagger, choose Authorize, then GET /profile → Try it out → Execute.",
-            "Look for 200 and your profile. A 401 means the request needs a valid token. A 403 on a write request means the token lacks write scope."
+            "Sign in and open More → Settings → Developer Options. Enter a Token name, choose Read only under Access, and choose Generate token. Complete recent sign-in if requested.",
+            "Choose Copy token. Open Swagger and choose Authorize. Paste the token value itself. Swagger adds the Bearer header.",
+            "Find GET /profile, choose Try it out, then Execute. A successful response is HTTP 200 with uid, name, and email fields. Name or email can be null."
           ],
           "code": "read -rs -p \"FinBuddy read-only token: \" FINBUDDY_TOKEN\nprintf \"\\n\"\ncurl --fail-with-body --silent --show-error \\\n  -H \"Authorization: Bearer $FINBUDDY_TOKEN\" \\\n  https://finbuddy-2025.web.app/api/v1/profile\nunset FINBUDDY_TOKEN",
+          "note": "The terminal example uses Bash or Git Bash on Windows. The response identifies the token owner. Use synthetic credentials when sharing screenshots or output.",
           "links": [
             ["Open Swagger", "https://finbuddy-2025.web.app/api/v1/docs"],
             ["Download OpenAPI 3.1", "https://finbuddy-2025.web.app/api/v1/openapi.json"],
-            ["Create a token in Settings", "settings.html#token-scope-and-expiration"]
+            ["See token defaults, expiry and revocation", "settings.html#token-scope-and-expiration"]
           ]
         },
         {
@@ -227,15 +304,53 @@
         },
         {
           "id": "run-emulator-tests",
-          "title": "Test writes against emulators",
+          "title": "Run web and API tests with synthetic accounts",
           "paragraphs": [
-            "Use Java 21. Run the web browser suite from the repository root with Node.js 24."
+            "Install Java 21 and Chromium for the web suite. Run the web commands below from the root on Node.js 24."
           ],
           "code": "npx --no-install playwright install chromium\nnpx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\"",
-          "note": "For the API suite, use Node.js 22, install the API’s locked dependencies with npm --prefix api ci, and use the isolated API configuration in the testing guide. Both suites use fictional accounts and the demo-finbuddy project.",
+          "note": "Both suites use demo-finbuddy. Run the web and API emulator suites separately so that the shared emulator ports are free."
+        },
+        {
+          "id": "run-api-emulator-tests",
+          "title": "Run the authenticated API integration suite",
+          "paragraphs": [
+            "Switch to Node.js 22 for the API runtime and keep Java 21 available. Run these commands from the root in a fresh terminal after the web suite stops."
+          ],
+          "code": "npm --prefix api ci\nnpm --prefix api test\nnpx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\"",
+          "note": "The API suite creates synthetic accounts, makes scoped requests, and checks token expiry, owner boundaries and idempotent writes.",
           "links": [
-            ["API emulator commands", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md#local-verification"],
-            ["All project tests", "https://github.com/theharithsa/finbuddy/blob/main/docs/testing.md"]
+            ["Test a local client against the API emulators", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md#local-verification"]
+          ]
+        },
+        {
+          "id": "developer-troubleshooting",
+          "title": "Troubleshoot setup and API access",
+          "table": [
+            ["Symptom", "Check"],
+            ["The dev server cannot build the Help Center", "Run python --version from the same shell. Ensure Python is on PATH, then run npm run dev again."],
+            ["The local Help URL opens sign-in", "Use /docs/index.html on the Local URL Vite printed."],
+            ["An emulator port is already in use", "Stop the other emulator run, then start this suite again."],
+            ["Health works but /profile returns 401", "Check the base URL, token revocation or expiry, and the Authorization: Bearer header. In Swagger, authorize again in the current tab."],
+            ["A write returns 403", "Check for insufficient_access. A read-only token cannot write."],
+            ["A record returns 404", "Check the record ID and confirm it is available to the token’s account."],
+            ["A retried create returns 409", "Check whether the same Idempotency-Key was used with a different request body."]
+          ]
+        },
+        {
+          "id": "observability-and-release-boundaries",
+          "title": "Know what each deployment and signal proves",
+          "table": [
+            ["Boundary", "What a successful check proves"],
+            ["Firebase Hosting", "The tested web and Help Center artifact is live. It does not deploy Firestore rules, Storage rules or the REST API function."],
+            ["REST API", "The finbuddyApi function is deployed separately. The Hosting smoke check verifies health, OpenAPI and authentication through the public route."],
+            ["Browser monitoring", "Opt-in Dynatrace RUM records supported browser operations. It does not stand in for a durable finance record."],
+            ["API traces and workflow telemetry", "API OpenTelemetry can report route, method and status when configured. GitHub Actions records CI results, and Thoth can export workflow timing to Dynatrace."]
+          ],
+          "links": [
+            ["Release boundaries and rollback", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"],
+            ["Observability and verification", "https://github.com/theharithsa/finbuddy/blob/main/docs/observability.md"],
+            ["See the release pipeline", "pipeline.html"]
           ]
         },
         {
@@ -376,13 +491,14 @@
           "id": "finvision-integration-in-discovery",
           "title": "FinVision discovery",
           "paragraphs": [
-            "The first slice is intended for signed-in FinBuddy users. It will show only the agreed set of FinVision records. The project is currently deciding identity, ownership and sync. The discovery milestone has no due date."
+            "The first slice is intended for signed-in FinBuddy users who also use FinVision. Its goal is a clear view of the agreed FinVision records inside FinBuddy. Discovery is the current milestone. It has no due date, and wider availability has no target window yet."
           ],
           "links": [
-            ["Discovery plan", "https://github.com/theharithsa/finbuddy/issues/125"],
-            ["Account identity and ownership", "https://github.com/theharithsa/finbuddy/issues/141"],
-            ["First page and sync contract", "https://github.com/theharithsa/finbuddy/issues/142"],
-            ["Verification and pilot plan", "https://github.com/theharithsa/finbuddy/issues/143"]
+            ["FinVision discovery milestone", "https://github.com/theharithsa/finbuddy/milestone/4"],
+            ["Discovery brief and scope", "https://github.com/theharithsa/finbuddy/issues/125"],
+            ["Gate 1 · Agree on identity and who owns each record", "https://github.com/theharithsa/finbuddy/issues/141"],
+            ["Gate 2 · Define the first page and sync behaviour", "https://github.com/theharithsa/finbuddy/issues/142"],
+            ["Gates 3 and 4 · Define verification, pilot and rollout", "https://github.com/theharithsa/finbuddy/issues/143"]
           ]
         },
         {
@@ -414,7 +530,7 @@
           "id": "how-to-read-this-history",
           "title": "What’s new on the website",
           "paragraphs": [
-            "The Help Center now walks through a first month, from adding income to matching a bill payment. Developers can run the demo locally and follow a read-only API example. Start with the guide that matches what you need."
+            "The Help Center now covers the first month and everyday maintenance, including sign-in, receipts, recurring templates, and private expense labels. Developers can check the API without an account, run the demo from a clean clone, and follow a scoped request and isolated test commands."
           ],
           "links": [
             ["Walk through your first month", "product.html"],

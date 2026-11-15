@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Expanded the public guides with sign-in, recurring templates, receipts, private labels, a clean-clone checklist, and API troubleshooting.
 - Reworked the public handbook with first-month tasks, sample screenshots, a developer quickstart and a compact phone-width menu.
 - Published GitHub Pages from the revision verified on Firebase Hosting and added bounded retries for live revision propagation.
 - Added the Help Center handbook, development roadmap and versioned release history to the FinBuddy website and GitHub Pages.
