@@ -13,7 +13,7 @@ Review open work at the start and end of each sprint, check dependencies before 
 
 [FinVision discovery](https://github.com/theharithsa/finbuddy/issues/125) tracks account and data ownership, the first page and sync contract, and verification and rollout as linked sub-issues. Their dependencies and current sprint are in GitHub.
 
-FinBuddy uses the bundled skill and foundation validation from [App Launchpad v1.14.0](https://github.com/theharithsa/app-launchpad-template/tree/v1.14.0). [Project metadata](../project.json) records the source commit and the [FinBuddy SDLC](sdlc.md) records how the standard applies to this repository.
+FinBuddy adopted the bundled skill and foundation validation in [App Launchpad v1.14.0](https://github.com/theharithsa/app-launchpad-template/tree/v1.14.0). The [v1.14.1 update](https://github.com/theharithsa/app-launchpad-template/tree/v1.14.1) syncs the bundled App Launchpad skill and its first-time reader walkthrough. [Project metadata](../project.json) records the tagged source commit, and the [FinBuddy SDLC](sdlc.md) describes how to apply the guidance.
 
 Firebase Hosting publishes the [Help Center](https://finbuddy-2025.web.app/docs/). After live Hosting and API checks pass, GitHub Pages publishes the [FinBuddy product site](https://theharithsa.github.io/finbuddy/) for the same revision. Both build the guides, roadmap, and version history from [public-guides.json](public-guides.json). Maintain the landing page and sample household media under `site/`. Use the [product launch procedure](../.agents/skills/app-launchpad/references/product-launch.md).
 
