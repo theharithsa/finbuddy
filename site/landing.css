@@ -43,6 +43,7 @@ nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
 .button.outline:hover { background: #eee6f5; }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 19px; }
 .text-link { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; font-size: .92rem; font-weight: 650; color: var(--accent); text-decoration: underline; text-underline-offset: 5px; }
+.inline-link { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
 
 .hero { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: center; gap: clamp(28px, 4vw, 62px); padding-block: clamp(48px, 7vw, 104px); }
 .eyebrow { color: var(--accent); font-size: .74rem; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }

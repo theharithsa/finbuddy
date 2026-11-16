@@ -64,6 +64,12 @@ class PublicDocsTests(unittest.TestCase):
             self.assertIn('name="source-revision" content="' + 'b' * 40, releases)
             self.assertFalse((output / 'media/finbuddy-tour.mp4').exists())
             self.assertTrue((output / 'media/google-sans-latin-wght-normal.woff2').is_file())
+            product = (output / 'product.html').read_text(encoding='utf-8')
+            self.assertIn('id="record-income"', product)
+            self.assertIn('class="task-steps"', product)
+            self.assertTrue((output / 'media/home.jpg').is_file())
+            technical = (output / 'technical.html').read_text(encoding='utf-8')
+            self.assertIn('<pre><code>git clone ', technical)
             hub = root / 'public/docs/index.html'
             hub.write_text(hub.read_text(encoding='utf-8').replace('#troubleshooting', '#missing'), encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'missing anchor'):
