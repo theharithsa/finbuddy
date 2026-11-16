@@ -1,0 +1,670 @@
+{
+  "project": "FinBuddy",
+  "guides": {
+    "product": {
+      "intro": "Start with the sample household or sign in to manage your own. Choose a task below to see which controls to use, what FinBuddy saves, and where you can check the result.",
+      "sections": [
+        {
+          "id": "set-up-a-monthly-check-in",
+          "title": "Explore the sample household",
+          "paragraphs": [
+            "The sample household opens without an account and shows fictional records. Use it to get familiar with Home, Expenses, Savings, Bills & EMIs, and Overview before you log your own records."
+          ],
+          "steps": [
+            "Open the sample household. On Home, find Left after bills and the three amounts under How it adds up.",
+            "Select Expenses to inspect the sample transactions. Open More to find Bills & EMIs and Overview.",
+            "Use Back to sign in when you’re ready to start your own household. Sample records stay in the demo."
+          ],
+          "figure": [
+            "home.jpg",
+            "Monthly Home showing income, expenses, bills due and ₹45,560 left after bills",
+            "The sample screenshot shows ₹84,000 recorded income, ₹12,740 logged expenses, and ₹25,700 still due. The estimate is ₹45,560."
+          ],
+          "note": "Add income and Add expense are available in the signed-in workspace. The sample household is for exploring.",
+          "links": [
+            ["Open the sample household", "https://finbuddy-2025.web.app/?demo=1"]
+          ]
+        },
+        {
+          "id": "create-account",
+          "title": "Sign in or create an account",
+          "paragraphs": [
+            "You’ll need a signed-in account to save financial records, upload receipts, or generate an API token."
+          ],
+          "steps": [
+            "Open FinBuddy. Use Continue with Google, or choose Create account to set up an email and password.",
+            "If you already use email, enter the address and password, or choose Email me a sign-in link. Use the same account and method you started with to return to your records.",
+            "After signing in, Home is your starting page. Use More → Sign out when you’re done on a shared device."
+          ],
+          "note": "Choose Forgot password? from sign-in if you use an email password and need a reset.",
+          "links": [
+            ["Open FinBuddy sign-in", "https://finbuddy-2025.web.app/"]
+          ]
+        },
+        {
+          "id": "record-income",
+          "title": "Record a salary or other income",
+          "paragraphs": [
+            "The demo lets you explore. Sign in to enter records for your own household."
+          ],
+          "steps": [
+            "On Home, choose Add income.",
+            "Enter a name such as Salary, the amount received, and the date it arrived.",
+            "Choose Save income. Check Income received on Home. Expand Income this month to review or edit an entry."
+          ],
+          "note": "Use the date you received the money. Use the month selector if you want to check a previous month after saving."
+        },
+        {
+          "id": "log-your-first-expense",
+          "title": "Log and find an expense",
+          "paragraphs": [
+            "Start with the amount and category. Add details when they help you recognise or find the purchase later."
+          ],
+          "steps": [
+            "Choose Add expense. Enter an amount such as ₹450 and pick a category.",
+            "Check the date. Add a description such as Saturday groceries. Add a person, platform, or receipt when useful.",
+            "Save the expense. Open Expenses, check the date range and search for Saturday groceries to find the entry or open it for editing."
+          ],
+          "figure": [
+            "expenses.jpg",
+            "Expense ledger with a date range, search, and sample transaction rows",
+            "Check the period first when an expense you expect is missing."
+          ]
+        },
+        {
+          "id": "manage-expenses-and-receipts",
+          "title": "Correct an expense or manage a receipt",
+          "steps": [
+            "Open Expenses. Choose a date range that includes the entry and search by a term you remember.",
+            "Open the row’s edit action. Correct the amount, date, category, or description. Expand the extra details to add a receipt or choose Remove receipt if it is already attached.",
+            "Choose Save changes. If you changed the date, use the new date range to confirm the corrected row."
+          ],
+          "note": "Check whether an expense is linked to a bill before deleting it. Deleting a linked expense can make the bill show as due again."
+        },
+        {
+          "id": "pay-a-bill-without-counting-it-twice",
+          "title": "Pay a bill without counting it twice",
+          "steps": [
+            "On Home, choose Manage bills, then Add bill. Enter its name, expected amount, due date, and how often it repeats. Choose Save bill.",
+            "Find the due bill and choose Record payment.",
+            "If the amount is already in Expenses, choose Already logged it?, select the matching entry, and choose Link expense. If it is a new payment, confirm the amount and date and choose Save payment.",
+            "Expand Paid to find the payment. The linked expense stays in the ledger and the bill stops counting as due."
+          ],
+          "figure": [
+            "bills.jpg",
+            "Bills and EMIs view separating upcoming and paid sample bills",
+            "Marking a bill paid moves its occurrence to Paid. Link the existing ledger entry if you already recorded the payment."
+          ],
+          "note": "A repeated rent or EMI gets a new occurrence for its next due period. Linking applies to the occurrence you’re paying."
+        },
+        {
+          "id": "reuse-an-expense",
+          "title": "Reuse a purchase you log regularly",
+          "paragraphs": [
+            "Recurring templates prefill an expense when you choose to log it. Bills & EMIs is where you track what’s due and whether it’s been paid."
+          ],
+          "steps": [
+            "Open More → Recurring. Choose a common bill template, or choose Create Template and enter a name, default amount, category and frequency.",
+            "Choose Add Expense on the template. Check the actual amount and date, then save the expense.",
+            "If you already track the obligation under Bills & EMIs, use Record payment → Already logged it? to link the expense."
+          ],
+          "note": "A recurring template does not add a ledger entry on its own. Creating one does not create a due bill."
+        },
+        {
+          "id": "see-how-spending-fits-your-plan",
+          "title": "Review spending before changing a budget",
+          "steps": [
+            "Open More → Budgets to set a monthly amount for a category.",
+            "Open More → Overview and select the month. Compare actual spending with your plan and check the category breakdown.",
+            "If a total looks high, open Expenses and review the entries for that period before changing the budget."
+          ]
+        },
+        {
+          "id": "update-savings-when-values-change",
+          "title": "Record a savings balance",
+          "paragraphs": [
+            "Use Savings for amounts you’ve already set aside, such as an emergency fund or fixed deposit."
+          ],
+          "steps": [
+            "Open Savings and choose Add savings or investment.",
+            "Enter the name, type, latest value and the date you checked it. Choose Save value.",
+            "When you check it again, open the same holding and use Update value."
+          ],
+          "figure": [
+            "savings.jpg",
+            "Savings view with three holdings and the date for each recorded amount",
+            "The date beside a holding tells you when that balance was entered."
+          ],
+          "note": "FinBuddy shows recorded values. Keep cash-flow entries in Income and Expenses, and balances in Savings."
+        },
+        {
+          "id": "categories-and-people",
+          "title": "Organize expenses with categories and people",
+          "steps": [
+            "Open More → Categories → Create Category to name a category for your own expenses. Leave Share with community off for a private category.",
+            "Open More → People → Add Person to label whom an expense was for. Choose a relationship and leave Share publicly for others to use off for a private label.",
+            "When logging or editing an expense, select its category and optionally select a person in the extra details. People labels organize records and do not give someone access to your household."
+          ],
+          "note": "The category and person libraries can show voluntarily shared labels to other signed-in users. Use generic names for anything you choose to share."
+        },
+        {
+          "id": "troubleshooting",
+          "title": "When something looks wrong",
+          "table": [
+            ["What you see", "Where to look"],
+            ["An expense is missing", "Verify the signed-in account and date range, then clear the search or category filters."],
+            ["A bill is still due", "Open Manage bills and check the occurrence for that month. Open Paid to see recorded payments."],
+            ["The Home amount seems high", "Check Income received, Expenses logged, and Bills still due for the same month."],
+            ["A savings total looks old", "Open Savings and check the as-of date for the holding. Use Update value after checking the balance."],
+            ["You can’t sign in", "Use the provider you signed up with. For an email password, choose Forgot password? on sign-in."]
+          ],
+          "links": [
+            ["Change your appearance or manage API access", "settings.html"],
+            ["Report a problem without sharing your records", "https://github.com/theharithsa/finbuddy/issues/new/choose"]
+          ]
+        }
+      ],
+      "links": [
+        ["What’s planned", "roadmap.html"],
+        ["What shipped", "releases.html"]
+      ]
+    },
+    "settings": {
+      "intro": "Open More → Settings in the signed-in workspace. Preferences controls how this device looks. Developer Options manages tokens for this account.",
+      "sections": [
+        {
+          "id": "display-mode",
+          "title": "Choose how FinBuddy looks",
+          "paragraphs": [
+            "Settings opens to Preferences. Choose the display mode, palette, and font individually."
+          ],
+          "table": [
+            ["Setting", "Default", "What changes"],
+            ["Display mode", "Light", "Choose Light, Dark, or System. System follows your device."],
+            ["Color palette", "Lavender", "Choose a palette, including Black & white. This controls colours, and works with your chosen display mode."],
+            ["Font", "Google Sans", "Choose Source Sans 3, Source Code Pro, Lato, Open Sans, Ubuntu, Source Serif 4, Lora, or Roboto."]
+          ],
+          "note": "Changes apply to the current browser and device. Choose Reset appearance to restore all three defaults.",
+          "aliases": [
+            "color-palette",
+            "font"
+          ]
+        },
+        {
+          "id": "token-scope-and-expiration",
+          "title": "Create a token for one integration",
+          "steps": [
+            "In Settings, choose Developer Options in the Settings sidebar.",
+            "Enter a Token name such as Monthly export. Access defaults to Read only. Choose Read and write only when the integration needs to change records.",
+            "Choose an expiration. The default is 30 days. Other choices are 7 days, 90 days, and Never expires.",
+            "Choose Generate token and complete recent sign-in if prompted. Choose Copy token while it is displayed. Return to Active tokens to revoke it later."
+          ],
+          "note": "The token accesses the FinBuddy account that created it. Store it in your integration’s secret store and keep it out of screenshots, source code, and support requests."
+        },
+        {
+          "id": "copy-or-revoke-a-token",
+          "title": "Test and revoke a token",
+          "steps": [
+            "Open Swagger, choose Authorize, and paste your token.",
+            "Try GET /profile as a small read-only check and look for a 200 response.",
+            "When you stop using the integration, return to Developer Options and revoke the named token."
+          ],
+          "links": [
+            ["Open Swagger", "https://finbuddy-2025.web.app/api/v1/docs"],
+            ["Run the same check from a terminal", "technical.html#rest-api"]
+          ]
+        }
+      ]
+    },
+    "technical": {
+      "intro": "Choose a starting point. Check that the hosted API responds, run the sample household from a clean clone, or follow a record through FinBuddy’s browser, API, and storage.",
+      "sections": [
+        {
+          "id": "check-the-hosted-api",
+          "title": "Check the hosted API without an account",
+          "paragraphs": [
+            "The health route lets you check the base URL before generating a token. Open it in a phone or desktop browser, or run the command below in a terminal."
+          ],
+          "code": "curl --fail-with-body https://finbuddy-2025.web.app/api/v1/health",
+          "note": "Expected HTTP 200 with {\"status\":\"ok\"}. This checks whether the API responds. To verify access to your own records, run the authenticated profile request below.",
+          "links": [
+            ["Open the health response", "https://finbuddy-2025.web.app/api/v1/health"],
+            ["Browse endpoints in Swagger", "https://finbuddy-2025.web.app/api/v1/docs"],
+            ["Try an authenticated request", "#rest-api"]
+          ]
+        },
+        {
+          "id": "local-development",
+          "title": "Run the demo from a clean clone",
+          "paragraphs": [
+            "Install Git, Node.js 24 and Python 3.12. Check that node --version and python --version work before installing FinBuddy. Type these commands in a terminal, one line at a time."
+          ],
+          "code": "git clone https://github.com/theharithsa/finbuddy.git\ncd finbuddy\nnpm ci\nnpm run dev",
+          "steps": [
+            "Open the Local URL Vite prints, then add ?demo=1. You should see Sample household data on Home.",
+            "From the demo’s footer, choose Help. The Help Center should open on the same local origin. Its direct route is /docs/index.html.",
+            "Keep the Vite terminal open while testing. Press Ctrl+C to stop the dev server."
+          ],
+          "note": "The sample path runs without Firebase credentials or a sign-in. Use the emulator instructions below to test sign-in or writes on a local machine.",
+          "links": [
+            ["Troubleshoot local setup", "#developer-troubleshooting"]
+          ]
+        },
+        {
+          "id": "account-and-storage",
+          "title": "Trace a record from the screen to storage",
+          "paragraphs": [
+            "The React and TypeScript workspace runs in the browser. Firebase Authentication supplies the signed-in identity. Firestore rules and Storage rules govern browser access, and the REST API checks token scope and record ownership before serving account data."
+          ],
+          "table": [
+            ["When you…", "The code and data path"],
+            ["Enter an expense in the app", "src/features/expenses/ → Firebase client → account records in Firestore."],
+            ["Attach a receipt in the app", "Expense editor → Cloud Storage for the file → expense metadata in Firestore."],
+            ["Read an expense through the API", "Firebase Hosting /api/v1 → Firebase Functions in api/ → Firestore. The API checks the personal token and account scope."],
+            ["Try the public demo", "src/features/workspace/DemoWorkspace.tsx → fictional data. No account is needed."]
+          ],
+          "links": [
+            ["Firebase and other service boundaries", "https://github.com/theharithsa/finbuddy/blob/main/docs/services.md"],
+            ["Security and private reporting", "https://github.com/theharithsa/finbuddy/security/policy"]
+          ]
+        },
+        {
+          "id": "rest-api",
+          "title": "Read your own account profile",
+          "paragraphs": [
+            "Open Swagger in a browser. A saved token can be used from a terminal if you prefer. Start with Read only for this request."
+          ],
+          "steps": [
+            "Sign in and open More → Settings → Developer Options. Enter a Token name, choose Read only under Access, and choose Generate token. Complete recent sign-in if requested.",
+            "Choose Copy token. Open Swagger and choose Authorize. Paste the token value itself. Swagger adds the Bearer header.",
+            "Find GET /profile, choose Try it out, then Execute. A successful response is HTTP 200 with uid, name, and email fields. Name or email can be null."
+          ],
+          "code": "read -rs -p \"FinBuddy read-only token: \" FINBUDDY_TOKEN\nprintf \"\\n\"\ncurl --fail-with-body --silent --show-error \\\n  -H \"Authorization: Bearer $FINBUDDY_TOKEN\" \\\n  https://finbuddy-2025.web.app/api/v1/profile\nunset FINBUDDY_TOKEN",
+          "note": "The terminal example uses Bash or Git Bash on Windows. The response identifies the token owner. Use synthetic credentials when sharing screenshots or output.",
+          "links": [
+            ["Open Swagger", "https://finbuddy-2025.web.app/api/v1/docs"],
+            ["Download OpenAPI 3.1", "https://finbuddy-2025.web.app/api/v1/openapi.json"],
+            ["See token defaults, expiry and revocation", "settings.html#token-scope-and-expiration"]
+          ]
+        },
+        {
+          "id": "money-and-dates",
+          "title": "Handle money and retries correctly",
+          "table": [
+            ["API operation", "Rule to implement"],
+            ["Read expenses and budgets", "Amounts are decimal INR with up to two fractional digits."],
+            ["Read income, bills, holdings or monthly summary", "Amounts use integer paise. ₹450 is 45000 paise."],
+            ["Read the monthly API summary", "The remaining amount is income minus recorded expenses. Home’s Left after bills also subtracts unpaid bills."],
+            ["Read a list", "Use limit and follow the opaque nextCursor until the response omits it."],
+            ["Create a record", "Send an Idempotency-Key and reuse it for retries of the same body. A conflicting body returns 409. Bill payments deduplicate by occurrence."]
+          ],
+          "links": [
+            ["Read the API contract and examples", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md"]
+          ]
+        },
+        {
+          "id": "run-emulator-tests",
+          "title": "Run web and API tests with synthetic accounts",
+          "paragraphs": [
+            "Install Java 21 and Chromium for the web suite. Run the web commands below from the root on Node.js 24."
+          ],
+          "code": "npx --no-install playwright install chromium\nnpx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\"",
+          "note": "Both suites use demo-finbuddy. Run the web and API emulator suites separately so that the shared emulator ports are free."
+        },
+        {
+          "id": "run-api-emulator-tests",
+          "title": "Run the authenticated API integration suite",
+          "paragraphs": [
+            "Switch to Node.js 22 for the API runtime and keep Java 21 available. Run these commands from the root in a fresh terminal after the web suite stops."
+          ],
+          "code": "npm --prefix api ci\nnpm --prefix api test\nnpx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\"",
+          "note": "The API suite creates synthetic accounts, makes scoped requests, and checks token expiry, owner boundaries and idempotent writes.",
+          "links": [
+            ["Test a local client against the API emulators", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md#local-verification"]
+          ]
+        },
+        {
+          "id": "developer-troubleshooting",
+          "title": "Troubleshoot setup and API access",
+          "table": [
+            ["Symptom", "Check"],
+            ["The dev server cannot build the Help Center", "Run python --version from the same shell. Ensure Python is on PATH, then run npm run dev again."],
+            ["The local Help URL opens sign-in", "Use /docs/index.html on the Local URL Vite printed."],
+            ["An emulator port is already in use", "Stop the other emulator run, then start this suite again."],
+            ["Health works but /profile returns 401", "Check the base URL, token revocation or expiry, and the Authorization: Bearer header. In Swagger, authorize again in the current tab."],
+            ["A write returns 403", "Check for insufficient_access. A read-only token cannot write."],
+            ["A record returns 404", "Check the record ID and confirm it is available to the token’s account."],
+            ["A retried create returns 409", "Check whether the same Idempotency-Key was used with a different request body."]
+          ]
+        },
+        {
+          "id": "observability-and-release-boundaries",
+          "title": "Know what each deployment and signal proves",
+          "table": [
+            ["Boundary", "What a successful check proves"],
+            ["Firebase Hosting", "The tested web and Help Center artifact is live. It does not deploy Firestore rules, Storage rules or the REST API function."],
+            ["REST API", "The finbuddyApi function is deployed separately. The Hosting smoke check verifies health, OpenAPI and authentication through the public route."],
+            ["Browser monitoring", "Opt-in Dynatrace RUM records supported browser operations. It does not stand in for a durable finance record."],
+            ["API traces and workflow telemetry", "API OpenTelemetry can report route, method and status when configured. GitHub Actions records CI results, and Thoth can export workflow timing to Dynatrace."]
+          ],
+          "links": [
+            ["Release boundaries and rollback", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"],
+            ["Observability and verification", "https://github.com/theharithsa/finbuddy/blob/main/docs/observability.md"],
+            ["See the release pipeline", "pipeline.html"]
+          ]
+        },
+        {
+          "id": "public-documentation",
+          "title": "Preview a handbook change",
+          "paragraphs": [
+            "Update the guide source when a change affects what a visitor sees. Use an empty output directory for Pages."
+          ],
+          "code": "python scripts/build_public_docs.py --output dist/public-docs\npython -m http.server 8080 --directory dist/public-docs",
+          "links": [
+            ["Contributing guide", "https://github.com/theharithsa/finbuddy/blob/main/CONTRIBUTING.md"],
+            ["CI/CD pipeline", "pipeline.html"]
+          ]
+        }
+      ]
+    },
+    "sdlc": {
+      "intro": "FinBuddy ships through a checked pull request to main. This guide shows how to take one product change from issue to live verification.",
+      "sections": [
+        {
+          "id": "intake-and-planning",
+          "title": "Give the issue a testable outcome",
+          "paragraphs": [
+            "Example: On a phone, a visitor looking for help can find the bill-payment steps from the Help Center."
+          ],
+          "steps": [
+            "Create or reuse an issue and set the type, owner and milestone. Check that it appears on the FinBuddy GitHub Project.",
+            "Write the user outcome and how you’ll verify it. For data or account changes, include the access and recovery cases.",
+            "Order work from its dependencies. Use a Sprint field when work is scheduled."
+          ],
+          "links": [
+            ["FinBuddy Project", "https://github.com/users/theharithsa/projects/1"]
+          ]
+        },
+        {
+          "id": "development-and-documentation",
+          "title": "Open a reviewable PR",
+          "steps": [
+            "Branch from main, keep the change focused, and link the issue with Closes #N for completed work or Refs #N for part of the work.",
+            "Update any affected guide in the same PR. Under Documentation impact, write Updated: followed by the affected guides, or No change: followed by the reason.",
+            "Record what you ran, what you saw at phone and desktop sizes if relevant, and how to recover the affected release."
+          ],
+          "code": "## Documentation impact\n\nUpdated: Product handbook — added the steps for linking an existing expense to a bill payment."
+        },
+        {
+          "id": "review-and-merge",
+          "title": "Check the actual candidate",
+          "paragraphs": [
+            "Use the current diff and resolve review threads. Main requires foundation, verify and verify-api on a candidate that is up to date. The repository uses a solo-maintainer policy with zero independent approvals."
+          ],
+          "table": [
+            ["Change", "Evidence to bring to review"],
+            ["User task", "Exercise the before and after path with sample or emulator data. Check keyboard and phone widths for UI changes."],
+            ["Access or migrations", "Exercise owner, wrong-account and signed-out cases when relevant. Verify old records and the recovery plan."],
+            ["Docs", "Open the actual changed pages from the landing page and Help Center. Walk through the instructions and test links."],
+            ["Dependency updates", "Review affected callers and compatibility. Add the documentation decision to the bot-authored PR."]
+          ]
+        },
+        {
+          "id": "release-and-recovery",
+          "title": "Verify what users received",
+          "steps": [
+            "Follow the CI/CD pipeline from the merged SHA to Hosting verification and Pages publication.",
+            "Open both public URLs and test the changed path. Record the completed workflow, live revision, and any failures or recovery in the issue.",
+            "Use the release procedure to restore the affected surface if it needs recovery."
+          ],
+          "links": [
+            ["CI/CD pipeline", "pipeline.html"],
+            ["Release and rollback procedures", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"]
+          ]
+        }
+      ]
+    },
+    "pipeline": {
+      "intro": "The pull request proves the change. Main builds the release artifact, verifies the deployed app, and then publishes the product site for the same revision.",
+      "stages": [
+        ["Pull request", "Foundation checks repo contracts, docs and links. Web and API jobs test real user and account paths with Firebase emulators."],
+        ["Build on main", "Re-run web and API checks. Upload the production web bundle and the generated Help Center as the finbuddy-hosting artifact."],
+        ["Deploy and verify Hosting", "Deploy that artifact. Check the live Git SHA, cached asset rules, icons and API routes before continuing."],
+        ["Publish Pages", "Build the product site and handbook from the same Git revision. Publish after Hosting verification passes."]
+      ],
+      "sections": [
+        {
+          "id": "what-ci-verifies",
+          "title": "Read the check that failed",
+          "table": [
+            ["Job", "What to inspect"],
+            ["foundation", "The PR documentation decision, repository contracts, and both public builds."],
+            ["verify", "Lint, JavaScript tests, browser flows on Firebase emulators, or the Vite build."],
+            ["verify-api", "API unit and contract tests, or the isolated emulator suite."],
+            ["deploy", "The Firebase Hosting deploy receipt, live revision verification, and API smoke results."],
+            ["publish-product-site", "The Pages package, deploy result, and public handbook revision."]
+          ],
+          "links": [
+            ["Actions runs", "https://github.com/theharithsa/finbuddy/actions"],
+            ["Main workflow", "https://github.com/theharithsa/finbuddy/blob/main/.github/workflows/finbuddy.yml"]
+          ]
+        },
+        {
+          "id": "when-publication-fails",
+          "title": "Recover the affected surface",
+          "paragraphs": [
+            "The automated Hosting check retries the same read-only check for a brief revision propagation delay. A persistent mismatch or a failing asset or API check stops Pages publication."
+          ],
+          "steps": [
+            "Find the failed job and identify the revision it tested.",
+            "Verify which revision each host is serving before retrying. Keep failed checks visible in the issue.",
+            "Use the release procedure to recover only the affected service. Recheck the actual public path and record what users can now see."
+          ],
+          "links": [
+            ["Release and rollback guide", "https://github.com/theharithsa/finbuddy/blob/main/docs/release-plan.md"],
+            ["Firebase Help Center", "https://finbuddy-2025.web.app/docs/"]
+          ]
+        }
+      ]
+    },
+    "roadmap": {
+      "intro": "Track which features you can use today and what needs to happen before FinVision can appear in FinBuddy. FinVision is in discovery and has no scheduled release date.",
+      "stages": [
+        ["Agree on account and data ownership", "Current stage. Map how the two apps identify the same user and agree on which data FinBuddy can show."],
+        ["Define the first page", "After approval of the data boundary, pick the first view and specify how updates and conflicts are handled."],
+        ["Verify and pilot", "When the slice is ready, test identity, permissions, sync and recovery with fictional accounts before a limited pilot."],
+        ["Review the pilot", "Decide on wider access after the pilot confirms the behaviour. Set a target window at that stage."]
+      ],
+      "sections": [
+        {
+          "id": "available-now",
+          "title": "In the workspace today",
+          "paragraphs": [
+            "Households can record income and expenses, set category budgets, manage bill payments, and track dated savings values. The public demo lets you explore the month without an account."
+          ],
+          "links": [
+            ["Try the sample household", "https://finbuddy-2025.web.app/?demo=1"],
+            ["Follow a monthly check-in", "product.html"]
+          ]
+        },
+        {
+          "id": "finvision-integration-in-discovery",
+          "title": "FinVision discovery",
+          "paragraphs": [
+            "The first slice is intended for signed-in FinBuddy users who also use FinVision. Its goal is a clear view of the agreed FinVision records inside FinBuddy. Discovery is the current milestone. It has no due date, and wider availability has no target window yet."
+          ],
+          "links": [
+            ["FinVision discovery milestone", "https://github.com/theharithsa/finbuddy/milestone/4"],
+            ["Discovery brief and scope", "https://github.com/theharithsa/finbuddy/issues/125"],
+            ["Gate 1 · Agree on identity and who owns each record", "https://github.com/theharithsa/finbuddy/issues/141"],
+            ["Gate 2 · Define the first page and sync behaviour", "https://github.com/theharithsa/finbuddy/issues/142"],
+            ["Gates 3 and 4 · Define verification, pilot and rollout", "https://github.com/theharithsa/finbuddy/issues/143"]
+          ]
+        },
+        {
+          "id": "kautilyaai-and-metrics-explorer-coming-soon",
+          "title": "Other planned work",
+          "table": [
+            ["Item", "Availability", "Where to go today"],
+            ["KautilyaAI", "Coming soon. Unscheduled.", "Use Home and Overview to review recorded income and spending."],
+            ["Metrics Explorer", "Coming soon. Unscheduled.", "Use Overview for monthly category and spending insights."],
+            ["Replacement MCP integration", "Backlog. Scope, permitted actions and availability are undecided.", "The REST API supports direct integrations."]
+          ],
+          "links": [
+            ["Replacement MCP discovery", "https://github.com/theharithsa/finbuddy/issues/126"],
+            ["FinBuddy Project", "https://github.com/users/theharithsa/projects/1"]
+          ],
+          "aliases": [
+            "replacement-mcp-integration-backlog"
+          ]
+        }
+      ],
+      "links": [
+        ["Browse shipped changes", "releases.html"]
+      ]
+    },
+    "releases": {
+      "intro": "Find what changed in the app, then jump to a version for details. Earlier entries retain the original source for anyone researching a past release.",
+      "sections": [
+        {
+          "id": "how-to-read-this-history",
+          "title": "What’s new on the website",
+          "paragraphs": [
+            "The Help Center now covers the first month and everyday maintenance, including sign-in, receipts, recurring templates, and private expense labels. Developers can check the API without an account, run the demo from a clean clone, and follow a scoped request and isolated test commands."
+          ],
+          "links": [
+            ["Walk through your first month", "product.html"],
+            ["Run the app and try the API", "technical.html"]
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "3.1.1",
+          "status": "Current production version line · November 2026",
+          "summary": "Maintenance updates for the signed-in workspace and the Firebase services used by the API. The current app includes the household tools and personal API tokens from the earlier releases below.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.1.1"],
+            ["Verified production build", "https://github.com/theharithsa/finbuddy/actions/runs/43697981435"]
+          ],
+          "title": "Maintenance for the web app and API"
+        },
+        {
+          "version": "3.1.0",
+          "status": "Verified production · 10 November 2026",
+          "summary": "Added the REST API and Swagger, scoped personal tokens with a Never expires option, and a dedicated Developer Options section. Retired the earlier MCP adapter.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.1.0"],
+            ["Production deployment", "https://github.com/theharithsa/finbuddy/actions/runs/42808228351"]
+          ],
+          "title": "Personal tokens and the REST API"
+        },
+        {
+          "version": "3.0.0",
+          "status": "Verified production · November 2026",
+          "summary": "Introduced the Material 3 household workspace, public demo, monthly Home, expense quick entry, bills and EMIs, and dated savings.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.0.0"],
+            ["Verified build", "https://github.com/theharithsa/finbuddy/actions/runs/42698413859"]
+          ],
+          "title": "A new monthly workspace"
+        },
+        {
+          "version": "2.901.0",
+          "status": "Tagged history",
+          "summary": "Recorded an update to the original KautilyaAI implementation.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.901.0"]
+          ],
+          "title": "Earlier KautilyaAI update"
+        },
+        {
+          "version": "2.9.0",
+          "status": "Tagged history",
+          "summary": "Introduced the original MCP adapter. The 3.1.0 update retired this adapter.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.9.0"]
+          ],
+          "title": "The original MCP integration"
+        },
+        {
+          "version": "2.8.1",
+          "status": "Tagged history",
+          "summary": "Added editable expense templates, search, and default amounts.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.8.1"]
+          ],
+          "title": "Editable expense templates"
+        },
+        {
+          "version": "2.8.0",
+          "status": "Changelog history",
+          "summary": "Introduced app and platform categorisation for expenses.",
+          "links": [
+            ["Changelog", "https://github.com/theharithsa/finbuddy/blob/main/CHANGELOG.md"]
+          ],
+          "title": "Categorise expenses by platform"
+        },
+        {
+          "version": "2.7.0",
+          "status": "Earlier release notes",
+          "summary": "Documented the first Metrics Explorer beta. The current app marks Metrics Explorer Coming soon.",
+          "links": [
+            ["Earlier release notes", "https://finbuddy-2025.web.app/docs/release-notes.html"]
+          ],
+          "title": "The first Metrics Explorer beta"
+        },
+        {
+          "version": "2.6.0",
+          "status": "Tagged history",
+          "summary": "Documented the original KautilyaAI assistant.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.6.0"]
+          ],
+          "title": "The original KautilyaAI assistant"
+        },
+        {
+          "version": "2.5.5",
+          "status": "Tagged history",
+          "summary": "Added historical budget analysis with a month selector.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.5"]
+          ],
+          "title": "Review previous monthly budgets"
+        },
+        {
+          "version": "2.5.4",
+          "status": "Tagged history",
+          "summary": "Updated the app’s visual styles and typography.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.4"]
+          ],
+          "title": "Typography and interface updates"
+        },
+        {
+          "version": "2.5.3",
+          "status": "Tagged history",
+          "summary": "Updated achievement presentation and scoring.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.3"]
+          ],
+          "title": "Achievement display and scoring"
+        },
+        {
+          "version": "2.5.1",
+          "status": "Tagged history",
+          "summary": "Updated authentication and Firebase integration.",
+          "links": [
+            ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v2.5.1"]
+          ],
+          "title": "Authentication updates"
+        }
+      ],
+      "links": [
+        ["Full changelog", "https://github.com/theharithsa/finbuddy/blob/main/CHANGELOG.md"],
+        ["Earlier release notes", "https://finbuddy-2025.web.app/docs/release-notes.html"],
+        ["See what’s planned", "roadmap.html"]
+      ]
+    }
+  }
+}

@@ -5,7 +5,7 @@ description: Maintain FinBuddy browser RUM, callable telemetry and GitHub delive
 
 # FinBuddy observability
 
-Start with [FinBuddy's signal map](../../docs/observability.md) and the [App Launchpad observability policy](../../.agents/skills/app-launchpad/references/observability.md). Use the relevant service continuation to verify the current runtime.
+Start with [FinBuddy's signal map](../../docs/observability.md), the [App Launchpad observability policy](../../.agents/skills/app-launchpad/references/observability.md), and the [bundled dt-obs skill](../../.agents/skills/dt-obs/SKILL.md). Use the relevant service continuation to verify the current runtime.
 
 - The browser wrapper records fixed operation names and allowlisted outcomes. RUM requires an approved Dynatrace tag and browser opt-in. Verify masking, replay settings, consent and account transitions before enabling it.
 - Separate browser SDK results from durable Firestore outcomes. Treat the deployed callable and its source as separate until their revisions and telemetry are reconciled.

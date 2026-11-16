@@ -1,5 +1,59 @@
 # Template changelog
 
+## [1.14.1] - 2026-11-15
+
+- Require first-time reader walkthroughs for new or materially changed public guides. Cover exact user steps, permissions, expected results, clean-checkout developer setup, and troubleshooting.
+- Check changed guides on the candidate and the published site. Record what was tried, what happened, and any remaining verification gaps. Existing projects can keep their docs generator and adopt the updated skill and review guidance.
+
+## [1.14.0] - 2026-11-14
+
+- Require a documentation impact decision in pull requests. The foundation check also builds the public handbook and checks local links.
+- Add reusable product, technical, settings, SDLC and CI/CD guides to the GitHub Pages starter. Existing projects can adopt the PR check and keep their current docs generator. No project schema migration is required.
+- Documentation clarification for v1.14.0. The production release plan and public SDLC guide now collect the README, changelog, security policy and affected guide checks in one place.
+
+## [1.13.3] - 2026-11-14
+
+- Document an opt-in weekly production cadence with frequent staging builds, checked promotion, release milestones and an urgent patch path. Existing projects can adopt the guidance without a schema migration.
+- Add a solo-maintainer delivery path for projects with or without pre-production. Consolidate PR guidance and document risk-based checks, effective access verification, restore evidence and selective adoption.
+
+## [1.13.2] - 2026-11-13
+
+- Document how to publish a public roadmap and backfill versioned release notes with verified dates, clear pilot gates, and accessible diagrams. Existing projects can adopt the guidance without a schema migration.
+
+## [1.13.1] - 2026-11-13
+
+- Schedule dependent pilots and rollouts after their prerequisite gates, then verify the sequence across issues, milestones, and the Project roadmap. Existing apps can adopt the guidance without changing their project schema.
+
+## [1.13.0] - 2026-11-12
+
+- Bundle a product README example, contribution and security guides, screenshot and `/brag` video guidance, and a responsive GitHub Pages starter.
+- Package site changes on pull requests and publish from the default branch when GitHub Pages is enabled.
+- Existing apps can adopt the workflow and launch guidance while retaining their own copy, links, and media.
+
+## [1.12.2] - 2026-11-12
+
+- Document Project workflow defaults for closing issues, completing merged PRs, and returning reopened work to triage.
+
+## [1.12.1] - 2026-11-12
+
+- Make GitHub's automatic deletion of merged head branches an App Launchpad repository setup default and document how to verify it.
+
+## [1.12.0] - 2026-11-12
+
+- Bundle portable dt-obs v1.4.1 alongside App Launchpad v1.12.0, with Thoth guidance and a tagged cross-device sync procedure.
+- Require version updates in template CI when bundled skill content changes.
+- Document Project purpose and updates, sub-issues and blockers, focused views, Insights, and native workflow verification.
+
+## [1.11.0] - 2026-11-12
+
+- Classify new issues through Bug, Feature, and Task forms. Personal repositories reconcile missing types with repository labels.
+- Save sprint or date-based Roadmap and Status-based Kanban views and surface the type on issues and Project cards.
+
+## [1.10.0] - 2026-11-12
+
+- Require a linked GitHub Project, public by default, and milestone coverage for every issue and PR, including Dependabot.
+- Document milestone and sprint views, native intake, historical backfill, and orphan checks for template consumers.
+
 ## [1.9.0] - 2026-10-29
 
 - Consolidate first-party instruction routing and shared policy owners; retain technical requirements in linked references.
