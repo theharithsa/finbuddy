@@ -1,9 +1,15 @@
 # Template changelog
 
+## [1.14.1] - 2026-11-15
+
+- Require first-time reader walkthroughs for new or materially changed public guides. Cover exact user steps, permissions, expected results, clean-checkout developer setup, and troubleshooting.
+- Check changed guides on the candidate and the published site. Record what was tried, what happened, and any remaining verification gaps. Existing projects can keep their docs generator and adopt the updated skill and review guidance.
+
 ## [1.14.0] - 2026-11-14
 
 - Require a documentation impact decision in pull requests. The foundation check also builds the public handbook and checks local links.
 - Add reusable product, technical, settings, SDLC and CI/CD guides to the GitHub Pages starter. Existing projects can adopt the PR check and keep their current docs generator. No project schema migration is required.
+- Documentation clarification for v1.14.0. The production release plan and public SDLC guide now collect the README, changelog, security policy and affected guide checks in one place.
 
 ## [1.13.3] - 2026-11-14
 

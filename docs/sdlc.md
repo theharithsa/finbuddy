@@ -1,6 +1,6 @@
 # FinBuddy software development life cycle
 
-FinBuddy uses the App Launchpad v1.14.0 solo-maintainer workflow. The checked implementation PR targets `main`. Tests use Firebase emulators with synthetic data, and changes that need hosted review can use the approved Firebase preview channel. FinBuddy has no persistent staging environment.
+FinBuddy uses the App Launchpad v1.14.1 solo-maintainer workflow. The checked implementation PR targets `main`. Tests use Firebase emulators with synthetic data, and changes that need hosted review can use the approved Firebase preview channel. FinBuddy has no persistent staging environment.
 
 ## From issue to merge
 
@@ -10,6 +10,8 @@ FinBuddy uses the App Launchpad v1.14.0 solo-maintainer workflow. The checked im
 4. Review the current diff and resolve review threads. GitHub requires `foundation`, `verify`, and `verify-api` on a candidate that is up to date with `main`. The sole-maintainer rules require zero independent approvals. The maintainer makes the release decision through the implementation PR when merge triggers publication.
 
 For a Dependabot PR, the maintainer reviews the dependency impact and adds the documentation decision to the PR description. Editing the description reruns the foundation check.
+
+For new or materially changed public guides, follow the [first-time reader walkthrough](../.agents/skills/app-launchpad/references/product-launch.md#first-time-reader-walkthrough). Exercise the affected paths on the PR candidate and record live results after publication.
 
 ## Checks and release
 
