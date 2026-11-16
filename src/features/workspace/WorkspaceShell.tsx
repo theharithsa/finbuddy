@@ -98,7 +98,7 @@ export function WorkspaceShell({ page, mainRef, onNavigate, onAddExpense, addExp
                       ))}
                     </div>
                   ))}
-                  <a href="/docs/"><CircleHelp size={21} /><span><strong>Help center</strong></span><ChevronRight size={18} /></a>
+                  <a href="/docs/index.html"><CircleHelp size={21} /><span><strong>Help center</strong></span><ChevronRight size={18} /></a>
                 </nav>
                 {account && <div className="m3-drawer-footer">
                   <UsageAnalytics />
@@ -123,7 +123,7 @@ export function WorkspaceShell({ page, mainRef, onNavigate, onAddExpense, addExp
           <Button asChild variant="outline" size="sm"><a href="/">Back to sign in</a></Button>
         </div>}
         <div key={page} className="m3-route">{children}</div>
-        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
+        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/index.html">Help</a><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
       </main>
     </div>
   );

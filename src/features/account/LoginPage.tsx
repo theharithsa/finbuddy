@@ -135,11 +135,12 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             {mode === 'signin' && <div className="m3-demo-invite">
               <p>See a sample household before making an account.</p>
               <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
+              <div className="m3-login-links"><a href="/docs/index.html">Open the Help Center</a></div>
             </div>}
           </div>
         </section>
       </div>
-      <footer className="m3-login-legal"><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/">Help</a><UsageAnalytics /></footer>
+      <footer className="m3-login-legal"><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/index.html">Help</a><UsageAnalytics /></footer>
     </main>
   );
 }
