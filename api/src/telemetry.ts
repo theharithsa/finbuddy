@@ -1,48 +1,162 @@
-import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { performance } from 'node:perf_hooks';
+import type { IncomingHttpHeaders } from 'node:http';
+import { ROOT_CONTEXT, SpanKind, SpanStatusCode, context, propagation, trace, type Span } from '@opentelemetry/api';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs';
+import { AggregationTemporality, MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { BatchSpanProcessor, NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { error, warn } from 'firebase-functions/logger';
+import { isPreProduction } from './deployment';
 
-function providerForEnvironment(): NodeTracerProvider | undefined {
-  const endpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT;
-  const headers = process.env.OTEL_EXPORTER_OTLP_TRACES_HEADERS;
-  if (process.env.FUNCTIONS_EMULATOR === 'true' || !endpoint || !headers) return;
+const baseEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.replace(/\/+$/, '');
+const traceEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+  || (baseEndpoint && baseEndpoint + '/v1/traces');
+const traceHeaders = process.env.OTEL_EXPORTER_OTLP_TRACES_HEADERS || process.env.OTEL_EXPORTER_OTLP_HEADERS;
+const authorization = isPreProduction && process.env.FUNCTIONS_EMULATOR !== 'true'
+  ? process.env.FINBUDDY_DT_INGEST_AUTHORIZATION : undefined;
+const stage = isPreProduction ? 'pre-production' : process.env.FINBUDDY_DEPLOYMENT_ENVIRONMENT;
+const serviceName = process.env.FUNCTION_TARGET === 'finbuddyExpenseAudit' ? 'finbuddy-expense-audit' : 'finbuddy-api';
+const timeoutMillis = 1500;
+const traceUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp\/v1\/traces$/;
+const baseUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp$/;
+
+export const businessEventTarget = authorization && baseEndpoint && baseUrlPattern.test(baseEndpoint)
+  ? { url: new URL('/api/v2/bizevents/ingest', baseEndpoint), authorization }
+  : undefined;
+
+function makeRuntime() {
+  if (process.env.FUNCTIONS_EMULATOR === 'true' || (!authorization && !traceHeaders) || !traceEndpoint) return;
+  if (!traceUrlPattern.test(traceEndpoint)) {
+    warn('FinBuddy API telemetry endpoint is invalid');
+    return;
+  }
+
   try {
-    const url = new URL(endpoint);
-    if (!/^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp\/v1\/traces$/.test(url.href)) {
-      warn('FinBuddy API telemetry endpoint is invalid');
-      return;
+    const resource = resourceFromAttributes({
+      'service.name': serviceName,
+      'service.namespace': 'finbuddy',
+      'deployment.environment.name': stage === 'production' || stage === 'pre-production' ? stage : undefined,
+      'cloud.provider': 'gcp',
+      'cloud.platform': 'gcp_cloud_functions',
+      'cloud.region': 'asia-south1',
+      'cloud.account.id': process.env.GCLOUD_PROJECT,
+      'service.version': process.env.K_REVISION,
+      'build.commit': process.env.FINBUDDY_BUILD_COMMIT,
+    });
+    const headers = authorization ? { Authorization: authorization } : undefined;
+    const traces = new NodeTracerProvider({
+      resource,
+      spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter({
+        url: traceEndpoint, headers, timeoutMillis,
+      }), { maxExportBatchSize: 32, maxQueueSize: 128, exportTimeoutMillis: 2000 })],
+    });
+    if (!authorization || !baseEndpoint || !baseUrlPattern.test(baseEndpoint)) {
+      traces.register();
+      return { traces };
     }
-    const provider = new NodeTracerProvider({
-      resource: resourceFromAttributes({ 'service.name': 'finbuddy-api' }),
-      spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter({ url: url.href, timeoutMillis: 1500 }), {
+
+    const logs = new LoggerProvider({
+      resource,
+      processors: [new BatchLogRecordProcessor({
+        exporter: new OTLPLogExporter({ url: baseEndpoint + '/v1/logs', headers, timeoutMillis }),
         maxExportBatchSize: 32, maxQueueSize: 128, exportTimeoutMillis: 2000,
       })],
     });
-    provider.register();
-    return provider;
+    const metrics = new MeterProvider({
+      resource,
+      readers: [new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter({
+          url: baseEndpoint + '/v1/metrics', headers, timeoutMillis,
+          temporalityPreference: AggregationTemporality.DELTA,
+        }),
+        exportIntervalMillis: 30_000,
+        exportTimeoutMillis: 2000,
+      })],
+    });
+    const meter = metrics.getMeter(serviceName);
+    traces.register();
+    return {
+      traces, logs, metrics,
+      logger: logs.getLogger(serviceName),
+      requestCount: meter.createCounter('finbuddy.api.requests', { unit: '{request}' }),
+      requestDuration: meter.createHistogram('finbuddy.api.request.duration', { unit: 'ms' }),
+    };
   } catch {
     warn('FinBuddy API telemetry could not initialize');
     return undefined;
   }
 }
 
-const provider = providerForEnvironment();
-const tracer = trace.getTracer('finbuddy-api');
-export async function observe<T>(method: string, route: string, status: () => number, operation: () => Promise<T>) {
-  return tracer.startActiveSpan(`${method} ${route}`, {
+const runtime = makeRuntime();
+const tracer = trace.getTracer(serviceName);
+
+async function flush() {
+  const results = await Promise.allSettled([
+    runtime?.traces.forceFlush(), runtime?.logs?.forceFlush(), runtime?.metrics?.forceFlush(),
+  ]);
+  if (results.some(result => result.status === 'rejected')) warn('FinBuddy telemetry flush failed');
+}
+
+type Outcome = { status: number; errorType?: string };
+
+export async function observe<T>(
+  method: string,
+  route: string,
+  headers: IncomingHttpHeaders,
+  outcome: () => Outcome,
+  operation: () => Promise<T>,
+) {
+  const started = performance.now();
+  const parent = propagation.extract(ROOT_CONTEXT, headers);
+  return tracer.startActiveSpan(method + ' ' + route, {
     kind: SpanKind.SERVER,
     attributes: { 'http.request.method': method, 'http.route': route },
-  }, async (span) => {
+  }, parent, async span => {
     try {
       return await operation();
     } finally {
-      const code = status();
-      span.setAttribute('http.response.status_code', code);
-      if (code >= 500) span.setStatus({ code: SpanStatusCode.ERROR });
+      try {
+        const { status, errorType } = outcome();
+        const duration = performance.now() - started;
+        const attributes = {
+          'http.request.method': method,
+          'http.route': route,
+          'http.response.status_code': status,
+          ...(errorType && { 'error.type': errorType }),
+        };
+        span.setAttributes(attributes);
+        if (status >= 500) span.setStatus({ code: SpanStatusCode.ERROR });
+        runtime?.logger?.emit({
+          body: 'FinBuddy API request completed',
+          severityNumber: status >= 500 ? SeverityNumber.ERROR : status >= 400 ? SeverityNumber.WARN : SeverityNumber.INFO,
+          attributes: { ...attributes, 'duration.ms': duration },
+          context: context.active(),
+        });
+        runtime?.requestCount?.add(1, attributes);
+        runtime?.requestDuration?.record(duration, attributes);
+      } catch {
+        warn('FinBuddy telemetry could not record the request');
+      }
       span.end();
-      if (provider) await provider.forceFlush().catch(() => warn('FinBuddy API span flush failed'));
+      if (runtime) await flush().catch(() => warn('FinBuddy telemetry flush failed'));
+    }
+  });
+}
+
+export async function observeExpenseAudit(operation: (span: Span) => Promise<void>) {
+  return tracer.startActiveSpan('finbuddy.expense.audit', { kind: SpanKind.CONSUMER }, async span => {
+    try {
+      await operation(span);
+    } catch (cause) {
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      throw cause;
+    } finally {
+      span.end();
+      if (runtime) await flush().catch(() => warn('FinBuddy telemetry flush failed'));
     }
   });
 }

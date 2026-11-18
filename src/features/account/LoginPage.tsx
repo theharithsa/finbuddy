@@ -8,6 +8,7 @@ import { BrandMark, Wordmark } from '@/components/brand/BrandMark';
 import { observeOperation } from '@/lib/operation-monitoring';
 
 type Mode = 'signin' | 'signup' | 'reset' | 'link' | 'complete-link';
+const isPreProduction = import.meta.env.MODE === 'preprod';
 const headings: Record<Mode, string> = {
   signin: 'Welcome to FinBuddy', signup: 'Create your account', reset: 'Reset your password',
   link: 'Sign in with an email link', 'complete-link': 'Confirm your email',
@@ -113,7 +114,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             <div className="m3-login-toolbar"><div className="m3-mobile-wordmark"><Wordmark /></div><ThemeToggle /></div>
             <h2 id="login-heading">{headings[mode]}</h2>
             <p>{mode === 'signin' ? 'Sign in to pick up where you left off.' : 'Use the email address for your FinBuddy account.'}</p>
-            {mode === 'signin' && <>
+            {mode === 'signin' && !isPreProduction && <>
               <Button className="m3-google" variant="outline" type="button" disabled={busy} onClick={google}><img src="/icons/google-g.png" alt="" width={20} height={20} /> Continue with Google</Button>
               <div className="m3-login-divider"><span>or use email</span></div>
             </>}
@@ -126,14 +127,14 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
               <Button disabled={busy} type="submit">{busy ? 'Please wait…' : submitLabels[mode]}<ArrowRight size={17} /></Button>
             </form>
             <div className="m3-login-links">
-              {mode === 'signin' ? <>
+              {mode === 'signin' ? !isPreProduction && <>
                 <button type="button" disabled={busy} onClick={() => changeMode('signup')}>Create account</button>
                 <button type="button" disabled={busy} onClick={() => changeMode('reset')}>Forgot password?</button>
                 <button type="button" disabled={busy} onClick={() => changeMode('link')}>Email me a sign-in link</button>
               </> : <button type="button" disabled={busy} onClick={() => changeMode('signin')}>Back to sign in</button>}
             </div>
             {mode === 'signin' && <div className="m3-demo-invite">
-              <p>See a sample household before making an account.</p>
+              <p>{isPreProduction ? 'Explore an example with sample household data.' : 'See a sample household before making an account.'}</p>
               <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
               <div className="m3-login-links"><a href="/docs/index.html">Open the Help Center</a></div>
             </div>}

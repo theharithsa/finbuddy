@@ -8,6 +8,7 @@ import { BillPaymentError } from '../shared/household';
 import { DEFAULT_CATEGORIES, DEFAULT_INDIAN_APPS, getDefaultPeople } from '../shared/catalog';
 import { documentId, pageQuery, paymentInput, resources, tokenCreate, tokenInfo, type ResourceName } from './contracts';
 import { ApiError, requestData } from './errors';
+import { isPreProduction, preProductionTelemetryConfigured, telemetryAuthorization } from './deployment';
 import { idempotencyKey, monthQuery, openApi, operations, type Operation } from './openapi';
 import { changeRecord, createRecord, getReceiptPath, getRecord, getSummary, indiaToday, listRecords, receiptBucket, recordPayment } from './records';
 import { serveSwagger } from './swagger';
@@ -74,50 +75,44 @@ function queryPage(request: Request) {
 
 async function dispatch(operation: Operation, request: Request, response: Response, id: string) {
   if (operation.access === 'public') {
-    response.json({ status: 'ok' });
-    return;
+    return jsonReply(response, 200, { status: 'ok' });
   }
   const token = bearer(request.get('Authorization'));
   if (operation.access === 'session') {
     const session = await sessionUser(auth, token);
     if (operation.id === 'list-tokens') {
-      response.json(await listTokens(db, session.uid));
-    } else if (operation.id === 'create-token') {
+      return jsonReply(response, 200, await listTokens(db, session.uid));
+    }
+    if (operation.id === 'create-token') {
       requireRecentSignIn(session);
       const body = requestData(tokenCreate, requestBody(request));
-      response.status(201).json(await createToken(db, session.uid, body));
-    } else {
-      await revokeToken(db, session.uid, requestData(tokenInfo.shape.id, id));
-      response.status(204).end();
+      return jsonReply(response, 201, await createToken(db, session.uid, body));
     }
-    return;
+    await revokeToken(db, session.uid, requestData(tokenInfo.shape.id, id));
+    response.status(204);
+    return () => response.end();
   }
 
   const user = await authenticate(db, auth, token, operation.access === 'write');
   switch (operation.id) {
     case 'profile':
-      response.json({ uid: user.uid, name: user.displayName ?? null, email: user.email ?? null });
-      return;
+      return jsonReply(response, 200, { uid: user.uid, name: user.displayName ?? null, email: user.email ?? null });
     case 'catalog':
-      response.json({
+      return jsonReply(response, 200, {
         categories: DEFAULT_CATEGORIES.map(({ name }) => name),
         platforms: DEFAULT_INDIAN_APPS.map(({ name, category }) => ({ name, category })),
         people: getDefaultPeople().map(({ id, name, relationship }) => ({ id, name, relationship })),
       });
-      return;
     case 'summary': {
       const { month } = requestData(monthQuery, request.query);
-      response.json(await getSummary(db, user.uid, month ?? indiaToday().slice(0, 7)));
-      return;
+      return jsonReply(response, 200, await getSummary(db, user.uid, month ?? indiaToday().slice(0, 7)));
     }
     case 'list-payments': {
       const { limit, cursor } = queryPage(request);
-      response.json(await listRecords(db, user.uid, 'bill-payments', limit, cursor));
-      return;
+      return jsonReply(response, 200, await listRecords(db, user.uid, 'bill-payments', limit, cursor));
     }
     case 'record-payment':
-      response.json(await recordPayment(db, user.uid, id, requestData(paymentInput, requestBody(request))));
-      return;
+      return jsonReply(response, 200, await recordPayment(db, user.uid, id, requestData(paymentInput, requestBody(request))));
     case 'download-receipt':
       await sendReceipt(user, id, response);
       return;
@@ -127,30 +122,31 @@ async function dispatch(operation: Operation, request: Request, response: Respon
   if (!Object.hasOwn(resources, route)) throw notFound();
   const name = route as ResourceName;
   switch (operation.method) {
-    case 'GET':
-      if (id) response.json(await getRecord(db, user.uid, name, id));
-      else {
-        const { limit, cursor } = queryPage(request);
-        response.json(await listRecords(db, user.uid, name, limit, cursor));
-      }
-      return;
+    case 'GET': {
+      if (id) return jsonReply(response, 200, await getRecord(db, user.uid, name, id));
+      const { limit, cursor } = queryPage(request);
+      return jsonReply(response, 200, await listRecords(db, user.uid, name, limit, cursor));
+    }
     case 'POST': {
       const key = requestData(idempotencyKey, request.get('Idempotency-Key'));
       const { created, data } = await createRecord(db, user, name, requestBody(request), key);
-      response.status(created ? 201 : 200).json(data);
-      return;
+      return jsonReply(response, created ? 201 : 200, data);
     }
     case 'PATCH':
-      response.json(await changeRecord(db, user.uid, name, id, { body: requestBody(request) }));
-      return;
+      return jsonReply(response, 200, await changeRecord(db, user.uid, name, id, { body: requestBody(request) }));
     case 'DELETE':
       await changeRecord(db, user.uid, name, id, { delete: true });
-      response.status(204).end();
-      return;
+      response.status(204);
+      return () => response.end();
   }
 }
 
-function sendError(error: unknown, response: Response, operation: string) {
+function jsonReply(response: Response, status: number, body: unknown) {
+  response.status(status);
+  return () => response.json(body);
+}
+
+function errorReply(error: unknown, response: Response, operation: string) {
   if (response.headersSent || response.destroyed) {
     reportFailure(operation);
     response.destroy();
@@ -161,11 +157,13 @@ function sendError(error: unknown, response: Response, operation: string) {
     : new ApiError(500, 'server_error', 'FinBuddy could not complete this request.');
   if (known.status === 500) reportFailure(operation);
   if (known.status === 401) response.set('WWW-Authenticate', 'Bearer');
-  response.status(known.status).json({ error: { code: known.code, message: known.message } });
+  response.locals.finbuddyErrorType = known.code;
+  return jsonReply(response, known.status, { error: { code: known.code, message: known.message } });
 }
 
 export const finbuddyApi = onRequest({
-  region: 'asia-south1', invoker: 'public', maxInstances: 4, concurrency: 20, timeoutSeconds: 30, memory: '256MiB',
+  region: 'asia-south1', invoker: 'public', maxInstances: isPreProduction ? 1 : 4, concurrency: 20,
+  timeoutSeconds: 30, memory: '256MiB', secrets: preProductionTelemetryConfigured ? [telemetryAuthorization] : [],
 }, async (request, response) => {
   response.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
   const path = request.path.startsWith(`${base}/`) ? request.path.slice(base.length) : '';
@@ -177,7 +175,7 @@ export const finbuddyApi = onRequest({
       }
       if (await serveSwagger(path, response)) return;
     } catch (error) {
-      sendError(error, response, 'swagger');
+      errorReply(error, response, 'swagger')?.();
       return;
     }
   }
@@ -185,14 +183,23 @@ export const finbuddyApi = onRequest({
     if (operation.method !== request.method) continue;
     const match = matchPath(operation.path, path);
     if (match === undefined) continue;
-    await observe(operation.method, `${base}${operation.path}`, () => response.statusCode, async () => {
+    const reply = await observe(operation.method, `${base}${operation.path}`, request.headers, () => ({
+      status: response.statusCode, errorType: response.locals.finbuddyErrorType,
+    }), async () => {
       try {
-        await dispatch(operation, request, response, match ? decodeId(match) : '');
+        return await dispatch(operation, request, response, match ? decodeId(match) : '');
       } catch (error) {
-        sendError(error, response, operation.id);
+        return errorReply(error, response, operation.id);
       }
     });
+    try {
+      reply?.();
+    } catch (error) {
+      errorReply(error, response, operation.id)?.();
+    }
     return;
   }
-  sendError(notFound(), response, 'unknown');
+  errorReply(notFound(), response, 'unknown')?.();
 });
+
+export { finbuddyExpenseAudit } from './expense-events';
