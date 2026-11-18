@@ -4,19 +4,19 @@
 
 `src/lib/operation-monitoring.ts` wraps authentication, expense and budget mutations, household record changes, and bill payments in bounded Classic RUM actions. Household actions use `household.save`, `household.remove`, and `bill.payment`. Failures emit the fixed `finbuddy.operation` custom error key and an allowlisted code. Browser action completion describes the SDK result. No browser event is treated as a durable business event.
 
-The release defaults to RUM off. Enable a FinBuddy-specific Classic tag with `VITE_FINBUDDY_RUM_URL` only after checking masking, consent, replay and the destination tenant. The client accepts Dynatrace CDN tags and requires a browser opt-in. Set up `finbuddy.operation` as a custom error and use synthetic test accounts to verify the data. The app wrapper omits financial values, account identifiers, URLs, receipt details, search strings and raw exceptions.
+RUM requires a FinBuddy-specific Dynatrace CDN tag at build time and browser opt-in. Check masking, consent, replay and the destination tenant before supplying `VITE_FINBUDDY_RUM_URL`. Keep session replay disabled. Use synthetic test accounts to verify capture and the `finbuddy.operation` custom error. The app wrapper omits financial values, account identifiers, URLs, receipt details, search strings and raw exceptions.
 
 ## Firebase
 
-The browser writes to Firestore using Firebase Auth and existing owner-scoped rules. Those writes have no app-owned server span or canonical business event. The KautilyaAI screen shows Coming soon. The previously deployed `chatWithKautilya` callable and its Dynatrace OTLP configuration have a separate lifecycle. Treat callable telemetry as pending reconciliation and independent verification.
+The browser writes to Firestore using Firebase Auth and existing owner-scoped rules. When backend telemetry is enabled, `finbuddyExpenseAudit` captures committed changes to expense documents as server-confirmed BizEvents. Its audit span begins after the Firestore commit. The previously deployed `chatWithKautilya` callable has a separate runtime and observability lifecycle.
 
 See the [Firebase data handoff](../skills/service-firebase-data/continuation.md) for verified provider boundaries and [FinOps](../skills/project-finops/SKILL.md) for metered usage. Dynatrace ingestion and provider billable usage require separate evidence.
 
 ## REST API
 
-The REST API emits OTLP/HTTP protobuf spans as `finbuddy-api` in the `finbuddy` service namespace. Spans use the registered route template, method, and response status. Set `FINBUDDY_DEPLOYMENT_ENVIRONMENT` to `production` or `pre-production` on the API runtime so traces match the corresponding Dynatrace segment.
+The REST API emits OTLP/HTTP protobuf spans, request logs, and request count and duration metrics as `finbuddy-api` in the `finbuddy` service namespace. Use the registered route template, method and response status to find related signals. The Firebase project determines `deployment.environment.name` for supported live deployments.
 
-The exporter needs the Dynatrace OTLP base URL in `OTEL_EXPORTER_OTLP_ENDPOINT` and secret-backed `OTEL_EXPORTER_OTLP_HEADERS` on the deployed API. Use `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` for a full traces URL and `OTEL_EXPORTER_OTLP_TRACES_HEADERS` for traces-specific headers. A GitHub Actions variable applies only when the deployment passes it to the runtime. Keep the runtime ingest credential separate from the CI observer and verify a tagged trace in Grail after deployment. Structured function errors contain a fixed message and operation name. Tokens, owner IDs, request bodies, receipt paths and financial values stay out of custom telemetry.
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved Dynatrace OTLP base URL and bind `FINBUDDY_DT_INGEST_AUTHORIZATION` from the deployment's Firebase Secret Manager. Store the full authorization header there. Use a separate credential for each Firebase project and for the CI observer. Existing trace-only deployments can still use `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` and secret-backed `OTEL_EXPORTER_OTLP_TRACES_HEADERS` or `OTEL_EXPORTER_OTLP_HEADERS`. Tokens, owner IDs, request bodies, receipt paths and financial values stay out of custom telemetry.
 
 ## Delivery
 
@@ -39,7 +39,11 @@ Query the `FinBuddy Pre-Prod` segment in India CS. The expense trigger uses a st
 
 ### Production delivery
 
-GitHub Actions records lint, unit, isolated browser, build, and Hosting smoke outcomes. The production job verifies the Git revision and asset cache headers from live Hosting.
+Set the GitHub Actions variable `FINBUDDY_PROD_RUM_URL` to the JavaScript tag URL from the existing production Dynatrace frontend. The main-branch Hosting build passes this value to `VITE_FINBUDDY_RUM_URL`. GitHub Actions records lint, unit, isolated browser, build, and Hosting smoke outcomes and checks the live revision.
+
+For the checked production revision, set `FINBUDDY_ENABLE_BACKEND_TELEMETRY=true`, `OTEL_EXPORTER_OTLP_ENDPOINT` and `FINBUDDY_BUILD_COMMIT` in the API deployment environment. Provision the dedicated secret in the `finbuddy-2025` project before deploying `finbuddy-api:finbuddyApi` and `finbuddy-api:finbuddyExpenseAudit` with `firebase.api.json`. Deploy the API before Hosting promotion. Use the same signal checks in `FinBuddy Production`. Match the deployed commit on backend spans, and use only an isolated synthetic account for any production write probe.
+
+To pause backend telemetry, redeploy the API with the activation flag unset and disable the expense audit trigger through the Firebase release path. To pause browser capture, clear `FINBUDDY_PROD_RUM_URL` and publish a checked Hosting rebuild. Retain the previous Hosting version and API revision for recovery.
 
 The [Dynatrace CI observer](../.github/workflows/dynatrace-ci.yml) uses [Thoth v5.67.0](https://github.com/plengauer/Thoth/releases/tag/v5.67.0) to export workflow, job, and step spans plus count and duration metrics as `finbuddy-ci`. It observes completed `push` runs on `main` from this repository for **FinBuddy checks and Hosting** and **Foundation checks**, including failures. Thoth reads GitHub logs to reconstruct timing, with OTLP log export and debug output disabled. It uses a read-only Actions token in a separate job. The Dynatrace ingest secret is referenced only by the observer.
 

@@ -39,6 +39,7 @@ jobs:
         run: npm run build
         env:
           VITE_RELEASE_REVISION: ${{ github.sha }}
+          VITE_FINBUDDY_RUM_URL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.FINBUDDY_PROD_RUM_URL || '' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: github.event_name == 'push'
         with:

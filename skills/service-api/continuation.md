@@ -5,4 +5,4 @@
 - Source includes the HTTP API, Swagger UI, shared finance and token contracts, and Settings Developer Options.
 - The [application workflow](../../.github/workflows/finbuddy.yml) runs the API contract and isolated emulator suites. Review the current PR head checks for evidence.
 - The Gen 2 release uses the dedicated `finbuddy-api` codebase in `asia-south1`. Release it before publishing the Hosting rewrite.
-- Dynatrace API runtime export is optional and remains unverified in production. The CI observer uses a separate credential and service identity.
+- Deploy the API and expense audit with the environment-specific ingest secret and verify the resulting signals in the matching Dynatrace segment. Follow [observability delivery](../../docs/observability.md#production-delivery). The CI observer uses a separate credential and service identity.

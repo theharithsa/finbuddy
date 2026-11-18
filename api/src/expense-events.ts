@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto';
 import { isSpanContextValid } from '@opentelemetry/api';
 import { warn } from 'firebase-functions/logger';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { preProductionTelemetryConfigured, telemetryAuthorization } from './deployment';
+import { backendTelemetryEnabled, telemetryAuthorization } from './deployment';
 import { businessEventTarget, observeExpenseAudit } from './telemetry';
 
 const provider = 'finbuddy.expense-audit';
 const maxDeliveryAgeMillis = 60 * 60 * 1000;
 
-export const finbuddyExpenseAudit = preProductionTelemetryConfigured ? onDocumentWritten({
+export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten({
   document: 'users/{uid}/expenses/{expenseId}',
   region: 'asia-south1',
   retry: true,
@@ -52,7 +52,7 @@ export const finbuddyExpenseAudit = preProductionTelemetryConfigured ? onDocumen
           'event.authority': 'server-confirmed',
           'service.namespace': 'finbuddy',
           'service.name': 'finbuddy-expense-audit',
-          'deployment.environment.name': 'pre-production',
+          'deployment.environment.name': target.environment,
           'schema.version': 1,
           'transaction.id': key,
           'finbuddy.expense.change': action,

@@ -10,22 +10,21 @@ import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs
 import { AggregationTemporality, MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { BatchSpanProcessor, NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { error, warn } from 'firebase-functions/logger';
-import { isPreProduction } from './deployment';
+import { backendTelemetryEnabled, telemetryAuthorization, telemetryEnvironment } from './deployment';
 
 const baseEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.replace(/\/+$/, '');
 const traceEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
   || (baseEndpoint && baseEndpoint + '/v1/traces');
 const traceHeaders = process.env.OTEL_EXPORTER_OTLP_TRACES_HEADERS || process.env.OTEL_EXPORTER_OTLP_HEADERS;
-const authorization = isPreProduction && process.env.FUNCTIONS_EMULATOR !== 'true'
-  ? process.env.FINBUDDY_DT_INGEST_AUTHORIZATION : undefined;
-const stage = isPreProduction ? 'pre-production' : process.env.FINBUDDY_DEPLOYMENT_ENVIRONMENT;
+const authorization = backendTelemetryEnabled ? process.env[telemetryAuthorization]?.trim() : undefined;
+const stage = telemetryEnvironment ?? process.env.FINBUDDY_DEPLOYMENT_ENVIRONMENT;
 const serviceName = process.env.FUNCTION_TARGET === 'finbuddyExpenseAudit' ? 'finbuddy-expense-audit' : 'finbuddy-api';
 const timeoutMillis = 1500;
 const traceUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp\/v1\/traces$/;
 const baseUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp$/;
 
-export const businessEventTarget = authorization && baseEndpoint && baseUrlPattern.test(baseEndpoint)
-  ? { url: new URL('/api/v2/bizevents/ingest', baseEndpoint), authorization }
+export const businessEventTarget = authorization && telemetryEnvironment && baseEndpoint && baseUrlPattern.test(baseEndpoint)
+  ? { url: new URL('/api/v2/bizevents/ingest', baseEndpoint), authorization, environment: telemetryEnvironment }
   : undefined;
 
 function makeRuntime() {
