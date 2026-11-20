@@ -2,6 +2,8 @@
 
 Follow the [FinBuddy SDLC](sdlc.md) from issue intake through release verification. In the implementation PR, review the README, changelog, security guidance, and affected user, settings, technical, or delivery guides. Record what changed or why the existing documentation still applies.
 
+Persistent pre-production is deployed in Firebase project `finbuddy-preprod`. The [pre-production and production plan](preproduction-plan.md) records its verified state, the integrated candidate acceptance required next, and the pending automation changes in #172. The procedures below describe current release boundaries; automated pre-production acceptance is not yet enforced by the main workflow.
+
 ## Product site and handbook
 
 The [Hosting workflow](../.github/workflows/finbuddy.yml) builds the Help Center into the verified app artifact. After Hosting and API checks succeed, it calls the [Pages workflow](../.github/workflows/product-pages.yml) to publish the same revision. Verify the changed pages from the [live product site](https://theharithsa.github.io/finbuddy/) and the [live Help Center](https://finbuddy-2025.web.app/docs/), including the `source-revision` meta tag, links, and affected product media at desktop and phone widths. If a publication needs recovery, revert the scoped site or guide change through a PR and verify the replacement deployment.
