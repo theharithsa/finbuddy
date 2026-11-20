@@ -37,6 +37,8 @@ Deploy with `firebase deploy --project finbuddy-preprod --config firebase.prepro
 
 Query the `FinBuddy Pre-Prod` segment in India CS. The expense trigger uses a stable event ID and retries transient delivery failures within one hour. Deduplicate by `event.id` in aggregates. Its trace describes the asynchronous Firestore capture. The original browser write goes through the Firebase SDK. The event excludes account IDs, financial values, notes, and receipt references. Permanently rejected deliveries are reported to Firebase logs with an HTTP status.
 
+Release verification accounts use the reserved `finbuddy-release-<UUID>` UID pattern. Audit events expose only the bounded `test.synthetic` flag derived on the server, never that UID. Exclude `test.synthetic=true` from business adoption aggregates. The disposable, explicitly opted-in browser context uses the fixed native RUM tag `finbuddy-release-verification`; filter it out of household adoption/experience reports. Normal application sessions receive no identity tag from this harness.
+
 ### Production delivery
 
 Set the GitHub Actions variable `FINBUDDY_PROD_RUM_URL` to the JavaScript tag URL from the existing production Dynatrace frontend. The main-branch Hosting build passes this value to `VITE_FINBUDDY_RUM_URL`. GitHub Actions records lint, unit, isolated browser, build, and Hosting smoke outcomes and checks the live revision.

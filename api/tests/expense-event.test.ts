@@ -32,3 +32,10 @@ test('missing trace context is omitted and an invalid source marker is not expor
   assert.equal('span_id' in event.data, false);
   assert.equal('build.commit' in event.data, false);
 });
+
+test('synthetic verification is a bounded flag without a user identifier', () => {
+  const event = expenseEvent(source, 'id', time, 'created', 'pre-production', context, undefined, true);
+  assert.equal(event.data['test.synthetic'], true);
+  assert.equal(expenseEvent(source, 'id', time, 'created', 'production', context).data['test.synthetic'], false);
+  assert.equal(JSON.stringify(event).includes('synthetic-owner'), false);
+});

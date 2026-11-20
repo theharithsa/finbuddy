@@ -39,7 +39,7 @@ export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten(
         Authorization: target.authorization,
       },
       body: JSON.stringify(expenseEvent(event.source, event.id, occurredAt, action, target.environment,
-        correlation, process.env.FINBUDDY_BUILD_COMMIT)),
+        correlation, process.env.FINBUDDY_BUILD_COMMIT, /^finbuddy-release-[a-f0-9-]{36}$/.test(event.params.uid))),
       redirect: 'error',
       signal: AbortSignal.timeout(2500),
     });

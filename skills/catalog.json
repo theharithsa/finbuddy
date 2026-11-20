@@ -222,7 +222,7 @@
         "npm run test:release-control",
         "npm run build",
         "npm run test:run",
-        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
       "continuation": "skills/service-web/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
@@ -274,7 +274,7 @@
       ],
       "testCommands": [
         "npm run test:run",
-        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
       "continuation": "skills/service-firebase-data/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
@@ -304,7 +304,7 @@
       ],
       "testCommands": [
         "npm --prefix api test",
-        "npx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
       ],
       "continuation": "skills/service-api/continuation.md",
       "lastReviewedRevision": null

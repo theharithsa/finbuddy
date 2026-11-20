@@ -58,6 +58,12 @@ try {
       // Explicit opt-in belongs only to this disposable synthetic browser context.
       await page.evaluate(() => localStorage.setItem('finbuddy-usage-analytics', 'granted'));
       await page.reload();
+      await expect.poll(() => page.evaluate(() => typeof (window as Window & { dtrum?: { identifyUser?: unknown } }).dtrum?.identifyUser), { timeout: 30_000 }).toBe('function');
+      await page.evaluate(() => {
+        const rum = (window as Window & { dtrum?: { identifyUser: (label: string) => void } }).dtrum;
+        if (!rum) throw new Error('Missing opted-in RUM agent');
+        rum.identifyUser('finbuddy-release-verification');
+      });
       await page.getByLabel('Email', { exact: true }).fill(fixture.accounts[0].email);
       await page.getByLabel('Password', { exact: true }).fill(fixture.accounts[0].password);
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -132,6 +138,7 @@ try {
   await writeFile(`verification/${environment}-live.json`, JSON.stringify({ environment, project,
     source: process.env.CANDIDATE_SHA ?? process.env.GITHUB_SHA, at: new Date().toISOString(),
     probe: fixture?.probe, passed, failedCase: process.exitCode ? currentCase : null, cleaned,
+    rumVerificationTag: 'finbuddy-release-verification',
     googleIdentityProvider: 'Interactive Google login remains a separate account-owner check; emulator avatar and configured-provider checks cover the unchanged integration.' }, null, 2));
   process.stdout.write(`Live acceptance: ${passed.length} scenarios passed; synthetic cleanup ${cleaned ? 'passed' : 'not completed'}.\n`);
 }
