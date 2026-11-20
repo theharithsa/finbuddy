@@ -6,7 +6,9 @@ import { hasControlCharacters, paymentInput, paymentOutput, resource, resourceOu
 import { ApiError, requestData } from './errors';
 import { digest } from './tokens';
 
-export const receiptBucket = process.env.FUNCTIONS_EMULATOR === 'true' ? 'demo-finbuddy.appspot.com' : 'finbuddy-2025.firebasestorage.app';
+import { storageBucket } from './deployment';
+
+export const receiptBucket = storageBucket;
 const maximumSummaryRows = 2000;
 export function receiptPath(uid: string, value: unknown): string | undefined {
   if (typeof value !== 'string') return;
