@@ -368,7 +368,7 @@
       ]
     },
     "sdlc": {
-      "intro": "FinBuddy ships through a checked pull request to main. This guide shows how to take one product change from issue to live verification.",
+      "intro": "FinBuddy currently ships through a checked pull request to main. A separate hosted pre-production app is available; the next release-control work will require its acceptance before production promotion. This guide describes the current workflow.",
       "sections": [
         {
           "id": "intake-and-planning",
@@ -434,6 +434,20 @@
       ],
       "sections": [
         {
+          "id": "hosted-pre-production",
+          "title": "Where pre-production fits",
+          "paragraphs": [
+            "FinBuddy has a separate hosted environment in Firebase project finbuddy-preprod. Use synthetic accounts there to validate a release candidate before production. The 20 November review found different web and API source revisions, so the next rehearsal must identify one integrated source and record the affected service versions.",
+            "The current main workflow still publishes production Hosting directly after its checks. Issue #172 adds the staging and promotion controls; issue #174 records the complete rehearsal. The pre-production acceptance gate is pending implementation. A merge to main remains a production release decision today."
+          ],
+          "links": [
+            ["Open pre-production", "https://finbuddy-preprod.web.app/"],
+            ["Reviewed release plan", "https://github.com/theharithsa/finbuddy/issues/171"],
+            ["Release controls", "https://github.com/theharithsa/finbuddy/issues/172"],
+            ["Candidate rehearsal", "https://github.com/theharithsa/finbuddy/issues/174"]
+          ]
+        },
+        {
           "id": "what-ci-verifies",
           "title": "Read the check that failed",
           "table": [
@@ -491,7 +505,7 @@
           "id": "finvision-integration-in-discovery",
           "title": "FinVision discovery",
           "paragraphs": [
-            "The first slice is intended for signed-in FinBuddy users who also use FinVision. Its goal is a clear view of the agreed FinVision records inside FinBuddy. Discovery is the current milestone. It has no due date, and wider availability has no target window yet."
+            "The first slice is intended for signed-in FinBuddy users who also use FinVision. Its goal is a clear view of the agreed FinVision records inside FinBuddy. Discovery targets 13 December 2026 and covers identity, the first page and its sync contract, and verification and recovery. Implementation will get a separate pre-production pilot after discovery. Wider availability has no target window yet."
           ],
           "links": [
             ["FinVision discovery milestone", "https://github.com/theharithsa/finbuddy/milestone/4"],
