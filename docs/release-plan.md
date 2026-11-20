@@ -2,7 +2,7 @@
 
 Follow the [FinBuddy SDLC](sdlc.md) from issue intake through release verification. In the implementation PR, review the README, changelog, security guidance, and affected user, settings, technical, or delivery guides. Record what changed or why the existing documentation still applies.
 
-Persistent pre-production is deployed in Firebase project `finbuddy-preprod`. The [pre-production and production plan](preproduction-plan.md) records its verified state, the integrated candidate acceptance required next, and the pending automation changes in #172. The procedures below describe current release boundaries; automated pre-production acceptance is not yet enforced by the main workflow.
+Persistent pre-production is deployed in Firebase project `finbuddy-preprod`. Follow the [release controls](release-controls.md) for the staged candidate, exact-source acceptance, OIDC deployment and promotion rejection cases. The [pre-production plan](preproduction-plan.md) preserves the audit and backlog sequence; runtime receipts are tracked in #174 and #169.
 
 ## Product site and handbook
 
@@ -12,8 +12,8 @@ The [Hosting workflow](../.github/workflows/finbuddy.yml) builds the Help Center
 
 1. Open an issue-linked PR and run the [checks](testing.md) for the exact head. Obtain the review required by GitHub and verify the merge commit.
 2. For authorized preview review, build with `VITE_RELEASE_REVISION` set to the tested Git SHA. Reuse the approved preview channel for sign-in tests. Deploy with `--no-authorized-domains` to preserve the existing Auth list. Verify a new hostname and obtain authorization before editing Auth domains. Use emulators for synthetic writes.
-3. The [main workflow](../.github/workflows/finbuddy.yml) tests the merged revision, uploads `finbuddy-hosting`, and deploys the same `dist/` artifact to the `finbuddy-2025` live channel. Its production environment uses the `FIREBASE_SERVICE_ACCOUNT_FINBUDDY_2025` secret by name. Manual promotion requires authorization and the tested Hosting version.
-4. Verify the live SHA, cache headers and assets with `node scripts/verify-hosting.mjs https://finbuddy-2025.web.app <checked-git-sha>`. CI uses `--wait-for-revision` to retry up to three times if Hosting still serves a valid older SHA. Other failures stop the job immediately. Record failed checks and any later verification in the linked issue.
+3. The [application workflow](../.github/workflows/finbuddy.yml) builds both environment bundles in the staging run and stores `finbuddy-release`. Production verifies the accepted source/run/attempt and artifact digests before OIDC authentication, then publishes the accepted production bundle. Environment-scoped workload identity replaces the legacy Hosting key in this path. Manual recovery still requires the identified compatible Hosting version and backend releases.
+4. Verify the live SHA, cache headers and assets with `node scripts/verify-hosting.mjs https://finbuddy-2025.web.app <accepted-source-sha>`. The source marker identifies the accepted staging source, while GitHub separately records the promotion merge commit. CI uses `--wait-for-revision` for a bounded propagation delay. Other failures stop the job immediately. Record failed checks and any later verification in the linked issue.
 5. Record the Hosting version and live release ID, the SHA and verification in [release evidence](../qa/evidence.json). Publish an immutable application tag for an authorized release. Use the [versioning policy](versioning.md) for template tags and provenance.
 
 For an authorized rollback, identify the exact previously verified Hosting version in release history and confirm its SHA. Restore that version through Hosting release history or pinned Firebase CLI version promotion, then verify the restored SHA and assets. Rollback restores web content and configuration. Review provider state separately for rules, data and Functions.

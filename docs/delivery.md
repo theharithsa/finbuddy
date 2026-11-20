@@ -2,6 +2,8 @@
 
 Track FinBuddy work in the [FinBuddy GitHub Project](https://github.com/users/theharithsa/projects/1). The [Sprint planning view](https://github.com/users/theharithsa/projects/1/views/2) shows open work by iteration. The [Milestones view](https://github.com/users/theharithsa/projects/1/views/3) groups tracked work by its repository milestone. Use the [repository milestones](https://github.com/theharithsa/finbuddy/milestones?state=all) for releases, discovery, and ongoing dependency work.
 
+Implementation integrates through protected `preprod`. The [release controls](release-controls.md) bind the checked source and environment-specific artifacts to a successful isolated deployment and owner acceptance receipt before a promotion PR can release through `main`. Keep implementation, source merge, provider deployment and fresh runtime verification as distinct evidence states.
+
 - [Roadmap](https://github.com/users/theharithsa/projects/1/views/4) shows scheduled work on the Sprint timeline, grouped by milestone.
 - [Kanban](https://github.com/users/theharithsa/projects/1/views/5) shows work by Status, with labels, milestones, and sprints on cards.
 - [Issues](https://github.com/users/theharithsa/projects/1/views/6) shows each issue's type label alongside its milestone and sprint. Choose Bug report, Feature request, Task, or Agent brief at intake. Issues created without a type are classified by the issue type assignment workflow.

@@ -3,6 +3,8 @@ const productionProject = 'finbuddy-2025';
 const project = process.env.GCLOUD_PROJECT;
 const isProduction = project === productionProject;
 export const isPreProduction = project === preprodProject;
+export const runtimeServiceAccount = (isPreProduction || isProduction) && process.env.FUNCTIONS_EMULATOR !== 'true'
+  ? `finbuddy-runtime@${project}.iam.gserviceaccount.com` : undefined;
 export const telemetryEnvironment = isPreProduction ? 'pre-production' : isProduction ? 'production' : undefined;
 export const backendTelemetryEnabled = process.env.FUNCTIONS_EMULATOR !== 'true'
   && Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT)

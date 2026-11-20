@@ -368,7 +368,7 @@
       ]
     },
     "sdlc": {
-      "intro": "FinBuddy currently ships through a checked pull request to main. A separate hosted pre-production app is available; the next release-control work will require its acceptance before production promotion. This guide describes the current workflow.",
+      "intro": "FinBuddy integrates changes through a checked pull request to preprod. An isolated hosted rehearsal and an acceptance receipt identify the source that a promotion PR can release to main. This guide shows where each delivery check belongs.",
       "sections": [
         {
           "id": "intake-and-planning",
@@ -389,7 +389,7 @@
           "id": "development-and-documentation",
           "title": "Open a reviewable PR",
           "steps": [
-            "Branch from main, keep the change focused, and link the issue with Closes #N for completed work or Refs #N for part of the work.",
+            "Branch from preprod, keep the change focused, and link the issue with Refs #N during implementation. Use closing links on the main promotion only for fully delivered work.",
             "Update any affected guide in the same PR. Under Documentation impact, write Updated: followed by the affected guides, or No change: followed by the reason.",
             "Record what you ran, what you saw at phone and desktop sizes if relevant, and how to recover the affected release."
           ],
@@ -399,7 +399,7 @@
           "id": "review-and-merge",
           "title": "Check the actual candidate",
           "paragraphs": [
-            "Use the current diff and resolve review threads. Main requires foundation, verify and verify-api on a candidate that is up to date. The repository uses a solo-maintainer policy with zero independent approvals."
+            "Use the current diff and resolve review threads. Required checks cover foundation, web, API and the historical Functions build. Production additionally requires the promotion gate and exact-source pre-production acceptance. The repository retains zero required independent approvals."
           ],
           "table": [
             ["Change", "Evidence to bring to review"],
@@ -425,20 +425,20 @@
       ]
     },
     "pipeline": {
-      "intro": "The pull request proves the change. Main builds the release artifact, verifies the deployed app, and then publishes the product site for the same revision.",
+      "intro": "A checked staging source produces both environment bundles. Pre-production proves the integrated candidate, and a verified promotion releases its accepted production artifact before publishing the product site.",
       "stages": [
-        ["Pull request", "Foundation checks repo contracts, docs and links. Web and API jobs test real user and account paths with Firebase emulators."],
-        ["Build on main", "Re-run web and API checks. Upload the production web bundle and the generated Help Center as the finbuddy-hosting artifact."],
-        ["Deploy and verify Hosting", "Deploy that artifact. Check the live Git SHA, cached asset rules, icons and API routes before continuing."],
-        ["Publish Pages", "Build the product site and handbook from the same Git revision. Publish after Hosting verification passes."]
+        ["Implementation PR to preprod", "Check repository contracts, docs, dependencies, web and API emulator journeys, and the historical Functions build."],
+        ["Build and rehearse pre-production", "Build both environment bundles from one source. Deploy the isolated API/audit and web candidate, then check synthetic journeys, permissions, fresh telemetry and recovery."],
+        ["Promote the accepted source", "The promotion gate verifies the successful run, attempt, acceptance receipt and artifact hashes. Deploy backend prerequisites and that accepted production web artifact, then repeat live checks."],
+        ["Publish Pages", "Publish the product site and handbook from the accepted source after production verification. Record the separate promotion merge SHA in GitHub."]
       ],
       "sections": [
         {
           "id": "hosted-pre-production",
           "title": "Where pre-production fits",
           "paragraphs": [
-            "FinBuddy has a separate hosted environment in Firebase project finbuddy-preprod. Use synthetic accounts there to validate a release candidate before production. The 20 November review found different web and API source revisions, so the next rehearsal must identify one integrated source and record the affected service versions.",
-            "The current main workflow still publishes production Hosting directly after its checks. Issue #172 adds the staging and promotion controls; issue #174 records the complete rehearsal. The pre-production acceptance gate is pending implementation. A merge to main remains a production release decision today."
+            "FinBuddy has a separate hosted environment in Firebase project finbuddy-preprod. The staging run identifies the checked source, both web artifact hashes and the API source. Synthetic accounts exercise the real deployment without using household records from production.",
+            "The owner acceptance receipt belongs to one successful staging run and attempt. A missing, failed, expired or changed receipt blocks production. Source or artifact changes require fresh acceptance. Issue #174 records the rehearsal and recovery evidence; issue #169 records fresh production telemetry and cleanup."
           ],
           "links": [
             ["Open pre-production", "https://finbuddy-preprod.web.app/"],
@@ -455,7 +455,9 @@
             ["foundation", "The PR documentation decision, repository contracts, and both public builds."],
             ["verify", "Lint, JavaScript tests, browser flows on Firebase emulators, or the Vite build."],
             ["verify-api", "API unit and contract tests, or the isolated emulator suite."],
-            ["deploy", "The Firebase Hosting deploy receipt, live revision verification, and API smoke results."],
+            ["verify-functions", "The historical Functions build and audit, without deploying the old callable source."],
+            ["promotion", "The exact accepted staging source/run/attempt, receipt age, artifact hashes and promotion tree."],
+            ["deploy-preprod / deploy", "Environment-scoped deployment, live source/denial checks, synthetic API/browser journeys, ownership checks and cleanup."],
             ["publish-product-site", "The Pages package, deploy result, and public handbook revision."]
           ],
           "links": [
@@ -554,8 +556,19 @@
       ],
       "releases": [
         {
+          "version": "3.1.2",
+          "status": "Release controls and maintenance · November 2026",
+          "summary": "Adds isolated pre-production acceptance and a checked production promotion path, environment-scoped deployment identities, dependency audit gates, and live synthetic checks for the household workspace and API. Household records and supported API operations retain their existing contracts.",
+          "links": [
+            ["Release controls and evidence", "https://github.com/theharithsa/finbuddy/issues/172"],
+            ["Pre-production acceptance", "https://github.com/theharithsa/finbuddy/issues/174"],
+            ["Production verification", "https://github.com/theharithsa/finbuddy/issues/169"]
+          ],
+          "title": "Checked releases through pre-production"
+        },
+        {
           "version": "3.1.1",
-          "status": "Current production version line · November 2026",
+          "status": "Previous maintenance version · November 2026",
           "summary": "Maintenance updates for the signed-in workspace and the Firebase services used by the API. The current app includes the household tools and personal API tokens from the earlier releases below.",
           "links": [
             ["Source tag", "https://github.com/theharithsa/finbuddy/tree/v3.1.1"],

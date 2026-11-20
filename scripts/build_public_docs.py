@@ -231,7 +231,7 @@ def build(root, output, hosting=False):
         raise ValueError('Public guide slugs must match the handbook, roadmap and release history.')
     guide_media = {section['figure'][0] for data in config['guides'].values()
                    for section in data['sections'] if section.get('figure')}
-    revision = os.getenv('GITHUB_SHA') or (os.getenv('VITE_RELEASE_REVISION') if hosting else None)
+    revision = os.getenv('FINBUDDY_SOURCE_REVISION') or os.getenv('GITHUB_SHA') or (os.getenv('VITE_RELEASE_REVISION') if hosting else None)
     if revision and not re.fullmatch('[0-9a-f]{40}', revision):
         raise ValueError('Invalid GitHub source revision')
     if output.is_symlink():

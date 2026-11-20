@@ -1,7 +1,7 @@
 {
     "name": "finbuddy",
     "private": true,
-    "version": "3.1.1",
+    "version": "3.1.2",
     "type": "module",
     "scripts": {
         "predev": "python scripts/build_public_docs.py --hosting",
@@ -31,7 +31,9 @@
         "deploy": "npm run deploy:build && npm run deploy:firebase",
         "deploy:preview": "npm run deploy:build && firebase hosting:channel:deploy preview",
         "test:browser": "playwright test",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "typecheck:release": "tsc --project tsconfig.release.json",
+        "test:release-control": "node --test tests/release-control.test.mts"
     },
     "dependencies": {
         "@fontsource-variable/google-sans": "5.3.2",
@@ -72,6 +74,7 @@
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",
+        "@types/node": "24.19.2",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react-swc": "4.3.3",

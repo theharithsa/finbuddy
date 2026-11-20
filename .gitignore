@@ -26,6 +26,10 @@ dist-ssr
 *.sw?
 
 .env
+api/.env.*
+release/
+gha-creds-*.json
+verification/
 **/agent-eval-report*
 packages
 .file-manifest
