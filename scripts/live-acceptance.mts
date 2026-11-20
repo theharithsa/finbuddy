@@ -29,7 +29,7 @@ try {
       const credential = result.stdout.trim();
       const targets: string[] = [
         `https://firestore.googleapis.com/v1/projects/finbuddy-2025/databases/(default)/documents/users/${fixture.accounts[0].uid}`,
-        'https://storage.googleapis.com/storage/v1/b/finbuddy-2025.firebasestorage.app',
+        `https://storage.googleapis.com/storage/v1/b/finbuddy-2025.firebasestorage.app/o/${encodeURIComponent(`receipts/${fixture.accounts[0].uid}/missing-isolation-probe.txt`)}`,
         'https://secretmanager.googleapis.com/v1/projects/finbuddy-2025/secrets/FINBUDDY_DT_INGEST_AUTHORIZATION/versions/latest:access',
       ];
       for (const target of targets) {
@@ -41,6 +41,7 @@ try {
     passed.push('release-and-runtime-identities-denied-production-data-files-and-secret');
   }
 
+  currentCase = 'hosted-browser-launch';
   const browser = await chromium.launch();
   try {
     for (const width of [1365, 390]) {
