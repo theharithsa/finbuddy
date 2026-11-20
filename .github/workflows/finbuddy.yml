@@ -51,7 +51,7 @@ jobs:
       - run: node --test tests/release-control.test.mts
       - run: npm run test:run
       - run: npx --no-install playwright install --with-deps chromium
-      - run: npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
+      - run: npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
       - name: Check web build
         run: npm run build
         env:
@@ -77,10 +77,9 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
         with:
-          name: finbuddy-release
+          name: finbuddy-release-${{ github.run_attempt }}
           path: release/
           if-no-files-found: error
-          overwrite: true
           retention-days: 7
 
   verify-api:
@@ -102,7 +101,7 @@ jobs:
       - run: npm --prefix api ci --no-fund --no-audit
       - run: npm --prefix api audit --audit-level=low
       - run: npm --prefix api test
-      - run: npx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+      - run: npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
 
   verify-functions:
     runs-on: ubuntu-latest
@@ -132,6 +131,7 @@ jobs:
       source: ${{ steps.accepted.outputs.source }}
       run: ${{ steps.accepted.outputs.run }}
       receipt: ${{ steps.accepted.outputs.receipt }}
+      attempt: ${{ steps.accepted.outputs.attempt }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -148,7 +148,7 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         if: steps.accepted.outputs.run != ''
         with:
-          name: finbuddy-release
+          name: finbuddy-release-${{ steps.accepted.outputs.attempt }}
           path: release/
           github-token: ${{ github.token }}
           run-id: ${{ steps.accepted.outputs.run }}
@@ -183,7 +183,7 @@ jobs:
           node-version: '24'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: finbuddy-release
+          name: finbuddy-release-${{ github.run_attempt }}
           path: release/
       - run: node scripts/release-control.mts verify
       - run: npm ci --no-fund --no-audit
@@ -210,7 +210,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: preprod-verification
+          name: preprod-verification-${{ github.run_attempt }}
           path: verification/*.json
           if-no-files-found: warn
           retention-days: 14
@@ -240,7 +240,7 @@ jobs:
           node-version: '24'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: finbuddy-release
+          name: finbuddy-release-${{ needs.promotion.outputs.attempt }}
           path: release/
           github-token: ${{ github.token }}
           run-id: ${{ needs.promotion.outputs.run }}
@@ -276,7 +276,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: production-verification
+          name: production-verification-${{ github.run_attempt }}
           path: verification/*.json
           if-no-files-found: warn
           retention-days: 14

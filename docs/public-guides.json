@@ -308,7 +308,7 @@
           "paragraphs": [
             "Install Java 21 and Chromium for the web suite. Run the web commands below from the root on Node.js 24."
           ],
-          "code": "npx --no-install playwright install chromium\nnpx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\"",
+          "code": "npx --no-install playwright install chromium\nnpx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\"",
           "note": "Both suites use demo-finbuddy. Run the web and API emulator suites separately so that the shared emulator ports are free."
         },
         {
@@ -317,7 +317,7 @@
           "paragraphs": [
             "Switch to Node.js 22 for the API runtime and keep Java 21 available. Run these commands from the root in a fresh terminal after the web suite stops."
           ],
-          "code": "npm --prefix api ci\nnpm --prefix api test\nnpx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\"",
+          "code": "npm --prefix api ci\nnpm --prefix api test\nnpx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\"",
           "note": "The API suite creates synthetic accounts, makes scoped requests, and checks token expiry, owner boundaries and idempotent writes.",
           "links": [
             ["Test a local client against the API emulators", "https://github.com/theharithsa/finbuddy/blob/main/docs/api.md#local-verification"]

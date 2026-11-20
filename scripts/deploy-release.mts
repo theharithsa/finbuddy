@@ -42,7 +42,7 @@ await writeFile(`api/.env.${project}`, [
   'OTEL_EXPORTER_OTLP_ENDPOINT=https://indiacs.live.dynatrace.com/api/v2/otlp',
   'FINBUDDY_ENABLE_BACKEND_TELEMETRY=true', `FINBUDDY_BUILD_COMMIT=${source}`, '',
 ].join('\n'), { mode: 0o600 });
-command(npx, ['--yes', 'firebase-tools@14.27.0', 'deploy', '--non-interactive', '--project', project,
+command(npx, ['--yes', 'firebase-tools@15.37.0', 'deploy', '--non-interactive', '--project', project,
   '--config', 'firebase.api.json', '--only', 'functions:finbuddy-api']);
 
 // These generated artifacts are in this checkout; never follow an external dist symlink.
@@ -53,7 +53,7 @@ try { assert.equal(await realpath(target), target); }
 catch (error) { if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')) throw error; }
 await rm(target, { recursive: true, force: true });
 await cp(`release/${prefix}`, target, { recursive: true, dereference: false });
-command(npx, ['--yes', 'firebase-tools@14.20.0', 'deploy', '--non-interactive', '--project', project,
+command(npx, ['--yes', 'firebase-tools@15.37.0', 'deploy', '--non-interactive', '--project', project,
   '--config', environment === 'pre-production' ? 'firebase.preprod.json' : 'firebase.json', '--only', 'hosting']);
 const after = { project, source, at: new Date().toISOString(), hosting: await hostingVersion(),
   backend: ['finbuddyApi', 'finbuddyExpenseAudit'].map(backendVersion),

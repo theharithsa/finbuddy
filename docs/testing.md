@@ -22,7 +22,7 @@ To run the real browser scenarios against Firebase Auth, Firestore and Storage e
 
 ```sh
 npx --no-install playwright install chromium
-npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
+npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
 ```
 
 For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser fixtures create disposable Auth users and synthetic finance records under the demo project. Run only against the emulator. Playwright starts its own local Vite process.
