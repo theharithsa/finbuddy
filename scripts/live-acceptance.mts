@@ -127,6 +127,13 @@ try {
       await nav.getByRole('button', { name: 'More', exact: true }).click();
       await page.getByRole('button', { name: 'Sign out', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Welcome to FinBuddy', exact: true })).toBeVisible();
+      await page.evaluate(() => {
+        const rum = (window as Window & { dtrum?: { endSession: () => void } }).dtrum;
+        if (!rum) throw new Error('Missing opted-in RUM agent');
+        rum.endSession();
+      });
+      // Let the explicitly ended disposable session dispatch its final beacon before closing Chrome.
+      await page.waitForTimeout(1200);
       await context.close();
     }
   } finally { await browser.close(); }
