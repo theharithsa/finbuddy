@@ -163,6 +163,35 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal((await api(`/expenses/${expenseId}/receipt`, read.token)).status, 404);
   });
 
+  await t.test('Storage rules isolate receipt reads, metadata changes and deletes, and deny flat paths', async () => {
+    const bucket = getStorage(app).bucket();
+    const ownerPath = `receipts/${first.localId}/rules-check.txt`;
+    const legacyPath = 'receipts/legacy-rules-check.txt';
+    const bytes = 'Synthetic rules fixture';
+    await bucket.file(ownerPath).save(Buffer.from(bytes), { contentType: 'text/plain' });
+    await bucket.file(legacyPath).save(Buffer.from(bytes), { contentType: 'text/plain' });
+    const url = (path: string) => `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodeURIComponent(path)}`;
+    const owner = { Authorization: `Firebase ${first.idToken}` };
+    const otherOwner = { Authorization: `Firebase ${second.idToken}` };
+    try {
+      const read = await fetch(url(ownerPath) + '?alt=media', { headers: owner });
+      assert.equal(read.status, 200);
+      assert.equal(await read.text(), bytes);
+      assert.equal((await fetch(url(ownerPath) + '?alt=media')).status, 403);
+      assert.equal((await fetch(url(ownerPath) + '?alt=media', { headers: otherOwner })).status, 403);
+      assert.equal((await fetch(url(ownerPath), { method: 'PATCH', headers: { ...otherOwner, 'Content-Type': 'application/json' }, body: JSON.stringify({ contentType: 'application/pdf' }) })).status, 403);
+      assert.equal((await fetch(url(ownerPath), { method: 'DELETE', headers: otherOwner })).status, 403);
+      assert.equal((await fetch(url(ownerPath), { method: 'PATCH', headers: { ...owner, 'Content-Type': 'application/json' }, body: JSON.stringify({ contentType: 'text/plain' }) })).status, 200);
+      for (const headers of [undefined, owner, otherOwner]) {
+        assert.equal((await fetch(url(legacyPath) + '?alt=media', { headers })).status, 403);
+      }
+      assert.equal((await fetch(url(ownerPath), { method: 'DELETE', headers: owner })).status, 204);
+    } finally {
+      await bucket.file(ownerPath).delete({ ignoreNotFound: true });
+      await bucket.file(legacyPath).delete({ ignoreNotFound: true });
+    }
+  });
+
   await t.test('keeps non-expiring tokens active alongside dated tokens and revokes either kind', async () => {
     const never = await mint(first.idToken, 'read', null);
     assert.equal(never.expiresAt, null);

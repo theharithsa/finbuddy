@@ -33,6 +33,8 @@ Public Firebase app configuration and approved tag URLs use repository variables
 
 ## Live tests, recovery and evidence
 
+Receipt policy is an independent prerequisite. Deployment reads its release/ruleset identity and checks the normalized source digest against checked-in `storage.rules` before changing the application. A failed direct Storage ownership check blocks acceptance even if the REST receipt endpoint is owner-scoped. A policy cutover that affects legacy files requires verified owner reconciliation, recovery metadata and explicit authorization for existing-data changes; a synthetic-only rehearsal does not authorize that migration.
+
 [live-acceptance.mts](../scripts/live-acceptance.mts) requires an explicitly selected environment and `FINBUDDY_ALLOW_SYNTHETIC_WRITES=true`. It creates random accounts with the `finbuddy-release-` UID prefix and `example.test` addresses. Credentials remain in process memory and are never uploaded. The API suite verifies each resource, bill-payment idempotency, summaries, owner denial, receipt rules, token scopes/expiry/revocation and a synthetic record-plus-receipt restore. Desktop/mobile browser checks exercise sign-in, expense edits/persistence/deletion, navigation, appearance, Developer Options, token revocation and opt-in RUM. Cleanup runs in `finally`, is restricted to those fixture identities, and gates success.
 
 Reports under `verification/` contain only bounded scenario IDs, outcomes, revision/probe markers, provider identities and cleanup results. Keep them separate from an interactive Google-provider sign-in, emulator evidence and independent tenant searches. Do not describe a RUM tag load as proof of a searchable action, or a successful ingest response as a tenant query result.

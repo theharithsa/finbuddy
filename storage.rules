@@ -10,12 +10,6 @@ service firebase.storage {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Legacy support for receipts without user folder structure (less secure but needed for existing files)
-    match /receipts/{allPaths=**} {
-      // Allow authenticated users to read/write receipt files (for backward compatibility)
-      allow read, write: if request.auth != null;
-    }
-    
     // Deny all other storage access by default
     match /{allPaths=**} {
       allow read, write: if false;

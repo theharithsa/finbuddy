@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -24,6 +25,27 @@ async function hostingVersion(): Promise<unknown> {
   const body = await response.json() as { releases?: Array<{ name: string; releaseTime: string; version: { name: string } }> };
   return body.releases?.map(row => ({ name: row.name, time: row.releaseTime, version: row.version?.name })) ?? [];
 }
+async function storagePolicy() {
+  const token = command(gcloud, ['auth', 'print-access-token'], true);
+  const read = async (path: string): Promise<unknown> => {
+    const response = await fetch(`https://firebaserules.googleapis.com/v1/${path}`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Goog-User-Project': project },
+      signal: AbortSignal.timeout(20_000), redirect: 'error',
+    });
+    assert.equal(response.status, 200, 'Storage policy recovery metadata unavailable');
+    return response.json();
+  };
+  const releases = await read(`projects/${project}/releases`) as { releases?: Array<{ name: string; rulesetName: string }> };
+  const release = releases.releases?.find(item => item.name === `projects/${project}/releases/firebase.storage/${project}.firebasestorage.app`);
+  assert.ok(release, 'Receipt Storage policy is not provisioned');
+  const ruleset = await read(release.rulesetName) as { source?: { files?: Array<{ name: string; content: string }> } };
+  const files = ruleset.source?.files;
+  assert.equal(files?.length, 1, 'Unexpected Storage policy source layout');
+  assert.ok(files?.[0]);
+  const digest = (code: string) => createHash('sha256').update(code.replace(/\r\n/g, '\n').trimEnd()).digest('hex');
+  return { release: release.name, ruleset: release.rulesetName, digest: digest(files[0].content),
+    checkedDigest: digest(await readFile('storage.rules', 'utf8')) };
+}
 const backends = { finbuddyApi: 'finbuddyapi', finbuddyExpenseAudit: 'finbuddyexpenseaudit' } as const;
 type BackendName = keyof typeof backends;
 type BackendSnapshot = { name: BackendName; absent: true } | {
@@ -47,8 +69,10 @@ function backendVersion(name: BackendName): BackendSnapshot {
 const backendNames = Object.keys(backends) as BackendName[];
 await mkdir('verification', { recursive: true });
 const before = { project, at: new Date().toISOString(), hosting: await hostingVersion(),
-  backend: backendNames.map(backendVersion) };
+  backend: backendNames.map(backendVersion), storagePolicy: await storagePolicy() };
 await writeFile(`verification/${prefix}-before.json`, JSON.stringify(before, null, 2));
+assert.equal(before.storagePolicy.digest, before.storagePolicy.checkedDigest,
+  'Deploy the reviewed receipt-policy prerequisite before the application release');
 assert.equal(command(gcloud, ['secrets', 'versions', 'describe', 'latest', '--secret=FINBUDDY_DT_INGEST_AUTHORIZATION',
   `--project=${project}`, '--format=value(state)'], true), 'ENABLED', 'Missing enabled environment-specific ingest secret');
 await writeFile(`api/.env.${project}`, [
@@ -87,7 +111,7 @@ await cp(`release/${prefix}`, target, { recursive: true, dereference: false });
 command(npx, ['--yes', 'firebase-tools@15.37.0', 'deploy', '--non-interactive', '--project', project,
   '--config', environment === 'pre-production' ? 'firebase.preprod.json' : 'firebase.json', '--only', 'hosting']);
 const after = { project, source, at: new Date().toISOString(), hosting: await hostingVersion(),
-  backend: backendNames.map(backendVersion),
+  backend: backendNames.map(backendVersion), storagePolicy: await storagePolicy(),
   candidate: JSON.parse(await readFile('release/receipt.json', 'utf8')) as unknown };
 await writeFile(`verification/${prefix}-deployed.json`, JSON.stringify(after, null, 2));
 process.stdout.write(`Deployed checked ${environment} source ${source}; provider identities recorded.\n`);

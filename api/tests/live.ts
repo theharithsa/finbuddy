@@ -167,10 +167,16 @@ export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: s
   assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes);
   assert.equal((await api(`/expenses/${record.id}/receipt`, other.token)).status, 404);
   const privateUrl = receiptUrl.replace('&token=synthetic', '');
+  checkpoint('receipt-owner-storage-rule');
+  const ownerRead = await fetch(privateUrl, { headers: { Authorization: `Firebase ${first.session}` }, signal: AbortSignal.timeout(20_000) });
+  assert.equal(ownerRead.status, 200);
+  assert.deepEqual(Buffer.from(await ownerRead.arrayBuffer()), bytes);
+  checkpoint('receipt-signed-out-storage-denial');
   const signedOut = await fetch(privateUrl, { signal: AbortSignal.timeout(20_000) });
-  assert.ok([401, 403].includes(signedOut.status));
+  assert.equal(signedOut.status, 403);
+  checkpoint('receipt-second-account-storage-denial');
   const secondRead = await fetch(privateUrl, { headers: { Authorization: `Firebase ${second.session}` }, signal: AbortSignal.timeout(20_000) });
-  assert.ok([401, 403].includes(secondRead.status));
+  assert.equal(secondRead.status, 403);
   passed.push('live-receipt-rules-and-api-isolation');
 
   // Rehearse restoration only inside the synthetic account, including its associated file.
