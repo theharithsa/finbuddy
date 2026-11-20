@@ -1,0 +1,42 @@
+# Release controls and acceptance
+
+FinBuddy integrates through protected `preprod` and promotes through a PR from `preprod` to protected `main`. Both branches retain zero mandatory independent reviewers. The checks and the release-owner acceptance receipt supply the evidence for an authorized release. [Issue #172](https://github.com/theharithsa/finbuddy/issues/172) tracks these controls; [#174](https://github.com/theharithsa/finbuddy/issues/174) owns rehearsal and [#169](https://github.com/theharithsa/finbuddy/issues/169) owns production telemetry acceptance.
+
+## Candidate and promotion
+
+The [application workflow](../.github/workflows/finbuddy.yml) checks foundation contracts, web lint/unit/browser behavior, API contracts/emulators, and the historical Functions build. All three package trees have an audit gate. PR jobs receive no cloud identity or Dynatrace ingest credential.
+
+A trusted push to `preprod` builds the pre-production and production web bundles from the same source, using each environment's public Firebase/RUM configuration. The `finbuddy-release-<attempt>` artifact contains both bundles and a receipt with source SHA, Git tree, CI run and attempt, creation time, and SHA-256 directory digests for both bundles and the API source. Retention is seven days; acceptance expires after 24 hours. A workflow rerun changes its attempt and requires a full rebuild and fresh acceptance. Verification artifacts also include the attempt so earlier failure/recovery reports remain available.
+
+The pre-production deployment checks the artifact, deploys only the `finbuddy-api` backend codebase and Hosting, then runs live health, denial, synthetic API/browser and effective IAM-isolation checks. It records previous and deployed provider release identities and effective traffic allocations. Before Hosting cutover, each backend must have the checked source and dedicated identity; deployment explicitly routes 100% of traffic to that exact revision and reads the allocation back. Cloud Run preserves earlier rollback allocations across subsequent deployments, so a deployed revision alone does not prove it is serving. The old callable source in `/functions` is built and audited but is never selected by this deployment.
+
+Before promotion, the release owner completes the independent fresh Dynatrace and recovery checks in #174 and records `preprod-acceptance` on the exact source commit. Its description binds the successful staging run, attempt and SHA-256 of `receipt.json`. Publish success only after the required checks pass; publish failure to withdraw acceptance. This status is an operational test receipt, not a request for a second reviewer.
+
+The `promotion` check accepts only a same-repository PR from `preprod` to `main`, the latest successful owner receipt, and a completed successful push run from the exact application workflow. It downloads the identified artifact and rechecks its hashes, age, source tree and API source. Missing/failed acceptance, forks, wrong workflow/project, source changes, stale/rerun evidence, modified artifacts and a different promotion merge tree fail the gate. Regression tests in [release-control.test.mts](../tests/release-control.test.mts) exercise these failures.
+
+On a `main` push, the gate resolves the actual merged promotion PR and repeats verification before cloud authentication. Production deploys the API/audit prerequisites and the exact production web artifact from the accepted run. The web marker and backend `FINBUDDY_BUILD_COMMIT` identify that accepted source; the distinct GitHub promotion merge SHA is retained in the run. Pages builds from the accepted source and records the same revision after live checks pass.
+
+## Deployment identity and secrets
+
+| Environment | Firebase project | GitHub environment | Allowed deployment branch |
+| --- | --- | --- | --- |
+| Pre-production | `finbuddy-preprod` | `pre-production` | `preprod` |
+| Production | `finbuddy-2025` | `Production` | `main` |
+
+Each project uses its own `finbuddy-release` deployment service account and `finbuddy-runtime` application service account. GitHub authenticates through Workload Identity Federation, with the repository ID, branch, GitHub environment and exact application workflow bound in the provider condition. Read `repos/theharithsa/finbuddy/actions/oidc/customization/sub` when configuring trust: this repository uses the immutable owner/repository-ID subject format. Preserve that setting and bind its actual `sub_claim_prefix`. No new service-account key is created. Environment-scoped variables `FINBUDDY_WIF_PROVIDER` and `FINBUDDY_DEPLOY_SERVICE_ACCOUNT` identify the trust and deployer. Deployment groups are serialized without cancellation.
+
+The runtime has project-local database/user-read, receipt-read and event-delivery permissions and a binding to its own ingest secret. The release identity can deploy the affected services and provision/clean synthetic test fixtures in its project. It can act as the runtime and existing Cloud Build identity for deployment. Firebase CLI's preflight also requires account-scoped Service Account User on the project's App Engine default account; this is distinct from the actual dedicated runtime selection. No service-account-user role is granted project-wide. Existing legacy identities are retained for unrelated services. Read effective IAM rather than assuming project separation proves isolation. The live suite tests both pre-production release and runtime identities against production database, bucket and secret endpoints and requires denial.
+
+`FINBUDDY_DT_INGEST_AUTHORIZATION` is a separate Secret Manager credential in each project. Store the complete authorization header, restrict it to the four required ingest signals, and bind it only to the intended runtime. Credentials never enter artifacts, public variables or PR jobs. The CI Thoth observer retains its separate ingestion credential.
+
+Public Firebase app configuration and approved tag URLs use repository variables `FINBUDDY_PREPROD_API_KEY`, `FINBUDDY_PREPROD_APP_ID`, `FINBUDDY_PREPROD_RUM_URL`, `FINBUDDY_PROD_API_KEY` and `FINBUDDY_PROD_RUM_URL`. Browser analytics remains opt-in and replay stays disabled. The existing pre-production login accepts admin-provisioned email users; production preserves its existing Google provider.
+
+## Live tests, recovery and evidence
+
+[live-acceptance.mts](../scripts/live-acceptance.mts) requires an explicitly selected environment and `FINBUDDY_ALLOW_SYNTHETIC_WRITES=true`. It creates random accounts with the `finbuddy-release-` UID prefix and `example.test` addresses. Credentials remain in process memory and are never uploaded. The API suite verifies each resource, bill-payment idempotency, summaries, owner denial, receipt rules, token scopes/expiry/revocation and a synthetic record-plus-receipt restore. Desktop/mobile browser checks exercise sign-in, expense edits/persistence/deletion, navigation, appearance, Developer Options, token revocation and opt-in RUM. Cleanup runs in `finally`, is restricted to those fixture identities, and gates success.
+
+Reports under `verification/` contain only bounded scenario IDs, outcomes, revision/probe markers, provider identities and cleanup results. Keep them separate from an interactive Google-provider sign-in, emulator evidence and independent tenant searches. Do not describe a RUM tag load as proof of a searchable action, or a successful ingest response as a tenant query result.
+
+Before release, preserve the preceding Hosting version, API/audit source, environment configuration and rules/index identities. Rehearse component rollback in pre-production and restore the candidate; recheck its served source and denials afterward. Never restore old source over a schema it cannot read, including non-expiring tokens. There is no destructive automatic household-data rollback. Synthetic record/file restoration does not establish backup coverage for customer data; verify provider coverage separately before a data migration. This release changes no stored household schema.
+
+Attach the successful run/attempt, candidate receipt digest, provider revisions, live scenario results, fresh signal-query evidence, recovery result and cleanup to #174 and #169. Changes after acceptance require affected checks again. See the [release and rollback guide](release-plan.md), [observability contract](observability.md) and [reviewed backlog plan](preproduction-plan.md).

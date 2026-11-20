@@ -1,5 +1,5 @@
 import { localDate } from '@/lib/finance-period';
-import { initializeApp, FirebaseError } from 'firebase/app';
+import { initializeApp, FirebaseError, type FirebaseOptions } from 'firebase/app';
 import { getAuth, connectAuthEmulator, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User, sendSignInLinkToEmail, signInWithEmailLink, isSignInWithEmailLink, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, increment, deleteField, type FieldValue, Unsubscribe } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -14,7 +14,7 @@ import type { Budget, Expense, Person } from './types';
 // 5. Enable Storage
 // 6. Add your domain to authorized domains in Authentication > Settings > Authorized domains
 // 7. Copy your config from Project Settings > General > Your apps
-const firebaseConfig = {
+const productionFirebaseConfig = {
   apiKey: "AIzaSyDrZD1uiFf6BCTBvMi0WDoAr0VJrEwXWL8",
   authDomain: "finbuddy-2025.firebaseapp.com",
   projectId: "finbuddy-2025",
@@ -24,14 +24,29 @@ const firebaseConfig = {
   measurementId: "G-ESNPQSYLCB"
 };
 
-// Initialize Firebase
+function preProductionFirebaseConfig(): FirebaseOptions {
+  const projectId = 'finbuddy-preprod';
+  const apiKey = import.meta.env.VITE_FINBUDDY_PREPROD_API_KEY;
+  const appId = import.meta.env.VITE_FINBUDDY_PREPROD_APP_ID;
+  if (!apiKey || !appId || apiKey === productionFirebaseConfig.apiKey || appId === productionFirebaseConfig.appId) {
+    throw new Error('FinBuddy pre-production requires its own Firebase web app configuration.');
+  }
+  return {
+    apiKey,
+    appId,
+    projectId,
+    authDomain: `${projectId}.firebaseapp.com`,
+    storageBucket: `${projectId}.firebasestorage.app`,
+  };
+}
+
 const useEmulators = import.meta.env.DEV && import.meta.env.VITE_FIREBASE_EMULATORS === 'true';
 const app = initializeApp(useEmulators ? {
   apiKey: 'demo-key',
   projectId: 'demo-finbuddy',
   authDomain: 'demo-finbuddy.firebaseapp.com',
   storageBucket: 'demo-finbuddy.appspot.com',
-} : firebaseConfig);
+} : import.meta.env.MODE === 'preprod' ? preProductionFirebaseConfig() : productionFirebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);

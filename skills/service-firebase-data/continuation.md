@@ -1,5 +1,7 @@
 # Firebase data continuation
 
+Release controls for [#172](https://github.com/theharithsa/finbuddy/issues/172) isolate `finbuddy-preprod` and `finbuddy-2025`, including their runtime and GitHub OIDC release identities. The hosted suite must prove owner/signed-out/second-account receipt denials and pre-production identity denial against production database/bucket/secret endpoints. Its synthetic record-plus-file restore is distinct from customer backup coverage. Current provider/acceptance receipts stay in #174/#169; no household schema or production data migration is part of this release.
+
 Inspected `22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115` on 10 November 2026. The Firebase project is `finbuddy-2025`. Google Cloud reports the default Firestore database in `asia-south1` and the receipt bucket `finbuddy-2025.firebasestorage.app` in `US-EAST1`.
 
 - Auth preserves the existing identity and Google and email sign-in flow. The public demo uses synthetic records. Browser emulator scenarios use `demo-finbuddy`.

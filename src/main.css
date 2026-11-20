@@ -48,3 +48,10 @@
   button:not(:disabled), select { cursor: pointer; }
   [hidden] { display: none !important; }
 }
+.finbuddy-preprod-banner {
+  background: #293427;
+  color: #f0f5df;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
+  text-align: center;
+}
