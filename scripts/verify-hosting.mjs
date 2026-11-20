@@ -7,7 +7,7 @@ if (!url || !/^[a-f0-9]{40}$/.test(revision ?? '')) {
 }
 const origin = new URL(url);
 assert.equal(origin.protocol, 'https:');
-assert.match(origin.hostname, /^finbuddy-2025(?:--[a-z0-9-]+)?\.web\.app$/);
+assert.match(origin.hostname, /^(?:finbuddy-2025(?:--[a-z0-9-]+)?|finbuddy-preprod)\.web\.app$/);
 const waits = mode === '--wait-for-revision' ? [0, 5_000, 10_000, 15_000] : [0];
 async function readLiveIndex() {
   let servedRevision;

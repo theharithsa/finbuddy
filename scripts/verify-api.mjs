@@ -4,8 +4,10 @@ const [endpoint] = process.argv.slice(2);
 const targets = new Set([
   'https://finbuddy-2025.web.app',
   'https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi',
+  'https://finbuddy-preprod.web.app',
+  'https://asia-south1-finbuddy-preprod.cloudfunctions.net/finbuddyApi',
 ]);
-assert.ok(targets.has(endpoint), 'Use the FinBuddy Hosting or Functions production endpoint.');
+assert.ok(targets.has(endpoint), 'Use a FinBuddy Hosting or Functions endpoint.');
 
 const read = (path) => fetch(`${endpoint}/api/v1/${path}`, {
   cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(15_000),
