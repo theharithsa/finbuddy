@@ -1,11 +1,9 @@
-import { createHash } from 'node:crypto';
-import { isSpanContextValid } from '@opentelemetry/api';
 import { warn } from 'firebase-functions/logger';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { backendTelemetryEnabled, runtimeServiceAccount, telemetryAuthorization } from './deployment';
 import { businessEventTarget, observeExpenseAudit } from './telemetry';
+import { expenseEvent } from './expense-event-contract';
 
-const provider = 'finbuddy.expense-audit';
 const maxDeliveryAgeMillis = 60 * 60 * 1000;
 
 export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten({
@@ -30,7 +28,6 @@ export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten(
   }
   const { before, after } = event.data;
   const action = after.exists ? before.exists ? 'updated' : 'created' : 'removed';
-  const key = createHash('sha256').update(event.source).update('\0').update(event.id).digest('hex');
 
   await observeExpenseAudit(async span => {
     span.setAttribute('finbuddy.expense.change', action);
@@ -41,27 +38,8 @@ export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten(
         'Content-Type': 'application/cloudevent+json',
         Authorization: target.authorization,
       },
-      body: JSON.stringify({
-        specversion: '1.0',
-        id: key,
-        source: provider,
-        type: `finbuddy.expense.${action}`,
-        time: new Date(occurredAt).toISOString(),
-        data: {
-          'event.id': key,
-          'event.provider': provider,
-          'event.authority': 'server-confirmed',
-          'service.namespace': 'finbuddy',
-          'service.name': 'finbuddy-expense-audit',
-          'deployment.environment.name': target.environment,
-          'schema.version': 1,
-          'build.commit': process.env.FINBUDDY_BUILD_COMMIT,
-          'transaction.id': key,
-          'finbuddy.expense.change': action,
-          'correlation.origin': 'firestore-audit',
-          ...(isSpanContextValid(correlation) && { trace_id: correlation.traceId, span_id: correlation.spanId }),
-        },
-      }),
+      body: JSON.stringify(expenseEvent(event.source, event.id, occurredAt, action, target.environment,
+        correlation, process.env.FINBUDDY_BUILD_COMMIT)),
       redirect: 'error',
       signal: AbortSignal.timeout(2500),
     });

@@ -5,7 +5,8 @@ const isProduction = project === productionProject;
 export const isPreProduction = project === preprodProject;
 export const runtimeServiceAccount = (isPreProduction || isProduction) && process.env.FUNCTIONS_EMULATOR !== 'true'
   ? `finbuddy-runtime@${project}.iam.gserviceaccount.com` : undefined;
-export const telemetryEnvironment = isPreProduction ? 'pre-production' : isProduction ? 'production' : undefined;
+export type DeploymentEnvironment = 'pre-production' | 'production';
+export const telemetryEnvironment: DeploymentEnvironment | undefined = isPreProduction ? 'pre-production' : isProduction ? 'production' : undefined;
 export const backendTelemetryEnabled = process.env.FUNCTIONS_EMULATOR !== 'true'
   && Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
   && (isPreProduction || (isProduction && process.env.FINBUDDY_ENABLE_BACKEND_TELEMETRY === 'true'));
