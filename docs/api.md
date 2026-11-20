@@ -29,7 +29,7 @@ curl --fail-with-body "$FINBUDDY_BASE_URL/api/v1/summary?month=2026-01" \
   -H "Authorization: Bearer $FINBUDDY_API_TOKEN"
 ```
 
-A create requires an `Idempotency-Key` header. Repeating the key with the same body returns the same record. A different body with the same key returns a conflict. Bill payments instead deduplicate by bill and due month. List routes support `limit` from 1 to 100 and an opaque `nextCursor`. IDs, dates and request sizes are validated. PATCH updates supplied fields.
+A create requires an `Idempotency-Key` header. The first successful create returns `201 Created`; repeating the key with the same body returns the same record with `200 OK`. A different body with the same key returns a conflict. Bill payments instead deduplicate by bill and due month. List routes support `limit` from 1 to 100 and an opaque `nextCursor`. IDs, dates and request sizes are validated. PATCH updates supplied fields.
 
 Expense and budget amounts are in INR with up to two decimal places. Household and summary amounts use integer paise. The monthly summary reads a bounded set of records for the requested month and current holdings and budgets. Its remaining amount subtracts recorded expenses from recorded income. It does not subtract unpaid bills.
 

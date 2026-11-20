@@ -18,7 +18,7 @@ let cleaned = false;
 try {
   fixture = await live.prepare(project, process.env.FINBUDDY_LIVE_API_KEY);
   currentCase = 'hosted-api';
-  passed.push(...await live.exerciseApi(fixture));
+  passed.push(...await live.exerciseApi(fixture, scenario => { currentCase = `hosted-api/${scenario}`; }));
   if (environment === 'pre-production') {
     currentCase = 'effective-production-isolation';
     const cli = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
@@ -56,6 +56,7 @@ try {
       if (environment === 'production') await expect(google).toBeVisible();
       else await expect(google).toHaveCount(0); // Existing pre-production uses admin-provisioned email accounts.
       // Explicit opt-in belongs only to this disposable synthetic browser context.
+      currentCase = `browser-${width}-rum-opt-in`;
       await page.evaluate(() => localStorage.setItem('finbuddy-usage-analytics', 'granted'));
       await page.reload();
       await expect.poll(() => page.evaluate(() => typeof (window as Window & { dtrum?: { identifyUser?: unknown } }).dtrum?.identifyUser), { timeout: 30_000 }).toBe('function');
@@ -64,11 +65,13 @@ try {
         if (!rum) throw new Error('Missing opted-in RUM agent');
         rum.identifyUser('finbuddy-release-verification');
       });
+      currentCase = `browser-${width}-email-sign-in`;
       await page.getByLabel('Email', { exact: true }).fill(fixture.accounts[0].email);
       await page.getByLabel('Password', { exact: true }).fill(fixture.accounts[0].password);
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Your money, in view.', exact: true })).toBeVisible();
       const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
+      currentCase = `browser-${width}-expense-create-edit-delete`;
       await nav.getByRole('button', { name: 'Expenses', exact: true }).click();
       await page.getByRole('button', { name: 'Add expense', exact: true }).click();
       const add = page.getByRole('dialog', { name: 'Add expense', exact: true });
@@ -91,11 +94,13 @@ try {
       passed.push(`browser-${width}-expense-create-edit-reload-delete`);
       for (const [label, heading] of [['Bills & EMIs', 'Bills & EMIs'], ['Budgets', 'Budgets'], ['Overview', 'Overview'],
         ['Recurring', 'Recurring templates'], ['Categories', 'Categories'], ['People', 'People']]) {
+        currentCase = `browser-${width}-navigation-${label}`;
         await nav.getByRole('button', { name: 'More', exact: true }).click();
         await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: new RegExp(`^${label}`) }).click();
         await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Horizontal page overflow');
       }
+      currentCase = `browser-${width}-preferences-and-developer-options`;
       await nav.getByRole('button', { name: 'More', exact: true }).click();
       await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: /^Settings/ }).click();
       const sections = page.getByRole('navigation', { name: 'Settings sections' });
@@ -125,9 +130,12 @@ try {
       await context.close();
     }
   } finally { await browser.close(); }
-} catch {
+} catch (error) {
   // Never print browser errors, input values, response bodies or generated credentials.
   process.stderr.write(`Release acceptance failed at ${currentCase}; inspect this bounded scenario.\n`);
+  if (error instanceof assert.AssertionError && typeof error.actual === 'number' && typeof error.expected === 'number') {
+    process.stderr.write(`Synthetic numeric assertion: expected ${error.expected}; received ${error.actual}.\n`);
+  }
   process.exitCode = 1;
 } finally {
   if (fixture) {
