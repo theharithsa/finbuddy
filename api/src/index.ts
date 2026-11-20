@@ -8,7 +8,7 @@ import { BillPaymentError } from '../shared/household';
 import { DEFAULT_CATEGORIES, DEFAULT_INDIAN_APPS, getDefaultPeople } from '../shared/catalog';
 import { documentId, pageQuery, paymentInput, resources, tokenCreate, tokenInfo, type ResourceName } from './contracts';
 import { ApiError, requestData } from './errors';
-import { backendTelemetryEnabled, isPreProduction, telemetryAuthorization } from './deployment';
+import { backendTelemetryEnabled, isPreProduction, runtimeServiceAccount, telemetryAuthorization } from './deployment';
 import { idempotencyKey, monthQuery, openApi, operations, type Operation } from './openapi';
 import { changeRecord, createRecord, getReceiptPath, getRecord, getSummary, indiaToday, listRecords, receiptBucket, recordPayment } from './records';
 import { serveSwagger } from './swagger';
@@ -162,10 +162,13 @@ function errorReply(error: unknown, response: Response, operation: string) {
 }
 
 export const finbuddyApi = onRequest({
+  serviceAccount: runtimeServiceAccount,
   region: 'asia-south1', invoker: 'public', maxInstances: isPreProduction ? 1 : 4, concurrency: 20,
   timeoutSeconds: 30, memory: '256MiB', secrets: backendTelemetryEnabled ? [telemetryAuthorization] : [],
 }, async (request, response) => {
   response.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
+  const source = process.env.FINBUDDY_BUILD_COMMIT;
+  if (source && /^[a-f0-9]{40}$/.test(source)) response.set('X-FinBuddy-Revision', source);
   const path = request.path.startsWith(`${base}/`) ? request.path.slice(base.length) : '';
   if (request.method === 'GET') {
     try {

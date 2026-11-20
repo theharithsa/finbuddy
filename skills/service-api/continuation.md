@@ -1,5 +1,7 @@
 # API continuation
 
+The release-control implementation for [#172](https://github.com/theharithsa/finbuddy/issues/172) uses isolated pre-production and production runtime identities, explicit source markers and environment-local secret bindings. `finbuddyExpenseAudit` captures committed expense changes without values/owner identifiers. `api/tests/live.ts` adds guarded synthetic API, ownership, receipt, expiry/revocation and record/file recovery checks. Follow [release controls](../../docs/release-controls.md); current provider and tenant evidence stays in [#174](https://github.com/theharithsa/finbuddy/issues/174) and [#169](https://github.com/theharithsa/finbuddy/issues/169).
+
 - [Issue #119](https://github.com/theharithsa/finbuddy/issues/119) completed in [PR #120](https://github.com/theharithsa/finbuddy/pull/120). The first production API revision was `finbuddyapi-00001-sav` in `asia-south1`. Direct and Hosting API smoke checks passed. A synthetic signed-in browser test generated and revoked a token in production.
 - [Issue #122](https://github.com/theharithsa/finbuddy/issues/122) adds optional non-expiring tokens. Deploy the API before the sidebar update and retain a null-aware API and Settings revision for recovery after non-expiring credentials are issued.
 - Source includes the HTTP API, Swagger UI, shared finance and token contracts, and Settings Developer Options.

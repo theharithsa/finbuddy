@@ -40,3 +40,15 @@ test('pre-production retains its separate telemetry activation', () => {
     enabled: false, environment: 'pre-production',
   });
 });
+
+test('runtime identity stays within the selected project and emulators use no live identity', () => {
+  const script = 'process.stdout.write(require(process.argv[1]).runtimeServiceAccount ?? "none")';
+  for (const project of ['finbuddy-preprod', 'finbuddy-2025']) {
+    const read = (environment: NodeJS.ProcessEnv) => execFileSync(process.execPath, ['-e', script, modulePath], {
+      encoding: 'utf8', env: environment,
+    });
+    assert.equal(read({ GCLOUD_PROJECT: project }), `finbuddy-runtime@${project}.iam.gserviceaccount.com`);
+    assert.equal(read({ GCLOUD_PROJECT: project, FUNCTIONS_EMULATOR: 'true' }), 'none');
+    assert.equal(read({ GCLOUD_PROJECT: 'another-project' }), 'none');
+  }
+});

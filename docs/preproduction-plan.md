@@ -2,6 +2,8 @@
 
 Reviewed on 20 November 2026 against GitHub, the live Firebase sites and read-only Google Cloud resource metadata. [Planning issue #171](https://github.com/theharithsa/finbuddy/issues/171) owns this review. Implementation and runtime acceptance remain in their linked issues. Dates below are planning targets in Asia/Kolkata; a failed prerequisite moves the dependent target.
 
+This file preserves the planning baseline before implementation. Use the [release-control guide](release-controls.md) and the linked delivery issues for the subsequent workflow, provider releases and acceptance receipts; the gap and backlog snapshots below are historical.
+
 ## What is deployed
 
 | Boundary | Pre-production | Production |

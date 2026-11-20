@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [FinBuddy checks and Hosting, Foundation checks]
     types: [completed]
-    branches: [main]
+    branches: [main, preprod]
 
 permissions: {}
 
@@ -12,6 +12,7 @@ jobs:
   export:
     if: >-
       github.event.workflow_run.event == 'push' &&
+      contains(fromJSON('["main","preprod"]'), github.event.workflow_run.head_branch) &&
       github.event.workflow_run.head_repository.id == github.event.repository.id &&
       vars.DYNATRACE_OTLP_ENDPOINT != ''
     permissions:

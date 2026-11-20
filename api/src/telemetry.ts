@@ -23,7 +23,7 @@ const timeoutMillis = 1500;
 const traceUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp\/v1\/traces$/;
 const baseUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp$/;
 
-export const businessEventTarget = authorization && telemetryEnvironment && baseEndpoint && baseUrlPattern.test(baseEndpoint)
+export const businessEventTarget: { url: URL; authorization: string; environment: NonNullable<typeof telemetryEnvironment> } | undefined = authorization && telemetryEnvironment && baseEndpoint && baseUrlPattern.test(baseEndpoint)
   ? { url: new URL('/api/v2/bizevents/ingest', baseEndpoint), authorization, environment: telemetryEnvironment }
   : undefined;
 

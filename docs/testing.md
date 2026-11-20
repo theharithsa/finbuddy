@@ -6,11 +6,17 @@ Use Node.js 24, Python 3 and Java 21 for CI-equivalent checks. On Windows, put G
 python scripts/check_foundation.py --ready
 sh scripts/check.sh
 npm run lint -- --quiet
+npm run typecheck:release
+npm run test:release-control
 npm run test:run
 npm run build
 ```
 
 The foundation check validates the PR's **Documentation impact** section in CI and builds the public handbook with its internal links and anchors. For a local handbook check, run `python scripts/build_public_docs.py`. Use the [FinBuddy SDLC](sdlc.md) to map the change to the required CI and release checks.
+
+The [release-control tests](../tests/release-control.test.mts) reject failed/missing/stale acceptance, wrong source/tree/project, untrusted workflow/fork/PR runs, rerun attempts, changed artifacts and wrong acceptance actors. Root, API and historical Functions audits block on any reported vulnerability. The Functions build uses Node 22 and does not deploy the historical callable.
+
+Hosted acceptance is a privileged release step, separate from these emulator tests. It requires an explicit environment and synthetic-write flag, keeps generated credentials in memory, and always cleans its guarded fixture accounts. Reports identify the actual API/browser/isolation/recovery scenarios and source. Use [release controls](release-controls.md) and #174/#169 for its authorized execution, independent tenant evidence and component recovery receipts.
 
 To run the real browser scenarios against Firebase Auth, Firestore and Storage emulators:
 

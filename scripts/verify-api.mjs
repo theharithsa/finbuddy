@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const [endpoint] = process.argv.slice(2);
+const [endpoint, expectedRevision] = process.argv.slice(2);
 const targets = new Set([
   'https://finbuddy-2025.web.app',
   'https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi',
@@ -16,6 +16,10 @@ const health = await read('health');
 assert.equal(health.status, 200, 'API health must respond with 200.');
 assert.match(health.headers.get('content-type') ?? '', /application\/json/);
 assert.deepEqual(await health.json(), { status: 'ok' });
+if (expectedRevision) {
+  assert.match(expectedRevision, /^[a-f0-9]{40}$/);
+  assert.equal(health.headers.get('x-finbuddy-revision'), expectedRevision, 'API revision mismatch');
+}
 
 const [schema, unsigned] = await Promise.all([read('openapi.json'), read('expenses')]);
 assert.equal(schema.status, 200);

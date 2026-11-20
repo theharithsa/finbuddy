@@ -26,7 +26,7 @@ The signed-in workspace adds expense entry and receipts, category budgets, recur
 | Account and data | Firebase Authentication, Firestore for financial records, and Cloud Storage for receipt attachments. |
 | REST API | Firebase Functions serve `/api/v1` through Firebase Hosting. Developer Options issues scoped personal tokens. OpenAPI and Swagger describe the supported operations. |
 | Money and dates | The household model stores integer paise. The monthly views use local calendar boundaries, and bill payments link to expense records. |
-| Delivery | GitHub Actions runs foundation, web, browser, and API checks. Firebase Hosting serves the app. GitHub Pages publishes the product site from `site/`. |
+| Delivery | Protected `preprod` runs audits, foundation, web/browser/API and Functions checks, then isolated hosted acceptance. A verified promotion releases the accepted production artifact and Pages source. See [release controls](docs/release-controls.md). |
 
 [Service inventory](docs/services.md) · [Material 3 design](docs/design.md) · [Observability](docs/observability.md) · [SDLC](docs/sdlc.md) · [Release and rollback](docs/release-plan.md)
 
