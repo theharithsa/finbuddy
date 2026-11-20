@@ -71,7 +71,7 @@ export async function cleanup(fixture: LiveFixture): Promise<void> {
   }
 }
 
-export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
+export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: string) => void = () => undefined): Promise<string[]> {
   const passed: string[] = [];
   const [first, second] = fixture.accounts;
   const base = `${fixture.origin}/api/v1`;
@@ -89,12 +89,14 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
     assert.match(response.headers.get('cache-control') ?? '', /no-store/);
     return tokenCreated.parse(await response.json());
   }
+  checkpoint('public-routes-and-denials');
   assert.equal((await api('/health')).status, 200);
   assert.equal((await api('/profile')).status, 401);
   assert.equal((await api('/profile', 'invalid')).status, 401);
   assert.equal((await api('/expenses', first.session)).status, 401);
   for (const route of ['/docs', '/docs/swagger-ui-bundle.js', '/openapi.json']) assert.equal((await api(route)).status, 200);
   passed.push('health-and-protected-denial', 'swagger-and-openapi');
+  checkpoint('token-issuance-and-boundaries');
   const read = await mint(first.session, 'read', 7);
   const write = await mint(first.session, 'read-write', 7);
   const never = await mint(first.session, 'read', null);
@@ -106,12 +108,13 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
   assert.equal((await api('/expenses', read.token, 'POST', expense, randomUUID())).status, 403);
   assert.equal((await api('/expenses', write.token, 'POST', { ...expense, amount: -1 }, randomUUID())).status, 400);
   passed.push('token-boundaries-and-non-expiring-token', 'invalid-write-denied');
+  checkpoint('expense-idempotency-and-isolation');
   const key = randomUUID();
   const created = await api('/expenses', write.token, 'POST', expense, key);
   assert.equal(created.status, 201);
   const record = await created.json() as { id: string };
   const retry = await api('/expenses', write.token, 'POST', expense, key);
-  assert.equal(retry.status, 201);
+  assert.equal(retry.status, 200);
   assert.equal((await retry.json() as { id: string }).id, record.id);
   assert.equal((await api(`/expenses/${record.id}`, other.token)).status, 404);
   assert.equal((await api(`/expenses/${record.id}`, write.token, 'PATCH', { ...expense, amount: 130 })).status, 200);
@@ -129,6 +132,7 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
   };
   const ids: Record<string, string> = {};
   for (const [kind, input] of Object.entries(inputs)) {
+    checkpoint(`${kind}-write-read-isolation`);
     const result = await api(`/${kind}`, write.token, 'POST', input, randomUUID());
     assert.equal(result.status, 201, `Create ${kind}`);
     const row = await result.json() as { id: string };
@@ -137,6 +141,7 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
     assert.equal((await api(`/${kind}/${row.id}`, other.token)).status, 404, `Isolation ${kind}`);
     passed.push(`${kind}-write-read-isolation`);
   }
+  checkpoint('bill-payment-and-summary');
   const paid = await Promise.all([0, 1].map(() => api(`/bills/${ids.bills}/payments`, write.token, 'POST', { date, dueDate: date, amountPaise: 10_000 })));
   for (const result of paid) assert.equal(result.status, 200);
   const payments = await Promise.all(paid.map(result => result.json())) as Array<{ expenseId: string }>;
@@ -149,6 +154,7 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
   assert.equal(summary.holdingsPaise, 25_000);
   passed.push('concurrent-bill-payment-no-double-count', 'monthly-summary');
 
+  checkpoint('receipt-rules-and-api-isolation');
   const bucket = getStorage().bucket();
   const receiptPath = `receipts/${first.uid}/release.txt`;
   const bytes = Buffer.from('FinBuddy synthetic receipt');
@@ -168,6 +174,7 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
   passed.push('live-receipt-rules-and-api-isolation');
 
   // Rehearse restoration only inside the synthetic account, including its associated file.
+  checkpoint('synthetic-record-and-file-restore');
   const saved = (await expenseRef.get()).data();
   assert.ok(saved);
   await expenseRef.delete();
@@ -180,6 +187,7 @@ export async function exerciseApi(fixture: LiveFixture): Promise<string[]> {
   assert.equal((await api(`/expenses/${record.id}`, write.token, 'DELETE')).status, 204);
   assert.equal((await api(`/expenses/${record.id}`, read.token)).status, 404);
   passed.push('expense-delete');
+  checkpoint('token-expiry-and-owner-revocation');
   const tokenDoc = getFirestore().collection('finbuddyApiTokens').doc(read.id);
   assert.equal((await tokenDoc.get()).data()?.owner, first.uid);
   await tokenDoc.update({ expiresAt: '2000-01-01T00:00:00.000Z' });
