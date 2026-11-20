@@ -46,6 +46,7 @@ jobs:
       - run: npm ci --no-fund --no-audit
       - run: npm audit --audit-level=low
       - run: npm run lint -- --quiet
+      - run: npm --prefix api ci --no-fund --no-audit
       - run: npm run typecheck:release
       - run: node --test tests/release-control.test.mts
       - run: npm run test:run
@@ -191,6 +192,7 @@ jobs:
       - run: npx --no-install playwright install --with-deps chromium
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
+          project_id: finbuddy-preprod
           workload_identity_provider: ${{ vars.FINBUDDY_WIF_PROVIDER }}
           service_account: ${{ vars.FINBUDDY_DEPLOY_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
@@ -254,6 +256,7 @@ jobs:
       - run: npx --no-install playwright install --with-deps chromium
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
+          project_id: finbuddy-2025
           workload_identity_provider: ${{ vars.FINBUDDY_WIF_PROVIDER }}
           service_account: ${{ vars.FINBUDDY_DEPLOY_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3

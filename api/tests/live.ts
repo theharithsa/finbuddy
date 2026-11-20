@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { spawnSync } from 'node:child_process';
+import { initializeApp, applicationDefault, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
@@ -12,12 +13,24 @@ export interface LiveFixture {
   probe: string;
   accounts: Array<{ uid: string; email: string; password: string; session: string }>;
 }
+const authAppName = 'finbuddy-release-auth';
+function shortLivedCredential() {
+  return {
+    async getAccessToken() {
+      const cli = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
+      const token = spawnSync(cli, ['auth', 'print-access-token'], { encoding: 'utf8', shell: process.platform === 'win32' });
+      assert.equal(token.status, 0, 'Cannot acquire the scoped release identity');
+      return { access_token: token.stdout.trim(), expires_in: 3000 };
+    },
+  };
+}
 export async function prepare(project: LiveFixture['project'], apiKey: string): Promise<LiveFixture> {
   assert.equal(process.env.FINBUDDY_ALLOW_SYNTHETIC_WRITES, 'true');
   assert.ok(['finbuddy-preprod', 'finbuddy-2025'].includes(project));
   assert.ok(apiKey);
-  const app = initializeApp({ projectId: project, storageBucket: `${project}.firebasestorage.app`, credential: applicationDefault() });
-  const auth = getAuth(app);
+  initializeApp({ projectId: project, storageBucket: `${project}.firebasestorage.app`, credential: applicationDefault() });
+  // Auth administration consumes OAuth directly; data SDKs use their supported Google ADC path.
+  const auth = getAuth(initializeApp({ projectId: project, credential: shortLivedCredential() }, authAppName));
   const fixture: LiveFixture = { project, origin: `https://${project}.web.app`, probe: randomUUID(), accounts: [] };
   try {
     for (let index = 0; index < 2; index++) {
@@ -28,7 +41,7 @@ export async function prepare(project: LiveFixture['project'], apiKey: string): 
       const account = { uid, email, password, session: '' };
       fixture.accounts.push(account);
       const signed = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, returnSecureToken: true }),
+        method: 'POST', headers: { 'Content-Type': 'application/json', Referer: `${fixture.origin}/` }, body: JSON.stringify({ email, password, returnSecureToken: true }),
         signal: AbortSignal.timeout(20_000), redirect: 'error',
       });
       assert.equal(signed.status, 200, 'Synthetic account sign-in failed');
@@ -53,7 +66,7 @@ export async function cleanup(fixture: LiveFixture): Promise<void> {
       for (const row of owned.docs) await row.ref.delete();
     }
     await getStorage().bucket().deleteFiles({ prefix: `receipts/${account.uid}/` });
-    await getAuth().deleteUser(account.uid);
+    await getAuth(getApp(authAppName)).deleteUser(account.uid);
     assert.equal((await db.collection('users').doc(account.uid).listCollections()).length, 0, 'Fixture cleanup left records');
   }
 }
