@@ -71,23 +71,24 @@ Attach timestamps, safe probe markers, query/run links and explicit pass/fail/pe
 
 Rollback must address Hosting and affected backend revisions separately. A web revert does not restore API, audit, rules, indexes or data. Preserve compatibility with non-expiring tokens (`expiresAt: null`), and never perform destructive automatic household-data rollback. Re-verify the restored source, health, denial and affected journey after recovery. Follow the [service-specific recovery guide](release-plan.md).
 
-## GitHub planning state and remaining scheduling edits
+## GitHub planning state
 
 All reviewed work keeps the [public FinBuddy Project](https://github.com/users/theharithsa/projects/1) as its primary board. New tasks are typed and assigned to `theharithsa`. Native issue dependencies enforce #172 + #173 → #174 → #169; the existing FinVision dependencies remain #141 → #142 → #143.
 
 The dated outcome milestones are [Pre-production release readiness](https://github.com/theharithsa/finbuddy/milestone/13) on 29 November, [Production observability release](https://github.com/theharithsa/finbuddy/milestone/14) on 4 December, and [FinVision integration discovery](https://github.com/theharithsa/finbuddy/milestone/4) on 13 December. The rolling Dependency maintenance milestone retains its update PRs and #173. #126 remains in Backlog triage.
 
-The public Sprint planning view was inspected. Sprint 1 runs 16–29 November and Sprint 2 runs 30 November–13 December 2026. At review, #169 was Todo in Sprint 1; #125 and #126 were In Progress in Sprint 2; all six existing open PRs had no Sprint. The available CLI token lacks Project access, and the browser is signed out, so the following Project field changes are pending. Milestones, ownership, bodies and native dependencies were updated through the repository API.
+Sprint 1 runs 16–29 November and Sprint 2 runs 30 November–13 December 2026. The initial review found missing iterations and premature In Progress states. On 20 November, the authenticated browser confirmed the existing items in the primary Project and saved the following corrections; the CLI credential still lacks Project scope. Milestones, ownership, bodies and native dependencies were updated through the repository API.
 
-| Project field edit still needed | Desired state |
+| Project items | Verified scheduling and state |
 | --- | --- |
-| #172, #173, #174 and PRs #164–#168 | Sprint 1; Todo until work actually starts |
-| #169 and PR #170 | Sprint 2; Todo/blocked on #174 until acceptance |
-| #125 and children #141–#143 | Sprint 2, with each child imported/visible; set In Progress only for work underway |
-| #126 | Todo, no Sprint until prioritized |
-| Planning issue #171 and its documentation PR | Sprint 1; planning work In Progress until its documentation is accepted |
+| #171–#174 | Sprint 1; In Progress while implementation and acceptance proceed |
+| Merged PRs #164–#168, #170, #175–#177 and #179 | Sprint 1; Done records their merge into preprod, not production acceptance |
+| #169 and promotion PR #178 | Sprint 2; Todo, pending #174 and the dedicated production ingest credential |
+| #125 and children #141–#143 | Sprint 2; Todo, with each child imported and verified individually |
+| #126 | Todo; Sprint cleared until prioritized |
+| Hosted rehearsal correction PR #180 | Sprint 1; In Progress pending checks and merge |
 
-Repository timeline receipts confirm Project-add events for #171–#174 and FinVision children #141–#143; the public #171 issue also shows membership in the primary FinBuddy Project. Use the existing [Sprint planning](https://github.com/users/theharithsa/projects/1/views/2), [Roadmap](https://github.com/users/theharithsa/projects/1/views/4) and [Kanban](https://github.com/users/theharithsa/projects/1/views/5) views to finish and verify the saved iteration/status edits and post a short Project status update when write access is available. Verify the documentation PR's membership after opening it. Until those field edits are confirmed, this plan and the repository milestones carry the intended sequence, and the Project still has the scheduling differences listed above.
+The [Sprint planning](https://github.com/users/theharithsa/projects/1/views/2), [Roadmap](https://github.com/users/theharithsa/projects/1/views/4) and [Kanban](https://github.com/users/theharithsa/projects/1/views/5) views remain the shared planning surfaces. Project filters can hide children beneath collapsed parents; exact-number filters verified their membership and fields. Keep runtime acceptance issues open until their evidence passes, then update their status and the release record. This table records the implementation-stage check, while live Project state tracks subsequent completion.
 
 ## Evidence and policy references
 
