@@ -1,6 +1,8 @@
 # FinBuddy software development life cycle
 
-FinBuddy uses the App Launchpad v1.14.1 solo-maintainer workflow. The checked implementation PR targets `main`. Tests use Firebase emulators with synthetic data, and changes that need hosted review can use the approved Firebase preview channel. FinBuddy has no persistent staging environment.
+FinBuddy uses the App Launchpad v1.14.1 solo-maintainer workflow. The current automated path checks PRs to `main` and publishes production Hosting after a qualifying push to `main`. Tests use Firebase emulators with synthetic data. A separate persistent pre-production environment is deployed at [finbuddy-preprod.web.app](https://finbuddy-preprod.web.app/) in Firebase project `finbuddy-preprod`.
+
+The automated staging-to-production promotion path is pending [issue #172](https://github.com/theharithsa/finbuddy/issues/172). Follow the [pre-production and production plan](preproduction-plan.md) for the audited environment state, ordered backlog, acceptance criteria and conditional dates. The existing workflow still publishes directly from `main`; a merge is a production release decision until the new gate is implemented and verified.
 
 ## From issue to merge
 
