@@ -221,3 +221,51 @@ export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: s
   passed.push('expired-token-denial-and-owner-only-revocation');
   return passed;
 }
+
+export async function exerciseNamespaceBoundary(fixture: LiveFixture, apiKey: string): Promise<string[]> {
+  const owner = fixture.accounts[0];
+  const base = `${fixture.origin}/api/v1`;
+  const headers = { Authorization: `Bearer ${owner.session}`, 'Content-Type': 'application/json' };
+  if (fixture.namespace === 'preprod') {
+    const created = await fetch(base + '/developer/tokens', { method: 'POST', headers,
+      body: JSON.stringify({ name: 'Cross-environment synthetic canary', access: 'read', days: 7 }),
+      signal: AbortSignal.timeout(20_000), redirect: 'error' });
+    assert.equal(created.status, 201);
+    const canary = tokenCreated.parse(await created.json());
+    try {
+      const targets = [
+        { url: `https://firestore.googleapis.com/v1/projects/${fixture.project}/databases/(default)/documents/prod/data/users/${owner.uid}/expenses/isolation-canary`, auth: `Bearer ${owner.session}`, status: 403 },
+        { url: `https://firebasestorage.googleapis.com/v0/b/${fixture.project}.firebasestorage.app/o/${encodeURIComponent(`prod/receipts/${owner.uid}/isolation-canary.txt`)}?alt=media`, auth: `Firebase ${owner.session}`, status: 403 },
+        { url: 'https://finbuddy-2025.web.app/api/v1/profile', auth: `Bearer ${canary.token}`, status: 401 },
+      ];
+      for (const target of targets) {
+        const response = await fetch(target.url, { headers: { Authorization: target.auth },
+          signal: AbortSignal.timeout(20_000), redirect: 'error' });
+        assert.equal(response.status, target.status, 'Preprod data/API credentials crossed the production boundary');
+        await response.body?.cancel();
+      }
+    } finally {
+      const revoked = await fetch(base + '/developer/tokens/' + canary.id, { method: 'DELETE', headers,
+        signal: AbortSignal.timeout(20_000), redirect: 'error' });
+      assert.equal(revoked.status, 204); await revoked.body?.cancel();
+    }
+    return ['shared-project-preprod-data-and-api-credentials-denied-production'];
+  }
+  // The production role guard is checked only after that backend has actually
+  // been upgraded; the staging run must remain compatible with the prior release.
+  const stage = fixture.accounts[1];
+  await authAdmin(fixture.project, 'accounts:update', { localId: stage.uid,
+    customAttributes: JSON.stringify({ finbuddyEnvironment: 'preprod', finbuddyPreprodAccess: true }) });
+  const signed = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Referer: `${fixture.origin}/` },
+    body: JSON.stringify({ email: stage.email, password: stage.password, returnSecureToken: true }),
+    signal: AbortSignal.timeout(20_000), redirect: 'error',
+  });
+  assert.equal(signed.status, 200);
+  stage.session = (await signed.json() as { idToken: string }).idToken;
+  const denied = await fetch(base + '/developer/tokens', { headers: { Authorization: `Bearer ${stage.session}` },
+    signal: AbortSignal.timeout(20_000), redirect: 'error' });
+  assert.equal(denied.status, 401, 'Production accepted a preprod-only sign-in session');
+  await denied.body?.cancel();
+  return ['production-role-guard-denied-preprod-session'];
+}

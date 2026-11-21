@@ -20,23 +20,9 @@ try {
   fixture = await live.prepare(namespace, process.env.FINBUDDY_LIVE_API_KEY);
   currentCase = 'hosted-api';
   passed.push(...await live.exerciseApi(fixture, scenario => { currentCase = `hosted-api/${scenario}`; }));
-  if (environment === 'pre-production') {
-    currentCase = 'shared-project-client-isolation';
-    const owner = fixture.accounts[0];
-    const targets = [
-      `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/prod/data/users/${owner.uid}/expenses/isolation-canary`,
-      `https://firebasestorage.googleapis.com/v0/b/${project}.firebasestorage.app/o/${encodeURIComponent(`prod/receipts/${owner.uid}/isolation-canary.txt`)}?alt=media`,
-      'https://finbuddy-2025.web.app/api/v1/developer/tokens',
-    ];
-    for (const target of targets) {
-      const denied = await fetch(target, { headers: { Authorization: `Bearer ${owner.session}` },
-        signal: AbortSignal.timeout(20_000), redirect: 'error' });
-      assert.ok([401, 403].includes(denied.status), 'Synthetic preprod account reached production through a client endpoint');
-      await denied.body?.cancel();
-    }
-    passed.push('shared-project-preprod-account-denied-production-client-paths');
+  currentCase = 'shared-project-environment-boundary';
+  passed.push(...await live.exerciseNamespaceBoundary(fixture, process.env.FINBUDDY_LIVE_API_KEY));
 
-  }
 
   currentCase = 'hosted-browser-launch';
   const browser = await chromium.launch();
