@@ -94,7 +94,7 @@ await writeFile(`api/.env.${project}`, [
   'OTEL_EXPORTER_OTLP_ENDPOINT=https://indiacs.live.dynatrace.com/api/v2/otlp',
   'FINBUDDY_ENABLE_BACKEND_TELEMETRY=true', `FINBUDDY_ENVIRONMENT=${namespace}`, `FINBUDDY_BUILD_COMMIT=${source}`, '',
 ].join('\n'), { mode: 0o600 });
-command(npx, ['--yes', 'firebase-tools@15.37.0', 'deploy', '--non-interactive', '--project', project,
+command(npx, ['--yes', 'firebase-tools@15.37.0', 'deploy', '--non-interactive', '--force', '--project', project,
   '--config', namespace === 'preprod' ? 'firebase.preprod.json' : 'firebase.api.json', '--only', `functions:${targetConfig.codebase}`]);
 
 // A prior rollback pins Cloud Run traffic across later Functions deployments.
