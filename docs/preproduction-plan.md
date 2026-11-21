@@ -1,5 +1,7 @@
 # FinBuddy pre-production and production plan
 
+The owner corrected the deployment architecture on 22 November 2026: use the [one-project consolidation contract](firebase-consolidation.md). The earlier project-isolation audit below is historical evidence, not the current target.
+
 Reviewed on 20 November 2026 against GitHub, the live Firebase sites and read-only Google Cloud resource metadata. [Planning issue #171](https://github.com/theharithsa/finbuddy/issues/171) owns this review. Implementation and runtime acceptance remain in their linked issues. Dates below are planning targets in Asia/Kolkata; a failed prerequisite moves the dependent target.
 
 This file preserves the planning baseline before implementation. Use the [release-control guide](release-controls.md) and the linked delivery issues for the subsequent workflow, provider releases and acceptance receipts; the gap and backlog snapshots below are historical.
@@ -8,8 +10,8 @@ This file preserves the planning baseline before implementation. Use the [releas
 
 | Boundary | Pre-production | Production |
 | --- | --- | --- |
-| Firebase project | `finbuddy-preprod` | `finbuddy-2025` |
-| Hosting | [Pre-production app](https://finbuddy-preprod.web.app/) | [Production app](https://finbuddy-2025.web.app/) |
+| Firebase project | `finbuddy-2025` | `finbuddy-2025` |
+| Hosting | [Pre-production app](https://finbuddy-2025-preprod.web.app/) | [Production app](https://finbuddy-2025.web.app/) |
 | Served web source | `dfb1d5fbb427fc128de309b7444ef58a0eb83468` | `e1b68144caf0917144e82360a185c8ddda129869` |
 | REST API | `finbuddyApi`, Node 22, `asia-south1`, revision `finbuddyapi-00003-sad` | `finbuddyApi`, Node 22, `asia-south1`, revision `finbuddyapi-00003-fac` |
 | API build source | `d5de7578f0f1ee5bb3ea304cc346dd7412488593` in deployment configuration | No build-source identifier in inspected deployment configuration |
@@ -49,7 +51,7 @@ PRs #164–#166 affect the historical `/functions` package and need its build ch
 
 1. Link the implementation issue and PR to the primary Project and outcome milestone. Use the staging branch for implementation, checked deployment and acceptance, followed by a promotion PR to `main`. Keep zero required independent approvals for this solo-maintainer repository and retain real CI checks. Separately authorize any access or protection changes.
 2. Build from lockfiles and run the applicable foundation, web, API and dependency checks. Keep untrusted PR execution separate from privileged deployment and ingestion credentials. Pin third-party actions, use explicit Firebase project targets, bounded concurrency/timeouts and the dt-obs Thoth workflow instrumentation.
-3. Reuse `finbuddy-preprod` and its separate Auth, Firestore, Storage and secret configuration. Verify effective service-account permissions and negative access cases. Use synthetic accounts and fixtures; do not copy production household data. A staging deployment must not trigger production publication.
+3. Use the owner's [shared-project layout](firebase-consolidation.md): two Hosting targets, separate collection/receipt roots, shared Auth and distinct backend configuration. Verify actual client/API boundaries; Firestore Admin SDK IAM is not collection-isolated. Use synthetic accounts and fixtures; do not copy production household data. A staging deployment must not trigger production publication.
 4. Record the candidate source, CI run and attempt, lockfile identities, Hosting artifact digest/version, API and audit build/revisions, rules/index versions and environment configuration references. Browser builds necessarily contain environment-specific Firebase configuration; record both artifact identities and verify their common accepted source. Never include credentials in the receipt.
 5. Make acceptance a required promotion check. A missing receipt, a failed required test, an unexpected project, changed source or untested promotion result must fail closed. Verify the promotion merge result against the tested content; if it changes deployable content, rehearse the resulting candidate again. The implementation issue must demonstrate these rejection cases before calling the control enforced.
 6. For the authorized production release, deploy API/audit prerequisites and any required indexes/rules before dependent Hosting queries or rewrites. Verify the final provider releases and served source, then publish Pages for the accepted production revision. Check public documentation publication separately.

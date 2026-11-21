@@ -1,16 +1,20 @@
-export const preprodProject = 'finbuddy-preprod';
-const productionProject = 'finbuddy-2025';
-const project = process.env.GCLOUD_PROJECT;
-const isProduction = project === productionProject;
-export const isPreProduction = project === preprodProject;
-export const runtimeServiceAccount = (isPreProduction || isProduction) && process.env.FUNCTIONS_EMULATOR !== 'true'
-  ? `finbuddy-runtime@${project}.iam.gserviceaccount.com` : undefined;
+import { dataEnvironment, dataRoot, deploymentTargets, firebaseProject } from '../shared/environment';
+
+const emulator = process.env.FUNCTIONS_EMULATOR === 'true';
+const local = !process.env.GCLOUD_PROJECT && !process.env.K_SERVICE;
+const configuredEnvironment = process.env.FINBUDDY_ENVIRONMENT ?? (emulator || local ? 'prod' : undefined);
+export const environment = dataEnvironment(configuredEnvironment);
+if (!emulator && !local && process.env.GCLOUD_PROJECT !== firebaseProject) {
+  throw new Error('FinBuddy runs only in its shared Firebase project.');
+}
+export const dataNamespace = dataRoot(environment);
+export const target = deploymentTargets[environment];
+export const backendServiceName = process.env.FUNCTION_TARGET === target.audit ? 'finbuddy-expense-audit' : 'finbuddy-api';
+export const isPreProduction = environment === 'preprod';
+export const runtimeServiceAccount = emulator || local ? undefined : `${target.runtime}@${firebaseProject}.iam.gserviceaccount.com`;
 export type DeploymentEnvironment = 'pre-production' | 'production';
-export const telemetryEnvironment: DeploymentEnvironment | undefined = isPreProduction ? 'pre-production' : isProduction ? 'production' : undefined;
-export const backendTelemetryEnabled = process.env.FUNCTIONS_EMULATOR !== 'true'
-  && Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
-  && (isPreProduction || (isProduction && process.env.FINBUDDY_ENABLE_BACKEND_TELEMETRY === 'true'));
-export const telemetryAuthorization = 'FINBUDDY_DT_INGEST_AUTHORIZATION';
-export const storageBucket = process.env.FUNCTIONS_EMULATOR === 'true'
-  ? 'demo-finbuddy.appspot.com'
-  : isPreProduction ? `${preprodProject}.firebasestorage.app` : `${productionProject}.firebasestorage.app`;
+export const telemetryEnvironment: DeploymentEnvironment = target.label;
+export const backendTelemetryEnabled = !emulator && !local && Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
+  && process.env.FINBUDDY_ENABLE_BACKEND_TELEMETRY === 'true';
+export const telemetryAuthorization = target.secret;
+export const storageBucket = emulator ? 'demo-finbuddy.appspot.com' : `${firebaseProject}.firebasestorage.app`;

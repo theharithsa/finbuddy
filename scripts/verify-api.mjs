@@ -4,8 +4,8 @@ const [endpoint, expectedRevision] = process.argv.slice(2);
 const targets = new Set([
   'https://finbuddy-2025.web.app',
   'https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApi',
-  'https://finbuddy-preprod.web.app',
-  'https://asia-south1-finbuddy-preprod.cloudfunctions.net/finbuddyApi',
+  'https://finbuddy-2025-preprod.web.app',
+  'https://asia-south1-finbuddy-2025.cloudfunctions.net/finbuddyApiPreprod',
 ]);
 assert.ok(targets.has(endpoint), 'Use a FinBuddy Hosting or Functions endpoint.');
 
@@ -14,6 +14,9 @@ const read = (path) => fetch(`${endpoint}/api/v1/${path}`, {
 });
 const health = await read('health');
 assert.equal(health.status, 200, 'API health must respond with 200.');
+assert.equal(health.headers.get('x-finbuddy-environment'),
+  endpoint.includes('finbuddy-2025-preprod.') || endpoint.endsWith('/finbuddyApiPreprod') ? 'preprod' : 'prod',
+  'API must serve the selected data namespace');
 assert.match(health.headers.get('content-type') ?? '', /application\/json/);
 assert.deepEqual(await health.json(), { status: 'ok' });
 if (expectedRevision) {

@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
-## [3.1.2] - 2026-11-20
+## [3.1.2] - 2026-11-22
 
+- Consolidated production and pre-production into one Firebase project with explicit Hosting targets, namespaced records/tokens/receipts, shared Auth and preserved FinVision resources.
+- Added resumable private data-copy, checksum and conflict checks, policy parity, and staged cutover/recovery controls.
 - Added isolated pre-production deployment, exact-source/artifact acceptance, OIDC deployment identities and a required production promotion gate.
 - Added API and committed-expense audit telemetry with environment-local credentials, opt-in browser RUM, and source/recovery verification.
 - Applied the queued dependency updates and residual audit fixes; removed the unused historical Functions test dependency and added its build/audit gate.

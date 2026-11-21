@@ -10,13 +10,16 @@ const repositoryId = 1040949325;
 const shaPattern = /^[a-f0-9]{40}$/;
 const digestPattern = /^[a-f0-9]{64}$/;
 export interface Candidate {
-  schemaVersion: 1;
+  schemaVersion: 2;
   sourceSha: string;
   sourceTree: string;
   runId: number;
   runAttempt: number;
   createdAt: string;
-  project: 'finbuddy-preprod';
+  project: 'finbuddy-2025';
+  preprodSite: 'finbuddy-2025-preprod';
+  preprodRoot: 'preprod/data';
+  productionRoot: 'prod/data';
   preprodDigest: string;
   productionDigest: string;
   apiDigest: string;
@@ -66,8 +69,11 @@ export async function digestDirectory(folder: string, exclude: ReadonlySet<strin
 export function validateCandidate(value: unknown, expectedSha: string, tree: string, now = Date.now()): Candidate {
   assert.ok(value && typeof value === 'object', 'Missing candidate receipt');
   const row = value as Candidate;
-  assert.equal(row.schemaVersion, 1);
-  assert.equal(row.project, 'finbuddy-preprod', 'Wrong candidate project');
+  assert.equal(row.schemaVersion, 2);
+  assert.equal(row.project, 'finbuddy-2025', 'Wrong candidate project');
+  assert.equal(row.preprodSite, 'finbuddy-2025-preprod');
+  assert.equal(row.preprodRoot, 'preprod/data');
+  assert.equal(row.productionRoot, 'prod/data');
   assert.match(row.sourceSha, shaPattern);
   assert.equal(row.sourceSha, expectedSha, 'Changed source requires fresh pre-production acceptance');
   assert.equal(row.sourceTree, tree, 'Promotion result differs from accepted source');
@@ -137,9 +143,10 @@ async function main(): Promise<void> {
   const command = process.argv[2];
   if (command === 'create') {
     const receipt: Candidate = {
-      schemaVersion: 1, sourceSha: git('rev-parse', 'HEAD'), sourceTree: git('rev-parse', 'HEAD^{tree}'),
+      schemaVersion: 2, sourceSha: git('rev-parse', 'HEAD'), sourceTree: git('rev-parse', 'HEAD^{tree}'),
       runId: Number(process.env.GITHUB_RUN_ID), runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT),
-      createdAt: new Date().toISOString(), project: 'finbuddy-preprod',
+      createdAt: new Date().toISOString(), project: 'finbuddy-2025',
+      preprodSite: 'finbuddy-2025-preprod', preprodRoot: 'preprod/data', productionRoot: 'prod/data',
       preprodDigest: await digestDirectory('release/preprod'), productionDigest: await digestDirectory('release/production'),
       apiDigest: await digestDirectory('api', new Set(['node_modules', 'dist'])),
     };

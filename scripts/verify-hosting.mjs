@@ -7,7 +7,7 @@ if (!url || !/^[a-f0-9]{40}$/.test(revision ?? '')) {
 }
 const origin = new URL(url);
 assert.equal(origin.protocol, 'https:');
-assert.match(origin.hostname, /^(?:finbuddy-2025(?:--[a-z0-9-]+)?|finbuddy-preprod)\.web\.app$/);
+assert.match(origin.hostname, /^(?:finbuddy-2025(?:--[a-z0-9-]+)?|finbuddy-2025-preprod)\.web\.app$/);
 const waits = mode === '--wait-for-revision' ? [0, 5_000, 10_000, 15_000] : [0];
 async function readLiveIndex() {
   let servedRevision;
@@ -26,6 +26,9 @@ async function readLiveIndex() {
 }
 
 const html = await readLiveIndex();
+const expectedEnvironment = origin.hostname === 'finbuddy-2025-preprod.web.app' ? 'preprod' : 'prod';
+assert.ok(html.includes(`name="finbuddy-environment" content="${expectedEnvironment}"`), 'Wrong Hosting environment');
+assert.ok(html.includes('name="finbuddy-firebase-project" content="finbuddy-2025"'), 'Wrong shared Firebase project');
 const asset = html.match(/<script[^>]+src="(\/assets\/[^"]+)"/)?.[1];
 assert.ok(asset, 'Missing application JavaScript');
 const module = await fetch(new URL(asset, origin), { signal: AbortSignal.timeout(15_000) });

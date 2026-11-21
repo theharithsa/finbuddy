@@ -27,6 +27,9 @@ function getAuthError(error: unknown): string {
     case 'auth/weak-password': return 'Choose a stronger password and try again.';
     case 'auth/email-already-in-use': return 'An account already uses this email. Sign in or reset your password.';
     case 'auth/invalid-credential': return 'The email or password didn’t match. Try again or reset your password.';
+    case 'auth/environment-not-allowed': return isPreProduction
+      ? 'This account is not enabled for pre-production. Use the production site or contact the app owner.'
+      : 'This is a test account. Use the pre-production site to sign in.';
     case 'auth/unauthorized-domain': return 'Google and email links require an authorized FinBuddy address. Sign in with your email and password, or open the main FinBuddy site.';
     default: return 'Couldn’t complete that request. Please try again.';
   }
@@ -114,7 +117,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             <div className="m3-login-toolbar"><div className="m3-mobile-wordmark"><Wordmark /></div><ThemeToggle /></div>
             <h2 id="login-heading">{headings[mode]}</h2>
             <p>{mode === 'signin' ? 'Sign in to pick up where you left off.' : 'Use the email address for your FinBuddy account.'}</p>
-            {mode === 'signin' && !isPreProduction && <>
+            {mode === 'signin' && <>
               <Button className="m3-google" variant="outline" type="button" disabled={busy} onClick={google}><img src="/icons/google-g.png" alt="" width={20} height={20} /> Continue with Google</Button>
               <div className="m3-login-divider"><span>or use email</span></div>
             </>}

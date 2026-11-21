@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { expenseEvent } from '../src/expense-event-contract';
 
 const context = { traceId: 'a'.repeat(32), spanId: 'b'.repeat(16), traceFlags: 1 };
-const source = '//firestore.googleapis.com/projects/finbuddy-preprod/databases/(default)/documents/users/synthetic-owner/expenses/synthetic';
+const source = '//firestore.googleapis.com/projects/finbuddy-2025/databases/(default)/documents/preprod/data/users/synthetic-owner/expenses/synthetic';
 const time = Date.parse('2026-11-20T03:00:00Z');
 test('duplicate delivery has a stable event identity and resource sources stay pseudonymous', () => {
   const first = expenseEvent(source, 'cloud-event-id', time, 'created', 'pre-production', context);
@@ -13,7 +13,7 @@ test('duplicate delivery has a stable event identity and resource sources stay p
   assert.notEqual(first.id, expenseEvent(source, 'another-event', time, 'created', 'pre-production', context).id);
   assert.notEqual(first.id, expenseEvent(source + '-other', 'cloud-event-id', time, 'created', 'pre-production', context).id);
   assert.equal(JSON.stringify(first).includes('synthetic-owner'), false);
-  assert.equal(JSON.stringify(first).includes('/documents/users/'), false);
+  assert.equal(JSON.stringify(first).includes('/documents/preprod/data/users/'), false);
 });
 test('each mutation has its actual type and only approved nonfinancial fields', () => {
   for (const change of ['created', 'updated', 'removed'] as const) {

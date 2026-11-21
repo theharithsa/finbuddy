@@ -1,6 +1,6 @@
 # FinBuddy software development life cycle
 
-FinBuddy uses the App Launchpad v1.14.1 solo-maintainer workflow. Implementation PRs target protected `preprod`; a trusted staging push builds, deploys and tests the isolated [pre-production app](https://finbuddy-preprod.web.app/) in Firebase project `finbuddy-preprod`. Production promotion uses a PR from `preprod` to protected `main` and the acceptance receipt for that exact source.
+FinBuddy uses the App Launchpad v1.14.1 solo-maintainer workflow. Implementation PRs target protected `preprod`; a trusted staging push builds, deploys and tests the isolated [pre-production app](https://finbuddy-2025-preprod.web.app/) within Firebase project `finbuddy-2025` under `preprod/data`. Production promotion uses a PR from `preprod` to protected `main` and the acceptance receipt for that exact source.
 
 The [release controls](release-controls.md) specify source/artifact identity, owner runtime acceptance, effective environment isolation and rejected promotion cases. [Issue #172](https://github.com/theharithsa/finbuddy/issues/172) records implementation and verification; [#174](https://github.com/theharithsa/finbuddy/issues/174) owns the integrated rehearsal. The [backlog plan](preproduction-plan.md) retains the earlier audit snapshot and target order. A promotion merge is the authorized production release decision.
 

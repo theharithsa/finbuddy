@@ -1,6 +1,6 @@
 import { warn } from 'firebase-functions/logger';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { backendTelemetryEnabled, runtimeServiceAccount, telemetryAuthorization } from './deployment';
+import { backendTelemetryEnabled, dataNamespace, runtimeServiceAccount, telemetryAuthorization } from './deployment';
 import { businessEventTarget, observeExpenseAudit } from './telemetry';
 import { expenseEvent } from './expense-event-contract';
 
@@ -8,7 +8,7 @@ const maxDeliveryAgeMillis = 60 * 60 * 1000;
 
 export const finbuddyExpenseAudit = backendTelemetryEnabled ? onDocumentWritten({
   serviceAccount: runtimeServiceAccount,
-  document: 'users/{uid}/expenses/{expenseId}',
+  document: `${dataNamespace}/users/{uid}/expenses/{expenseId}`,
   region: 'asia-south1',
   retry: true,
   maxInstances: 1,
