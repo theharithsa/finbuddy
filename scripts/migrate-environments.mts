@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import { readFile, realpath, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { dataEnvironment } from '../api/shared/environment.ts';
-import { copyPlan, fieldsDigest, snapshot, verifyPlan, type CopyPlan, type CopyProgress, type Json, type ProviderRequest } from './firestore-copy.mts';
+import { copyPlan, fieldsDigest, snapshot, verifyPlan, retireLegacy, restoreLegacy, type RetirementProgress, type CopyPlan, type CopyProgress, type Json, type ProviderRequest } from './firestore-copy.mts';
 
 const options = new Map(process.argv.slice(2).map(argument => {
   const split = argument.indexOf('=');
@@ -11,7 +12,7 @@ const options = new Map(process.argv.slice(2).map(argument => {
   return [argument.slice(2, split), argument.slice(split + 1)];
 }));
 const mode = options.get('mode');
-assert.ok(mode === 'snapshot' || mode === 'copy' || mode === 'verify', 'Choose snapshot, copy or verify');
+assert.ok(mode === 'snapshot' || mode === 'copy' || mode === 'verify' || mode === 'retire-legacy' || mode === 'restore-legacy', 'Choose a supported migration mode');
 const project = options.get('project');
 assert.ok(project === 'finbuddy-2025' || project === 'demo-finbuddy');
 const environment = dataEnvironment(options.get('environment'));
@@ -66,7 +67,8 @@ try {
     process.stdout.write(`Read-only snapshot: ${plan.entries.length} documents. Original documents unchanged.\n`);
   } else {
     assert.equal(options.get('ack-project'), project, 'Explicit project acknowledgement required');
-    const plan = JSON.parse(await readFile(manifest, 'utf8')) as CopyPlan;
+    const bytes = await readFile(manifest);
+    const plan = JSON.parse(bytes.toString('utf8')) as CopyPlan;
     assert.equal(plan.project, project); assert.equal(plan.environment, environment);
     if (mode === 'copy') {
       let progress: CopyProgress = { schemaVersion: 1, targets: {} };
@@ -75,9 +77,26 @@ try {
       const result = await copyPlan(request, plan, progress,
         () => writeFile(progressPath, JSON.stringify(progress), { mode: 0o600 }));
       process.stdout.write(`Copy readback: ${result.copied} copied, ${result.unchanged} already matching; originals retained.\n`);
-    } else {
+    } else if (mode === 'verify') {
       const verified = await verifyPlan(request, plan);
       process.stdout.write(`Verified ${verified} documents and the unchanged source set; no customer-data deletion performed.\n`);
+    } else {
+      assert.equal(options.get('backup-sha256'), createHash('sha256').update(bytes).digest('hex'), 'Read-back verified backup digest required');
+      assert.equal(options.get('backup-verified'), 'true');
+      if (mode === 'retire-legacy') {
+        assert.equal(options.get('cutover-verified'), 'true', 'Verified production cutover required before legacy retirement');
+        const retirementPath = manifest + '.retired.json';
+        let progress: RetirementProgress = { schemaVersion: 1, retired: {} };
+        try { progress = JSON.parse(await readFile(retirementPath, 'utf8')) as RetirementProgress; }
+        catch (error) { if (!error || typeof error !== 'object' || !('code' in error) || error.code !== 'ENOENT') throw error; }
+        const retired = await retireLegacy(request, plan, progress,
+          () => writeFile(retirementPath, JSON.stringify(progress), { mode: 0o600 }));
+        process.stdout.write(`Retired ${retired} unchanged legacy copies; production namespaces and FinVision preserved.\n`);
+      } else {
+        assert.equal(options.get('recovery-reviewed'), 'true', 'Review schema and receipt capabilities before restoring legacy data');
+        const restored = await restoreLegacy(request, plan);
+        process.stdout.write(`Recovery readback: ${restored} legacy records restored with original typed fields; existing records preserved.\n`);
+      }
     }
   }
 } catch (error) {

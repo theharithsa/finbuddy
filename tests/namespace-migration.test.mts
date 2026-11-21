@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { copyPlan, fieldsDigest, snapshot, verifyPlan, type CopyProgress, type Json, type ProviderRequest, type StoredDocument } from '../scripts/firestore-copy.mts';
+import { copyPlan, fieldsDigest, snapshot, verifyPlan, retireLegacy, restoreLegacy, type RetirementProgress, type CopyProgress, type Json, type ProviderRequest, type StoredDocument } from '../scripts/firestore-copy.mts';
 
 const prefix = 'projects/demo-finbuddy/databases/(default)/documents';
 function provider() {
@@ -17,12 +17,15 @@ function provider() {
   const request: ProviderRequest = async <T,>(path: string, method = 'GET', body?: unknown): Promise<T> => {
     if (path.endsWith(':commit')) {
       commits++;
-      const { writes } = body as { writes: Array<{ update: StoredDocument; currentDocument: { exists?: boolean; updateTime?: string } }> };
+      const { writes } = body as { writes: Array<{ update?: StoredDocument; delete?: string; currentDocument: { exists?: boolean; updateTime?: string } }> };
       for (const write of writes) {
-        const prior = documents.get(write.update.name);
+        const name = write.update?.name ?? write.delete;
+        assert.ok(name);
+        const prior = documents.get(name);
         if (write.currentDocument.exists === false) assert.equal(prior, undefined);
         if (write.currentDocument.updateTime) assert.equal(prior?.updateTime, write.currentDocument.updateTime);
-        documents.set(write.update.name, { ...write.update, updateTime: 'copy-' + commits });
+        if (write.delete) documents.delete(name);
+        else { assert.ok(write.update); documents.set(name, { ...write.update, updateTime: 'copy-' + commits }); }
       }
       return {} as T;
     }
@@ -78,4 +81,27 @@ test('digest ignores map ordering but preserves monetary types and array order',
   const a: Record<string, Json> = { amount: { integerValue: '100' }, tags: { arrayValue: { values: [{ stringValue: 'a' }, { stringValue: 'b' }] } } };
   assert.equal(fieldsDigest(a), fieldsDigest({ tags: a.tags, amount: a.amount }));
   assert.notEqual(fieldsDigest(a), fieldsDigest({ ...a, amount: { doubleValue: 100 } }));
+});
+
+test('retirement requires unchanged source and destination; create-only recovery preserves types and FinVision', async () => {
+  const fake = provider();
+  const plan = await snapshot(fake.request, 'demo-finbuddy', 'prod');
+  await copyPlan(fake.request, plan, { schemaVersion: 1, targets: {} }, async () => undefined);
+  const target = fake.documents.get(plan.entries[0].target)!;
+  const fields = structuredClone(target.fields);
+  target.fields = { changed: { booleanValue: true } };
+  const progress: RetirementProgress = { schemaVersion: 1, retired: {} };
+  await assert.rejects(retireLegacy(fake.request, plan, progress, async () => undefined), /Destination changed/);
+  assert.ok(fake.documents.has(plan.entries[0].source.name));
+  target.fields = fields;
+  assert.equal(await retireLegacy(fake.request, plan, progress, async () => undefined), 2);
+  assert.equal(await retireLegacy(fake.request, plan, progress, async () => undefined), 0);
+  assert.equal(await restoreLegacy(fake.request, plan), 2);
+  assert.equal(await restoreLegacy(fake.request, plan), 0);
+  for (const entry of plan.entries) assert.deepEqual(fake.documents.get(entry.source.name)?.fields, entry.source.fields);
+  assert.equal(fake.documents.get(prefix + '/Users/finvision/FinVision/data/plans/kept')?.updateTime, 'fv1');
+  fake.documents.get(plan.entries[0].source.name)!.fields = { changed: { booleanValue: true } };
+  await assert.rejects(restoreLegacy(fake.request, plan), /existing changed record/);
+  await assert.rejects(retireLegacy(fake.request, { ...plan, entries: [{ ...plan.entries[0], source: { ...plan.entries[0].source, name: prefix + '/Users/finvision' } }] },
+    { schemaVersion: 1, retired: {} }, async () => undefined), /Unexpected legacy root/);
 });

@@ -7,8 +7,27 @@ export interface StoredDocument { name: string; fields?: Record<string, Json>; u
 export interface CopyEntry { source: StoredDocument; target: string; fields: Record<string, Json>; digest: string }
 export interface CopyPlan { schemaVersion: 1; project: string; environment: DataEnvironment; at: string; entries: CopyEntry[] }
 export interface CopyProgress { schemaVersion: 1; targets: Record<string, { digest: string; updateTime: string }> }
+export interface RetirementProgress { schemaVersion: 1; retired: Record<string, string> }
 export type ProviderRequest = <T>(path: string, method?: string, body?: unknown) => Promise<T>;
 export const legacyCollections = ['users', 'publicCategories', 'finbuddyDeveloper', 'finbuddyApiTokens'] as const;
+
+function validatePlan(plan: CopyPlan): void {
+  assert.equal(plan.schemaVersion, 1);
+  assert.ok(plan.project === 'finbuddy-2025' || plan.project === 'demo-finbuddy');
+  assert.equal(plan.environment, 'prod', 'Legacy recovery is restricted to production');
+  const prefix = `projects/${plan.project}/databases/(default)/documents/`;
+  const names = new Set<string>();
+  for (const entry of plan.entries) {
+    assert.ok(entry.source.name.startsWith(prefix));
+    const path = entry.source.name.slice(prefix.length);
+    assert.ok(legacyCollections.some(root => path.startsWith(root + '/')), 'Unexpected legacy root');
+    assert.equal(path.split('/').length % 2, 0);
+    assert.ok(entry.source.updateTime && !names.has(entry.source.name));
+    names.add(entry.source.name);
+    assert.equal(entry.target, prefix + dataRoot(plan.environment) + '/' + path);
+    assert.equal(entry.digest, fieldsDigest(entry.fields), 'Changed migration plan');
+  }
+}
 
 function canonical(value: Json): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
@@ -114,6 +133,7 @@ export async function copyPlan(request: ProviderRequest, plan: CopyPlan, progres
   return { copied, unchanged };
 }
 export async function verifyPlan(request: ProviderRequest, plan: CopyPlan): Promise<number> {
+  validatePlan(plan);
   let verified = 0;
   async function verifyEntry(entry: CopyEntry): Promise<void> {
     const [source, target] = await Promise.all([
@@ -132,4 +152,58 @@ export async function verifyPlan(request: ProviderRequest, plan: CopyPlan): Prom
     plan.entries.map(entry => [entry.source.name, entry.source.updateTime]),
     'Source document set changed after snapshot; cutover is blocked');
   return verified;
+}
+
+export async function retireLegacy(request: ProviderRequest, plan: CopyPlan, progress: RetirementProgress,
+  persist: () => Promise<void>): Promise<number> {
+  validatePlan(plan);
+  assert.equal(progress.schemaVersion, 1);
+  const planned = new Map(plan.entries.map(entry => [entry.source.name, entry]));
+  for (const [name, version] of Object.entries(progress.retired)) {
+    assert.equal(planned.get(name)?.source.updateTime, version, 'Retirement progress belongs to another snapshot');
+  }
+  const remaining = plan.entries.filter(entry => !progress.retired[entry.source.name]);
+  const fresh = await snapshot(request, plan.project, plan.environment);
+  assert.deepEqual(fresh.entries.map(entry => [entry.source.name, entry.source.updateTime]),
+    remaining.map(entry => [entry.source.name, entry.source.updateTime]), 'Legacy source set changed; retirement is blocked');
+  // Check every remaining destination before the first deletion. Any new production
+  // write requires operator reconciliation rather than weakening this check.
+  for (let offset = 0; offset < remaining.length; offset += 16) {
+    await Promise.all(remaining.slice(offset, offset + 16).map(async entry => {
+      const target = await request<StoredDocument | null>(entry.target);
+      assert.ok(target && fieldsDigest(target.fields ?? {}) === entry.digest, 'Destination changed; retirement is blocked');
+    }));
+  }
+  const deepestFirst = [...remaining].sort((a, b) => b.source.name.split('/').length - a.source.name.split('/').length);
+  let retired = 0;
+  for (let offset = 0; offset < deepestFirst.length; offset += 200) {
+    const batch = deepestFirst.slice(offset, offset + 200);
+    await request(`projects/${plan.project}/databases/(default)/documents:commit`, 'POST', {
+      writes: batch.map(entry => ({ delete: entry.source.name, currentDocument: { updateTime: entry.source.updateTime } })),
+    });
+    for (const entry of batch) { progress.retired[entry.source.name] = entry.source.updateTime!; retired++; }
+    await persist();
+  }
+  assert.equal((await snapshot(request, plan.project, plan.environment)).entries.length, 0, 'Legacy records remain');
+  return retired;
+}
+
+export async function restoreLegacy(request: ProviderRequest, plan: CopyPlan): Promise<number> {
+  validatePlan(plan);
+  let restored = 0;
+  // Create-only recovery: customer records and namespace writes are never overwritten.
+  for (const entry of plan.entries) {
+    const existing = await request<StoredDocument | null>(entry.source.name);
+    if (existing) {
+      assert.equal(fieldsDigest(existing.fields ?? {}), fieldsDigest(entry.source.fields ?? {}), 'Recovery refuses an existing changed record');
+      continue;
+    }
+    await request(`projects/${plan.project}/databases/(default)/documents:commit`, 'POST', {
+      writes: [{ update: { name: entry.source.name, fields: entry.source.fields ?? {} }, currentDocument: { exists: false } }],
+    });
+    const saved = await request<StoredDocument | null>(entry.source.name);
+    assert.equal(fieldsDigest(saved?.fields ?? {}), fieldsDigest(entry.source.fields ?? {}), 'Recovery readback mismatch');
+    assert.ok(saved); restored++;
+  }
+  return restored;
 }

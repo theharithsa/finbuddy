@@ -55,6 +55,18 @@ node scripts/migrate-environments.mts --mode=verify --project=finbuddy-2025 --en
 
 Use Google ADC in the operator's environment; never paste a credential into these commands. A changed source, checksum, owner, destination or policy blocks cutover. A second copy of the same plan resumes safely. If a new snapshot is needed, preserve the original progress receipt so the tool can distinguish its own unchanged copies from customer writes.
 
+After production cutover and existing-token/receipt checks pass, store the final private manifest in the project's inaccessible `prod/recovery/` Storage archive. Download it again and compare its SHA-256 with the local manifest before acknowledging a verified backup. Retire only the four allowlisted legacy roots; FinVision is outside the plan. The tool verifies the entire remaining source set and every remaining copied destination before deleting original documents with version preconditions. New production writes that change a copied record block cleanup and need reconciliation; do not weaken that check.
+
+```powershell
+node scripts/migrate-environments.mts --mode=retire-legacy --project=finbuddy-2025 --environment=prod --ack-project=finbuddy-2025 --manifest=C:\Private\FinBuddy\final-snapshot.json --backup-sha256=<verified-backup-sha256> --backup-verified=true --cutover-verified=true
+```
+
+The private retirement receipt tracks completed batches. If the provider commits a batch but its local progress receipt cannot be written, stop and reconcile against the verified backup instead of guessing whether deletion succeeded. Recovery can create missing legacy documents from their original typed values, with new provider timestamps; it refuses to overwrite an existing changed record and does not touch new namespace writes. Rehearse this operation with synthetic data. Restoring legacy documents does not restore revoked receipt capabilities or make the old UI safe for new-schema writes.
+
+```powershell
+node scripts/migrate-environments.mts --mode=restore-legacy --project=finbuddy-2025 --environment=prod --ack-project=finbuddy-2025 --manifest=C:\Private\FinBuddy\final-snapshot.json --backup-sha256=<verified-backup-sha256> --backup-verified=true --recovery-reviewed=true
+```
+
 ## Recovery limits
 
 Before cutover, original financial documents and files remain unchanged. Preserve preceding Hosting/backend revisions and exact deployed policy sources. After new production writes begin, reverting to the old schema can hide those writes; use a reviewed reverse reconciliation or fix forward. Never restore permissive policy to recover a UI. The private export is evidence for this migration, not an automatic Firestore backup schedule or a demonstrated customer-data restore.
