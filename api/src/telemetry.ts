@@ -10,7 +10,7 @@ import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs
 import { AggregationTemporality, MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { BatchSpanProcessor, NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { error, warn } from 'firebase-functions/logger';
-import { backendTelemetryEnabled, telemetryAuthorization, telemetryEnvironment } from './deployment';
+import { backendTelemetryEnabled, backendServiceName as serviceName, telemetryAuthorization, telemetryEnvironment } from './deployment';
 
 const baseEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.replace(/\/+$/, '');
 const traceEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
@@ -18,7 +18,6 @@ const traceEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
 const traceHeaders = process.env.OTEL_EXPORTER_OTLP_TRACES_HEADERS || process.env.OTEL_EXPORTER_OTLP_HEADERS;
 const authorization = backendTelemetryEnabled ? process.env[telemetryAuthorization]?.trim() : undefined;
 const stage = telemetryEnvironment ?? process.env.FINBUDDY_DEPLOYMENT_ENVIRONMENT;
-const serviceName = process.env.FUNCTION_TARGET === 'finbuddyExpenseAudit' ? 'finbuddy-expense-audit' : 'finbuddy-api';
 const timeoutMillis = 1500;
 const traceUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp\/v1\/traces$/;
 const baseUrlPattern = /^https:\/\/[a-z0-9-]+\.live\.dynatrace\.com\/api\/v2\/otlp$/;

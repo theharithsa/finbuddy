@@ -2,8 +2,7 @@ import { dataRoot, deploymentTargets, firebaseProject, type DataEnvironment } fr
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { initializeApp, applicationDefault, getApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { tokenCreated } from '../shared/developer';
@@ -15,7 +14,6 @@ export interface LiveFixture {
   probe: string;
   accounts: Array<{ uid: string; email: string; password: string; session: string }>;
 }
-const authAppName = 'finbuddy-release-auth';
 function shortLivedCredential() {
   return {
     async getAccessToken() {
@@ -26,25 +24,36 @@ function shortLivedCredential() {
     },
   };
 }
+let releaseToken: Promise<string> | undefined;
+async function authAdmin(project: LiveFixture['project'], action: 'accounts' | 'accounts:update' | 'accounts:delete',
+  body: Record<string, unknown>): Promise<void> {
+  releaseToken ??= shortLivedCredential().getAccessToken().then(value => value.access_token);
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${project}/${action}`, {
+    method: 'POST', headers: { Authorization: `Bearer ${await releaseToken}`,
+      'X-Goog-User-Project': project, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body), signal: AbortSignal.timeout(20_000), redirect: 'error',
+  });
+  await response.body?.cancel();
+  assert.equal(response.status, 200, 'Scoped synthetic Auth administration failed');
+}
 export async function prepare(namespace: DataEnvironment, apiKey: string): Promise<LiveFixture> {
   assert.equal(process.env.FINBUDDY_ALLOW_SYNTHETIC_WRITES, 'true');
   assert.ok(namespace === 'prod' || namespace === 'preprod');
   const project = firebaseProject;
   assert.ok(apiKey);
   initializeApp({ projectId: project, storageBucket: `${project}.firebasestorage.app`, credential: applicationDefault() });
-  // Auth administration consumes OAuth directly; data SDKs use their supported Google ADC path.
-  const auth = getAuth(initializeApp({ projectId: project, credential: shortLivedCredential() }, authAppName));
+  // Auth uses an explicit quota-project header for both WIF and operator ADC.
   const fixture: LiveFixture = { project, namespace, origin: `https://${deploymentTargets[namespace].site}.web.app`, probe: randomUUID(), accounts: [] };
   try {
     for (let index = 0; index < 2; index++) {
       const uid = `finbuddy-release-${randomUUID()}`;
       const email = `${uid}@example.test`;
       const password = randomBytes(30).toString('base64url');
-      await auth.createUser({ uid, email, password, emailVerified: true, displayName: 'Release test household' });
-      await auth.setCustomUserClaims(uid, namespace === 'preprod'
-        ? { finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' } : { finbuddyEnvironment: 'prod' });
+      await authAdmin(project, 'accounts', { localId: uid, email, password, emailVerified: true, displayName: 'Release test household' });
       const account = { uid, email, password, session: '' };
       fixture.accounts.push(account);
+      await authAdmin(project, 'accounts:update', { localId: uid, customAttributes: JSON.stringify(namespace === 'preprod'
+        ? { finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' } : { finbuddyEnvironment: 'prod' }) });
       const signed = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Referer: `${fixture.origin}/` }, body: JSON.stringify({ email, password, returnSecureToken: true }),
         signal: AbortSignal.timeout(20_000), redirect: 'error',
@@ -71,7 +80,7 @@ export async function cleanup(fixture: LiveFixture): Promise<void> {
       for (const row of owned.docs) await row.ref.delete();
     }
     await getStorage().bucket().deleteFiles({ prefix: `${fixture.namespace}/receipts/${account.uid}/` });
-    await getAuth(getApp(authAppName)).deleteUser(account.uid);
+    await authAdmin(fixture.project, 'accounts:delete', { localId: account.uid });
     assert.equal((await db.collection(`${dataRoot(fixture.namespace)}/users`).doc(account.uid).listCollections()).length, 0, 'Fixture cleanup left records');
   }
 }

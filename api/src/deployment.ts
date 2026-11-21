@@ -9,6 +9,7 @@ if (!emulator && !local && process.env.GCLOUD_PROJECT !== firebaseProject) {
 }
 export const dataNamespace = dataRoot(environment);
 export const target = deploymentTargets[environment];
+export const backendServiceName = process.env.FUNCTION_TARGET === target.audit ? 'finbuddy-expense-audit' : 'finbuddy-api';
 export const isPreProduction = environment === 'preprod';
 export const runtimeServiceAccount = emulator || local ? undefined : `${target.runtime}@${firebaseProject}.iam.gserviceaccount.com`;
 export type DeploymentEnvironment = 'pre-production' | 'production';

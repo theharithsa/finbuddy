@@ -8,11 +8,11 @@ const endpoint = 'https://example.live.dynatrace.com/api/v2/otlp';
 function inspect(extra: NodeJS.ProcessEnv) {
   const script = `const c = require(process.argv[1]); process.stdout.write(JSON.stringify({
     enabled:c.backendTelemetryEnabled, environment:c.telemetryEnvironment, namespace:c.dataNamespace,
-    identity:c.runtimeServiceAccount ?? null, secret:c.telemetryAuthorization, api:c.target.api
+    identity:c.runtimeServiceAccount ?? null, secret:c.telemetryAuthorization, api:c.target.api, service:c.backendServiceName
   }));`;
   return JSON.parse(execFileSync(process.execPath, ['-e', script, modulePath], {
     encoding: 'utf8', env: { GCLOUD_PROJECT: 'finbuddy-2025', ...extra }, stdio: ['ignore', 'pipe', 'pipe'],
-  })) as { enabled: boolean; environment: string; namespace: string; identity: string | null; secret: string; api: string };
+  })) as { enabled: boolean; environment: string; namespace: string; identity: string | null; secret: string; api: string; service: string };
 }
 test('one project has distinct environment roots, backend names and identities', () => {
   const prod = inspect({ FINBUDDY_ENVIRONMENT: 'prod' });
@@ -24,6 +24,7 @@ test('one project has distinct environment roots, backend names and identities',
   assert.equal(prod.identity, 'finbuddy-runtime-prod@finbuddy-2025.iam.gserviceaccount.com');
   assert.equal(preprod.identity, 'finbuddy-runtime-preprod@finbuddy-2025.iam.gserviceaccount.com');
   assert.notEqual(prod.secret, preprod.secret);
+  assert.equal(inspect({ FINBUDDY_ENVIRONMENT: 'preprod', FUNCTION_TARGET: 'finbuddyExpenseAuditPreprod' }).service, 'finbuddy-expense-audit');
 });
 test('live functions reject missing, invalid and wrong-project configuration', () => {
   for (const FINBUDDY_ENVIRONMENT of [undefined, '', 'production', 'other']) {
