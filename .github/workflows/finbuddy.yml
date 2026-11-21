@@ -48,7 +48,7 @@ jobs:
       - run: npm run lint -- --quiet
       - run: npm --prefix api ci --no-fund --no-audit
       - run: npm run typecheck:release
-      - run: node --test tests/release-control.test.mts
+      - run: node --test tests/release-control.test.mts tests/namespace-migration.test.mts tests/receipt-copy.test.mts
       - run: npm run test:run
       - run: npx --no-install playwright install --with-deps chromium
       - run: npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
@@ -62,8 +62,6 @@ jobs:
           VITE_RELEASE_REVISION: ${{ github.sha }}
           PREPROD_RUM_URL: ${{ vars.FINBUDDY_PREPROD_RUM_URL }}
           PRODUCTION_RUM_URL: ${{ vars.FINBUDDY_PROD_RUM_URL }}
-          VITE_FINBUDDY_PREPROD_API_KEY: ${{ vars.FINBUDDY_PREPROD_API_KEY }}
-          VITE_FINBUDDY_PREPROD_APP_ID: ${{ vars.FINBUDDY_PREPROD_APP_ID }}
         run: |
           set -euo pipefail
           test -n "$PREPROD_RUM_URL"
@@ -102,6 +100,10 @@ jobs:
       - run: npm --prefix api audit --audit-level=low
       - run: npm --prefix api test
       - run: npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+      - name: Verify transitional policy and preserved FinVision access
+        run: npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.transition-test.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+        env:
+          FINBUDDY_TEST_TRANSITION: 'true'
 
   verify-functions:
     runs-on: ubuntu-latest
@@ -167,7 +169,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: pre-production
-      url: https://finbuddy-preprod.web.app
+      url: https://finbuddy-2025-preprod.web.app
     permissions:
       contents: read
       id-token: write
@@ -192,7 +194,7 @@ jobs:
       - run: npx --no-install playwright install --with-deps chromium
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
-          project_id: finbuddy-preprod
+          project_id: finbuddy-2025
           workload_identity_provider: ${{ vars.FINBUDDY_WIF_PROVIDER }}
           service_account: ${{ vars.FINBUDDY_DEPLOY_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
@@ -200,12 +202,12 @@ jobs:
         run: node scripts/deploy-release.mts pre-production "$GITHUB_SHA"
       - name: Verify live source and API denial
         run: |
-          node scripts/verify-hosting.mjs https://finbuddy-preprod.web.app "$GITHUB_SHA" --wait-for-revision
-          node scripts/verify-api.mjs https://finbuddy-preprod.web.app "$GITHUB_SHA"
+          node scripts/verify-hosting.mjs https://finbuddy-2025-preprod.web.app "$GITHUB_SHA" --wait-for-revision
+          node scripts/verify-api.mjs https://finbuddy-2025-preprod.web.app "$GITHUB_SHA"
       - name: Verify live synthetic journeys and isolation
         run: node scripts/live-acceptance.mts pre-production
         env:
-          FINBUDDY_LIVE_API_KEY: ${{ vars.FINBUDDY_PREPROD_API_KEY }}
+          FINBUDDY_LIVE_API_KEY: ${{ vars.FINBUDDY_PROD_API_KEY }}
           FINBUDDY_ALLOW_SYNTHETIC_WRITES: 'true'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -264,6 +266,8 @@ jobs:
         run: node scripts/deploy-release.mts production "$CANDIDATE_SHA"
         env:
           CANDIDATE_SHA: ${{ needs.promotion.outputs.source }}
+          ACCEPTANCE_RECEIPT: ${{ needs.promotion.outputs.receipt }}
+          GH_TOKEN: ${{ github.token }}
       - name: Verify the accepted live source, denial and synthetic journeys
         run: |
           node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$CANDIDATE_SHA" --wait-for-revision

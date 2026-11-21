@@ -46,3 +46,7 @@ Open the address printed by Vite and add `?demo=1`. Use the testing guide for em
 Start with a linked GitHub issue, keep changes focused, and include verification in your PR. Use synthetic data in public artifacts. Report suspected security issues privately through the repository's Security tab. [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Issue forms](https://github.com/theharithsa/finbuddy/issues/new/choose) · [Project board](https://github.com/users/theharithsa/projects/1)
 
 Licensed under [MIT](LICENSE). Template version: **1.14.1** · [App Launchpad provenance](project.json)
+
+## Firebase environments
+
+FinBuddy uses one Firebase project, `finbuddy-2025`. The protected `preprod` and `main` branches deploy the `preprod` and `prod` Hosting targets, with separate Firestore roots `preprod/data` and `prod/data`. Existing Auth identities are shared. [Read the architecture, migration, verification and recovery guide](docs/firebase-consolidation.md). FinVision's existing resources are preserved.

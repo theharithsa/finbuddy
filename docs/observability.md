@@ -22,11 +22,11 @@ Set `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved Dynatrace OTLP base URL and bi
 
 ### Isolated pre-production
 
-FinBuddy pre-production runs in the Firebase project `finbuddy-preprod`. It uses a separate Auth user directory, Firestore database, receipt bucket, Firebase web app and Hosting site. Use synthetic records and admin-provisioned test accounts. The pre-production build displays its environment and uses its own Firebase app configuration.
+FinBuddy pre-production shares Firebase project `finbuddy-2025` and its Auth directory, database, receipt bucket and web configuration with production. Its Hosting target is `preprod`, data root is `preprod/data` and receipt prefix is `preprod/receipts`. Approved test accounts are marked and denied production access. See the [consolidation contract](firebase-consolidation.md).
 
 Build with `npm run build -- --mode preprod`. Supply the pre-production Firebase web app's `VITE_FINBUDDY_PREPROD_API_KEY` and `VITE_FINBUDDY_PREPROD_APP_ID`, the candidate Git SHA in `VITE_RELEASE_REVISION`, and the approved pre-production RUM CDN URL in `VITE_FINBUDDY_RUM_URL`. Keep RUM opt-in and Session Replay disabled. Verify the app's deployment with `scripts/verify-hosting.mjs` and `scripts/verify-api.mjs`.
 
-Deploy with `firebase deploy --project finbuddy-preprod --config firebase.preprod.json`. In the API runtime set `OTEL_EXPORTER_OTLP_ENDPOINT` and `FINBUDDY_BUILD_COMMIT`. Store the dedicated ingest authorization header in Firebase Secret Manager as `FINBUDDY_DT_INGEST_AUTHORIZATION`. It needs only traces, logs, metrics and BizEvents ingest. The pre-production Functions scale to zero and are capped at one instance each.
+Use the checked release workflow; its backend step selects `finbuddy-api-preprod` and its Hosting step selects only `hosting:preprod` in `finbuddy-2025`. In the API runtime set `OTEL_EXPORTER_OTLP_ENDPOINT` and `FINBUDDY_BUILD_COMMIT`. Store pre-production ingest authorization in Secret Manager as `FINBUDDY_PREPROD_DT_INGEST_AUTHORIZATION`; production uses `FINBUDDY_DT_INGEST_AUTHORIZATION`. The owner authorised reuse of the configured MCP token for production; verify real ingestion rather than demanding another credential. It needs only traces, logs, metrics and BizEvents ingest. The pre-production Functions scale to zero and are capped at one instance each.
 
 | Signal | Pre-production evidence to query |
 | --- | --- |

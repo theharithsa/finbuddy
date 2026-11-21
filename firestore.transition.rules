@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Temporary compatibility for the old production client during verified copy/cutover.
+    // Only production identities can use legacy FinBuddy paths.
+    match /users/{userId}/{document=**} {
+      allow read, write: if productionIdentity() && request.auth.uid == userId;
+    }
+    match /publicCategories/{categoryId} {
+      allow read: if productionIdentity();
+      allow create: if productionIdentity() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if productionIdentity() && request.auth.uid == resource.data.userId;
+    }
+    function productionIdentity() {
+      return request.auth != null && request.auth.token.get('finbuddyEnvironment', 'prod') != 'preprod';
+    }
+    function environmentAccess(environment) {
+      return request.auth != null
+        && ((environment == 'prod' && request.auth.token.get('finbuddyEnvironment', 'prod') != 'preprod')
+          || (environment == 'preprod' && request.auth.token.get('finbuddyPreprodAccess', false) == true));
+    }
+    match /{environment}/data {
+      match /users/{userId}/{document=**} {
+        allow read, write: if environmentAccess(environment) && request.auth.uid == userId;
+      }
+      match /publicCategories/{categoryId} {
+        allow read: if environmentAccess(environment);
+        allow create: if environmentAccess(environment) && request.auth.uid == request.resource.data.userId;
+        allow update: if environmentAccess(environment) && request.auth.uid == resource.data.userId
+          && request.resource.data.userId == resource.data.userId;
+        allow delete: if environmentAccess(environment) && request.auth.uid == resource.data.userId;
+      }
+    }
+    // Preserve FinVision's existing owner and linked-partner behavior.
+    // Synthetic preprod identities cannot enter the existing production app.
+    match /Users/{userId}/FinVision/data/Personal_Details/profile {
+      allow read: if productionIdentity() && (request.auth.uid == userId
+        || request.auth.uid in resource.data.linkedAccountIds);
+      allow write: if productionIdentity() && request.auth.uid == userId;
+    }
+    match /Users/{userId}/{document=**} {
+      allow read, write: if productionIdentity() && request.auth.uid == userId;
+    }
+    match /SyncCodes/{code} {
+      allow read: if productionIdentity();
+      allow create: if productionIdentity() && request.auth.uid == request.resource.data.uid;
+      allow update, delete: if productionIdentity() && request.auth.uid == resource.data.uid;
+    }
+  }
+}

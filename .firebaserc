@@ -1,5 +1,19 @@
 {
   "projects": {
-    "default": "finbuddy-2025"
+    "default": "finbuddy-2025",
+    "prod": "finbuddy-2025",
+    "preprod": "finbuddy-2025"
+  },
+  "targets": {
+    "finbuddy-2025": {
+      "hosting": {
+        "prod": [
+          "finbuddy-2025"
+        ],
+        "preprod": [
+          "finbuddy-2025-preprod"
+        ]
+      }
+    }
   }
 }

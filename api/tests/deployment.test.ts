@@ -1,54 +1,51 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { test } from 'node:test';
+import { accountCanAccess } from '../shared/environment';
 
 const modulePath = require.resolve('../src/deployment');
 const endpoint = 'https://example.live.dynatrace.com/api/v2/otlp';
-
-function inspect(environment: NodeJS.ProcessEnv) {
-  const policy = `const config = require(process.argv[1]);
-    process.stdout.write(JSON.stringify({
-      enabled: config.backendTelemetryEnabled,
-      environment: config.telemetryEnvironment ?? null,
-    }));`;
-  return JSON.parse(execFileSync(process.execPath, ['-e', policy, modulePath], {
-    encoding: 'utf8',
-    env: environment,
-  }));
+function inspect(extra: NodeJS.ProcessEnv) {
+  const script = `const c = require(process.argv[1]); process.stdout.write(JSON.stringify({
+    enabled:c.backendTelemetryEnabled, environment:c.telemetryEnvironment, namespace:c.dataNamespace,
+    identity:c.runtimeServiceAccount ?? null, secret:c.telemetryAuthorization, api:c.target.api
+  }));`;
+  return JSON.parse(execFileSync(process.execPath, ['-e', script, modulePath], {
+    encoding: 'utf8', env: { GCLOUD_PROJECT: 'finbuddy-2025', ...extra }, stdio: ['ignore', 'pipe', 'pipe'],
+  })) as { enabled: boolean; environment: string; namespace: string; identity: string | null; secret: string; api: string };
 }
-
-test('production observability requires its own explicit activation', () => {
-  const production = { GCLOUD_PROJECT: 'finbuddy-2025', OTEL_EXPORTER_OTLP_ENDPOINT: endpoint };
-  const enabled = { ...production, FINBUDDY_ENABLE_BACKEND_TELEMETRY: 'true' };
-  assert.deepEqual(inspect(production), { enabled: false, environment: 'production' });
-  assert.deepEqual(inspect(enabled), { enabled: true, environment: 'production' });
-  assert.deepEqual(inspect({ ...enabled, OTEL_EXPORTER_OTLP_ENDPOINT: '' }), {
-    enabled: false, environment: 'production',
-  });
-  assert.deepEqual(inspect({ ...enabled, FUNCTIONS_EMULATOR: 'true' }), {
-    enabled: false, environment: 'production',
-  });
-  assert.deepEqual(inspect({ ...enabled, GCLOUD_PROJECT: 'unrelated-firebase-project' }), {
-    enabled: false, environment: null,
-  });
+test('one project has distinct environment roots, backend names and identities', () => {
+  const prod = inspect({ FINBUDDY_ENVIRONMENT: 'prod' });
+  const preprod = inspect({ FINBUDDY_ENVIRONMENT: 'preprod' });
+  assert.equal(prod.namespace, 'prod/data');
+  assert.equal(preprod.namespace, 'preprod/data');
+  assert.equal(prod.api, 'finbuddyApi');
+  assert.equal(preprod.api, 'finbuddyApiPreprod');
+  assert.equal(prod.identity, 'finbuddy-runtime-prod@finbuddy-2025.iam.gserviceaccount.com');
+  assert.equal(preprod.identity, 'finbuddy-runtime-preprod@finbuddy-2025.iam.gserviceaccount.com');
+  assert.notEqual(prod.secret, preprod.secret);
 });
-
-test('pre-production retains its separate telemetry activation', () => {
-  const staging = { GCLOUD_PROJECT: 'finbuddy-preprod', OTEL_EXPORTER_OTLP_ENDPOINT: endpoint };
-  assert.deepEqual(inspect(staging), { enabled: true, environment: 'pre-production' });
-  assert.deepEqual(inspect({ ...staging, FUNCTIONS_EMULATOR: 'true' }), {
-    enabled: false, environment: 'pre-production',
-  });
-});
-
-test('runtime identity stays within the selected project and emulators use no live identity', () => {
-  const script = 'process.stdout.write(require(process.argv[1]).runtimeServiceAccount ?? "none")';
-  for (const project of ['finbuddy-preprod', 'finbuddy-2025']) {
-    const read = (environment: NodeJS.ProcessEnv) => execFileSync(process.execPath, ['-e', script, modulePath], {
-      encoding: 'utf8', env: environment,
-    });
-    assert.equal(read({ GCLOUD_PROJECT: project }), `finbuddy-runtime@${project}.iam.gserviceaccount.com`);
-    assert.equal(read({ GCLOUD_PROJECT: project, FUNCTIONS_EMULATOR: 'true' }), 'none');
-    assert.equal(read({ GCLOUD_PROJECT: 'another-project' }), 'none');
+test('live functions reject missing, invalid and wrong-project configuration', () => {
+  for (const FINBUDDY_ENVIRONMENT of [undefined, '', 'production', 'other']) {
+    assert.throws(() => inspect({ FINBUDDY_ENVIRONMENT }));
   }
+  assert.throws(() => inspect({ FINBUDDY_ENVIRONMENT: 'prod', GCLOUD_PROJECT: 'finbuddy-preprod' }));
+});
+test('telemetry needs explicit activation; emulators never bind live identity or export', () => {
+  for (const FINBUDDY_ENVIRONMENT of ['prod', 'preprod']) {
+    const config = { FINBUDDY_ENVIRONMENT, OTEL_EXPORTER_OTLP_ENDPOINT: endpoint };
+    assert.equal(inspect(config).enabled, false);
+    assert.equal(inspect({ ...config, FINBUDDY_ENABLE_BACKEND_TELEMETRY: 'true' }).enabled, true);
+    const local = inspect({ ...config, FINBUDDY_ENABLE_BACKEND_TELEMETRY: 'true', FUNCTIONS_EMULATOR: 'true' });
+    assert.equal(local.enabled, false);
+    assert.equal(local.identity, null);
+  }
+});
+test('synthetic preprod accounts cannot authenticate to production', () => {
+  const staging = { finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' };
+  assert.equal(accountCanAccess('preprod', staging), true);
+  assert.equal(accountCanAccess('prod', staging), false);
+  assert.equal(accountCanAccess('prod', undefined), true);
+  assert.equal(accountCanAccess('preprod', undefined), false);
+  assert.equal(accountCanAccess('preprod', { finbuddyPreprodAccess: 'true' }), false);
 });

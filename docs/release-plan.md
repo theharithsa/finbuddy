@@ -2,7 +2,7 @@
 
 Follow the [FinBuddy SDLC](sdlc.md) from issue intake through release verification. In the implementation PR, review the README, changelog, security guidance, and affected user, settings, technical, or delivery guides. Record what changed or why the existing documentation still applies.
 
-Persistent pre-production is deployed in Firebase project `finbuddy-preprod`. Follow the [release controls](release-controls.md) for the staged candidate, exact-source acceptance, OIDC deployment and promotion rejection cases. The [pre-production plan](preproduction-plan.md) preserves the audit and backlog sequence; runtime receipts are tracked in #174 and #169.
+Production and persistent pre-production share Firebase project `finbuddy-2025` with explicit Hosting targets and `prod/data` / `preprod/data` collection roots. Follow the [consolidation guide](firebase-consolidation.md) for migration and recovery. Follow the [release controls](release-controls.md) for the staged candidate, exact-source acceptance, OIDC deployment and promotion rejection cases. The [pre-production plan](preproduction-plan.md) preserves the audit and backlog sequence; runtime receipts are tracked in #174 and #169.
 
 ## Product site and handbook
 

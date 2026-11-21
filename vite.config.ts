@@ -8,10 +8,17 @@ import packageJson from './package.json';
 const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'finbuddy-environment-marker',
+      transformIndexHtml: () => [
+        { tag: 'meta', attrs: { name: 'finbuddy-environment', content: mode === 'preprod' ? 'preprod' : 'prod' }, injectTo: 'head' },
+        { tag: 'meta', attrs: { name: 'finbuddy-firebase-project', content: 'finbuddy-2025' }, injectTo: 'head' },
+      ],
+    },
   ],
   esbuild: { pure: ['console.log', 'console.debug', 'console.info'] },
   define: {
@@ -44,4 +51,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));

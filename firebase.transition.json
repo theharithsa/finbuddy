@@ -1,0 +1,4 @@
+{
+  "firestore": { "rules": "firestore.transition.rules" },
+  "storage": { "rules": "storage.transition.rules" }
+}

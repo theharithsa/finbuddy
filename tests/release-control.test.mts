@@ -8,8 +8,9 @@ import { validateCandidate, validateAcceptance, validateRun, resolveAcceptedRun,
 const sha = 'a'.repeat(40);
 const tree = 'b'.repeat(40);
 const digest = 'c'.repeat(64);
-const receipt = (): Candidate => ({ schemaVersion: 1, sourceSha: sha, sourceTree: tree, runId: 123,
-  runAttempt: 2, createdAt: new Date(Date.now() - 1000).toISOString(), project: 'finbuddy-preprod',
+const receipt = (): Candidate => ({ schemaVersion: 2, sourceSha: sha, sourceTree: tree, runId: 123,
+  runAttempt: 2, createdAt: new Date(Date.now() - 1000).toISOString(), project: 'finbuddy-2025',
+  preprodSite: 'finbuddy-2025-preprod', preprodRoot: 'preprod/data', productionRoot: 'prod/data',
   preprodDigest: digest, productionDigest: digest, apiDigest: digest });
 const status = () => ({ context: 'preprod-acceptance', state: 'success', creator: { login: 'theharithsa' },
   created_at: new Date().toISOString(), description: `run=123;attempt=2;receipt=${digest}` });
@@ -27,7 +28,10 @@ test('rejects missing acceptance, changed source, changed merge content and wron
   assert.throws(() => validateCandidate(null, sha, tree));
   assert.throws(() => validateCandidate(receipt(), 'd'.repeat(40), tree));
   assert.throws(() => validateCandidate(receipt(), sha, 'd'.repeat(40)));
-  assert.throws(() => validateCandidate({ ...receipt(), project: 'finbuddy-2025' }, sha, tree));
+  assert.throws(() => validateCandidate({ ...receipt(), project: 'finbuddy-preprod' }, sha, tree));
+  assert.throws(() => validateCandidate({ ...receipt(), schemaVersion: 1 }, sha, tree));
+  assert.throws(() => validateCandidate({ ...receipt(), preprodRoot: 'prod/data' }, sha, tree));
+  assert.throws(() => validateCandidate({ ...receipt(), preprodSite: 'finbuddy-2025' }, sha, tree));
 });
 test('rejects stale and future receipts', () => {
   assert.throws(() => validateCandidate({ ...receipt(), createdAt: new Date(0).toISOString() }, sha, tree));

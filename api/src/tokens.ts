@@ -4,6 +4,8 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { documentId, tokenCreate, tokenInfo } from './contracts';
 import { ApiError } from './errors';
+import { accountCanAccess } from '../shared/environment';
+import { dataNamespace, environment } from './deployment';
 
 const maxTokens = 10;
 const tokenPattern = /^fbp_([a-f0-9]{32})\.([A-Za-z0-9_-]{43})$/;
@@ -35,6 +37,7 @@ export async function sessionUser(auth: Auth, token: string): Promise<DecodedIdT
   try {
     const session = await auth.verifyIdToken(token, true);
     if (!documentId.safeParse(session.uid).success) throw new Error('Invalid UID');
+    if (!accountCanAccess(environment, session)) throw new Error('Account cannot use this environment');
     return session;
   } catch {
     throw new ApiError(401, 'sign_in_required', 'Sign in to FinBuddy to manage tokens.');
@@ -50,7 +53,7 @@ export function requireRecentSignIn(session: DecodedIdToken, now = Date.now()): 
 export async function authenticate(db: Firestore, auth: Auth, token: string, write: boolean): Promise<UserRecord> {
   const parts = tokenPattern.exec(token);
   if (!parts) throw invalidToken();
-  const row = storedToken.safeParse((await db.collection('finbuddyApiTokens').doc(parts[1]).get()).data());
+  const row = storedToken.safeParse((await db.collection(`${dataNamespace}/finbuddyApiTokens`).doc(parts[1]).get()).data());
   if (!row.success || isExpired(row.data, Date.now()) ||
       !timingSafeEqual(Buffer.from(row.data.digest, 'hex'), Buffer.from(digest(token), 'hex'))) throw invalidToken();
   if (write && row.data.access !== 'read-write') {
@@ -63,7 +66,8 @@ export async function authenticate(db: Firestore, auth: Auth, token: string, wri
     if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'auth/user-not-found') throw invalidToken();
     throw error;
   }
-  if (user.disabled || Date.parse(user.tokensValidAfterTime ?? '') > Date.parse(row.data.createdAt)) throw invalidToken();
+  if (user.disabled || !accountCanAccess(environment, user.customClaims)
+      || Date.parse(user.tokensValidAfterTime ?? '') > Date.parse(row.data.createdAt)) throw invalidToken();
   return user;
 }
 
@@ -75,7 +79,7 @@ function active(tokens: Token[], now: number): Token[] {
 }
 
 export async function listTokens(db: Firestore, uid: string): Promise<Token[]> {
-  const doc = await db.collection('finbuddyDeveloper').doc(uid).get();
+  const doc = await db.collection(`${dataNamespace}/finbuddyDeveloper`).doc(uid).get();
   return active(readTokens(doc.data()), Date.now());
 }
 
@@ -86,8 +90,8 @@ export async function createToken(db: Firestore, uid: string, input: z.infer<typ
   const access: Access = input.access;
   const expiresAt = input.days === null ? null : new Date(now + input.days * 86_400_000).toISOString();
   const info = { id, name: input.name, access, createdAt: new Date(now).toISOString(), expiresAt };
-  const owner = db.collection('finbuddyDeveloper').doc(uid);
-  const lookup = db.collection('finbuddyApiTokens');
+  const owner = db.collection(`${dataNamespace}/finbuddyDeveloper`).doc(uid);
+  const lookup = db.collection(`${dataNamespace}/finbuddyApiTokens`);
   await db.runTransaction(async (tx) => {
     const all = readTokens((await tx.get(owner)).data());
     const tokens = active(all, now);
@@ -102,11 +106,11 @@ export async function createToken(db: Firestore, uid: string, input: z.infer<typ
 }
 
 export async function revokeToken(db: Firestore, uid: string, id: string): Promise<void> {
-  const owner = db.collection('finbuddyDeveloper').doc(uid);
+  const owner = db.collection(`${dataNamespace}/finbuddyDeveloper`).doc(uid);
   await db.runTransaction(async (tx) => {
     const tokens = readTokens((await tx.get(owner)).data());
     if (!tokens.some((token) => token.id === id)) return;
-    tx.delete(db.collection('finbuddyApiTokens').doc(id));
+    tx.delete(db.collection(`${dataNamespace}/finbuddyApiTokens`).doc(id));
     tx.set(owner, { tokens: tokens.filter((token) => token.id !== id) });
   });
 }

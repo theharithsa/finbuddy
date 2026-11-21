@@ -1,20 +1,14 @@
+import { firebaseEnvironment, firestoreRoot, receiptRoot } from './firebase-environment';
+import { accountCanAccess } from '../../api/shared/environment';
 import { localDate } from '@/lib/finance-period';
-import { initializeApp, FirebaseError, type FirebaseOptions } from 'firebase/app';
+import { initializeApp, FirebaseError } from 'firebase/app';
 import { getAuth, connectAuthEmulator, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User, sendSignInLinkToEmail, signInWithEmailLink, isSignInWithEmailLink, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, increment, deleteField, type FieldValue, Unsubscribe } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import type { Budget, Expense, Person } from './types';
 
-// Firebase configuration - Replace with your Firebase project config
-// To set up Firebase:
-// 1. Go to https://console.firebase.google.com/
-// 2. Create a new project or select existing project
-// 3. Enable Authentication with Google provider
-// 4. Enable Firestore Database
-// 5. Enable Storage
-// 6. Add your domain to authorized domains in Authentication > Settings > Authorized domains
-// 7. Copy your config from Project Settings > General > Your apps
-const productionFirebaseConfig = {
+// Both Hosting targets share this Firebase app; paths select the data environment.
+const sharedFirebaseConfig = {
   apiKey: "AIzaSyDrZD1uiFf6BCTBvMi0WDoAr0VJrEwXWL8",
   authDomain: "finbuddy-2025.firebaseapp.com",
   projectId: "finbuddy-2025",
@@ -24,29 +18,13 @@ const productionFirebaseConfig = {
   measurementId: "G-ESNPQSYLCB"
 };
 
-function preProductionFirebaseConfig(): FirebaseOptions {
-  const projectId = 'finbuddy-preprod';
-  const apiKey = import.meta.env.VITE_FINBUDDY_PREPROD_API_KEY;
-  const appId = import.meta.env.VITE_FINBUDDY_PREPROD_APP_ID;
-  if (!apiKey || !appId || apiKey === productionFirebaseConfig.apiKey || appId === productionFirebaseConfig.appId) {
-    throw new Error('FinBuddy pre-production requires its own Firebase web app configuration.');
-  }
-  return {
-    apiKey,
-    appId,
-    projectId,
-    authDomain: `${projectId}.firebaseapp.com`,
-    storageBucket: `${projectId}.firebasestorage.app`,
-  };
-}
-
 const useEmulators = import.meta.env.DEV && import.meta.env.VITE_FIREBASE_EMULATORS === 'true';
 const app = initializeApp(useEmulators ? {
   apiKey: 'demo-key',
   projectId: 'demo-finbuddy',
   authDomain: 'demo-finbuddy.firebaseapp.com',
   storageBucket: 'demo-finbuddy.appspot.com',
-} : import.meta.env.MODE === 'preprod' ? preProductionFirebaseConfig() : productionFirebaseConfig);
+} : sharedFirebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
@@ -103,7 +81,7 @@ export const deleteFile = async (path: string): Promise<void> => {
  */
 export function generateReceiptPath(userId: string, fileName: string): string {
   const extension = fileName.match(/\.(jpe?g|png|webp|pdf)$/i)?.[1]?.toLowerCase() ?? 'bin';
-  return `receipts/${userId}/${crypto.randomUUID()}.${extension}`;
+  return `${receiptRoot}/${userId}/${crypto.randomUUID()}.${extension}`;
 }
 
 export async function deleteOwnedReceipt(userId: string, url: string): Promise<void> {
@@ -140,26 +118,44 @@ export const validateReceiptFile = (file: File): boolean => {
 export { storage, auth, db };
 
 // Authentication functions
+async function environmentUser(user: User): Promise<User> {
+  if (accountCanAccess(firebaseEnvironment, (await user.getIdTokenResult()).claims)) return user;
+  await signOut(auth);
+  throw new FirebaseError('auth/environment-not-allowed', 'This account cannot use the selected FinBuddy environment.');
+}
+
 export async function signInWithGoogle(useRedirect = false): Promise<User> {
   if (useRedirect) await signInWithRedirect(auth, googleProvider);
-  return (await signInWithPopup(auth, googleProvider)).user;
+  return environmentUser((await signInWithPopup(auth, googleProvider)).user);
 }
 
 export async function checkRedirectResult(): Promise<User | null> {
-  return (await getRedirectResult(auth))?.user ?? null;
+  const user = (await getRedirectResult(auth))?.user;
+  return user ? environmentUser(user) : null;
 }
 
 export const logOut = () => signOut(auth);
-export const onAuthChange = (callback: (user: User | null) => void) => onAuthStateChanged(auth, callback);
+export function onAuthChange(callback: (user: User | null) => void): Unsubscribe {
+  let active = true;
+  let revision = 0;
+  const unsubscribe = onAuthStateChanged(auth, user => {
+    const current = ++revision;
+    if (!user) { callback(null); return; }
+    void user.getIdTokenResult().then(result => {
+      if (active && current === revision) callback(accountCanAccess(firebaseEnvironment, result.claims) ? user : null);
+    }).catch(() => { if (active && current === revision) callback(null); });
+  });
+  return () => { active = false; revision++; unsubscribe(); };
+}
 
 export async function signUpWithEmail(email: string, password: string, displayName: string): Promise<User> {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   if (displayName) await updateProfile(user, { displayName });
-  return user;
+  return environmentUser(user);
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<User> {
-  return (await signInWithEmailAndPassword(auth, email, password)).user;
+  return environmentUser((await signInWithEmailAndPassword(auth, email, password)).user);
 }
 
 export async function resetPassword(email: string): Promise<void> {
@@ -180,7 +176,7 @@ export async function signInWithMagicLink(email?: string): Promise<User> {
   if (!address) throw new Error('Email is required to complete sign-in');
   const { user } = await signInWithEmailLink(auth, address, window.location.href);
   localStorage.removeItem('emailForSignIn');
-  return user;
+  return environmentUser(user);
 }
 
 export const checkMagicLinkOnLoad = (): boolean => {
@@ -210,7 +206,7 @@ export async function addExpenseToFirestore(userId: string, expense: NewExpense)
     ...(expense.receiptFileName && { receiptFileName: expense.receiptFileName }),
     ...(expense.peopleIds?.length && { peopleIds: expense.peopleIds }),
   };
-  const created = await addDoc(collection(db, 'users', userId, 'expenses'), data);
+  const created = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'expenses'), data);
   return created.id;
 }
 
@@ -224,17 +220,17 @@ export async function updateExpenseInFirestore(userId: string, expenseId: string
     updates.receiptUrl = deleteField();
     updates.receiptFileName = deleteField();
   }
-  await updateDoc(doc(db, 'users', userId, 'expenses', expenseId), updates);
+  await updateDoc(doc(db, `${firestoreRoot}/users`, userId, 'expenses', expenseId), updates);
 }
 
 export function deleteExpenseFromFirestore(userId: string, expenseId: string): Promise<void> {
-  return deleteDoc(doc(db, 'users', userId, 'expenses', expenseId));
+  return deleteDoc(doc(db, `${firestoreRoot}/users`, userId, 'expenses', expenseId));
 }
 
 export const getExpensesFromFirestore = async (userId: string): Promise<any[]> => {
   try {
     const q = query(
-      collection(db, 'users', userId, 'expenses'),
+      collection(db, `${firestoreRoot}/users`, userId, 'expenses'),
       orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
@@ -250,14 +246,14 @@ export function subscribeToExpenses(
   callback: (expenses: Expense[]) => void,
   onError: (error: Error) => void = () => callback([]),
 ): Unsubscribe {
-  return onSnapshot(query(collection(db, 'users', userId, 'expenses'), orderBy('date', 'desc')), (snapshot) => {
+  return onSnapshot(query(collection(db, `${firestoreRoot}/users`, userId, 'expenses'), orderBy('date', 'desc')), (snapshot) => {
     callback(snapshot.docs.map((document) => ({ ...document.data(), id: document.id } as Expense)));
   }, onError);
 }
 
 export const addBudgetToFirestore = async (userId: string, budget: any): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'users', userId, 'budgets'), budget);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'budgets'), budget);
     return docRef.id;
   } catch (error) {
     console.error('Error adding budget:', error);
@@ -272,7 +268,7 @@ export const updateBudgetInFirestore = async (userId: string, budgetId: string, 
       Object.entries(budget).filter(([_, value]) => value !== undefined)
     );
     
-    const docRef = doc(db, 'users', userId, 'budgets', budgetId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'budgets', budgetId);
     await updateDoc(docRef, cleanBudget);
   } catch (error) {
     console.error('Error updating budget:', error);
@@ -282,7 +278,7 @@ export const updateBudgetInFirestore = async (userId: string, budgetId: string, 
 
 export const deleteBudgetFromFirestore = async (userId: string, budgetId: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'users', userId, 'budgets', budgetId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'budgets', budgetId);
     await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting budget:', error);
@@ -295,14 +291,14 @@ export function subscribeToBudgets(
   callback: (budgets: Budget[]) => void,
   onError: (error: Error) => void = () => callback([]),
 ): Unsubscribe {
-  return onSnapshot(collection(db, 'users', userId, 'budgets'), (snapshot) => {
+  return onSnapshot(collection(db, `${firestoreRoot}/users`, userId, 'budgets'), (snapshot) => {
     callback(snapshot.docs.map((document) => ({ ...document.data(), id: document.id } as Budget)));
   }, onError);
 }
 
 export const addTemplateToFirestore = async (userId: string, template: any): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'users', userId, 'templates'), template);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'templates'), template);
     return docRef.id;
   } catch (error) {
     console.error('Error adding template:', error);
@@ -312,7 +308,7 @@ export const addTemplateToFirestore = async (userId: string, template: any): Pro
 
 export const deleteTemplateFromFirestore = async (userId: string, templateId: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'users', userId, 'templates', templateId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'templates', templateId);
     await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting template:', error);
@@ -328,7 +324,7 @@ export const subscribeToTemplates = (userId: string, callback: (templates: any[]
       return () => {};
     }
 
-    const q = query(collection(db, 'users', userId, 'templates'));
+    const q = query(collection(db, `${firestoreRoot}/users`, userId, 'templates'));
     
     return onSnapshot(q, 
       (querySnapshot) => {
@@ -359,12 +355,12 @@ export const subscribeToTemplates = (userId: string, callback: (templates: any[]
 // Custom Category functions
 export const addCustomCategoryToFirestore = async (userId: string, category: any): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'users', userId, 'customCategories'), category);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'customCategories'), category);
     
     // If category is public, also add to global collection
     if (category.isPublic) {
       try {
-        await addDoc(collection(db, 'publicCategories'), {
+        await addDoc(collection(db, `${firestoreRoot}/publicCategories`), {
           ...category,
           originalId: docRef.id,
           userId: userId
@@ -396,7 +392,7 @@ export const addCustomCategoryToFirestore = async (userId: string, category: any
 export const updateCustomCategoryInFirestore = async (userId: string, categoryId: string, category: any): Promise<void> => {
   try {
     // First, get the current category data to ensure we have all required fields
-    const currentDocRef = doc(db, 'users', userId, 'customCategories', categoryId);
+    const currentDocRef = doc(db, `${firestoreRoot}/users`, userId, 'customCategories', categoryId);
     const currentDoc = await getDoc(currentDocRef);
     
     if (!currentDoc.exists()) {
@@ -417,7 +413,7 @@ export const updateCustomCategoryInFirestore = async (userId: string, categoryId
     // Handle public collection updates only if the user has permission
     try {
       const publicQ = query(
-        collection(db, 'publicCategories'),
+        collection(db, `${firestoreRoot}/publicCategories`),
         where('originalId', '==', categoryId),
         where('userId', '==', userId)
       );
@@ -428,14 +424,14 @@ export const updateCustomCategoryInFirestore = async (userId: string, categoryId
         if (!publicSnapshot.empty) {
           // Update existing public category with complete data
           const publicDoc = publicSnapshot.docs[0];
-          await updateDoc(doc(db, 'publicCategories', publicDoc.id), {
+          await updateDoc(doc(db, `${firestoreRoot}/publicCategories`, publicDoc.id), {
             ...updatedData,
             originalId: categoryId,
             userId: userId
           });
         } else {
           // Add to public collection with complete data
-          await addDoc(collection(db, 'publicCategories'), {
+          await addDoc(collection(db, `${firestoreRoot}/publicCategories`), {
             ...updatedData,
             originalId: categoryId,
             userId: userId
@@ -445,7 +441,7 @@ export const updateCustomCategoryInFirestore = async (userId: string, categoryId
         // Category should not be public, remove from public collection if it exists
         if (!publicSnapshot.empty) {
           const publicDoc = publicSnapshot.docs[0];
-          await deleteDoc(doc(db, 'publicCategories', publicDoc.id));
+          await deleteDoc(doc(db, `${firestoreRoot}/publicCategories`, publicDoc.id));
         }
       }
     } catch (publicError: any) {
@@ -474,13 +470,13 @@ export const updateCustomCategoryInFirestore = async (userId: string, categoryId
 
 export const deleteCustomCategoryFromFirestore = async (userId: string, categoryId: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'users', userId, 'customCategories', categoryId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'customCategories', categoryId);
     await deleteDoc(docRef);
     
     // Remove from public collection if it exists there
     try {
       const publicQ = query(
-        collection(db, 'publicCategories'),
+        collection(db, `${firestoreRoot}/publicCategories`),
         where('originalId', '==', categoryId),
         where('userId', '==', userId)
       );
@@ -488,7 +484,7 @@ export const deleteCustomCategoryFromFirestore = async (userId: string, category
       
       if (!publicSnapshot.empty) {
         const publicDoc = publicSnapshot.docs[0];
-        await deleteDoc(doc(db, 'publicCategories', publicDoc.id));
+        await deleteDoc(doc(db, `${firestoreRoot}/publicCategories`, publicDoc.id));
       }
     } catch (publicError: any) {
       // Handle permission errors gracefully for public categories
@@ -519,7 +515,7 @@ export const subscribeToCustomCategories = (userId: string, callback: (categorie
       return () => {};
     }
 
-    const q = query(collection(db, 'users', userId, 'customCategories'));
+    const q = query(collection(db, `${firestoreRoot}/users`, userId, 'customCategories'));
     
     return onSnapshot(q, 
       (querySnapshot) => {
@@ -555,7 +551,7 @@ export const subscribeToPublicCategories = (callback: (categories: any[]) => voi
       return () => {};
     }
 
-    const q = query(collection(db, 'publicCategories'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, `${firestoreRoot}/publicCategories`), orderBy('createdAt', 'desc'));
     
     return onSnapshot(q, 
       (querySnapshot) => {
@@ -597,7 +593,7 @@ export const adoptPublicCategory = async (userId: string, publicCategory: any): 
       createdBy: `Adopted from ${publicCategory.createdBy}`
     };
     
-    const docRef = await addDoc(collection(db, 'users', userId, 'customCategories'), categoryData);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'customCategories'), categoryData);
     return docRef.id;
   } catch (error) {
     console.error('Error adopting public category:', error);
@@ -608,12 +604,12 @@ export const adoptPublicCategory = async (userId: string, publicCategory: any): 
 // Budget Template functions
 export const addBudgetTemplateToFirestore = async (userId: string, template: any): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'users', userId, 'budgetTemplates'), template);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'budgetTemplates'), template);
     
     // If template is public, also add to global collection
     if (template.isPublic) {
       try {
-        await addDoc(collection(db, 'publicBudgetTemplates'), {
+        await addDoc(collection(db, `${firestoreRoot}/publicBudgetTemplates`), {
           ...template,
           originalId: docRef.id,
           userId: userId
@@ -643,7 +639,7 @@ export const addBudgetTemplateToFirestore = async (userId: string, template: any
 export const updateBudgetTemplateInFirestore = async (userId: string, templateId: string, template: any): Promise<void> => {
   try {
     // First, get the current template data
-    const currentDocRef = doc(db, 'users', userId, 'budgetTemplates', templateId);
+    const currentDocRef = doc(db, `${firestoreRoot}/users`, userId, 'budgetTemplates', templateId);
     const currentDoc = await getDoc(currentDocRef);
     
     if (!currentDoc.exists()) {
@@ -664,7 +660,7 @@ export const updateBudgetTemplateInFirestore = async (userId: string, templateId
     // Handle public collection updates
     try {
       const publicQ = query(
-        collection(db, 'publicBudgetTemplates'),
+        collection(db, `${firestoreRoot}/publicBudgetTemplates`),
         where('originalId', '==', templateId),
         where('userId', '==', userId)
       );
@@ -675,14 +671,14 @@ export const updateBudgetTemplateInFirestore = async (userId: string, templateId
         if (!publicSnapshot.empty) {
           // Update existing public template
           const publicDoc = publicSnapshot.docs[0];
-          await updateDoc(doc(db, 'publicBudgetTemplates', publicDoc.id), {
+          await updateDoc(doc(db, `${firestoreRoot}/publicBudgetTemplates`, publicDoc.id), {
             ...updatedData,
             originalId: templateId,
             userId: userId
           });
         } else {
           // Add to public collection
-          await addDoc(collection(db, 'publicBudgetTemplates'), {
+          await addDoc(collection(db, `${firestoreRoot}/publicBudgetTemplates`), {
             ...updatedData,
             originalId: templateId,
             userId: userId
@@ -692,7 +688,7 @@ export const updateBudgetTemplateInFirestore = async (userId: string, templateId
         // Template should not be public, remove from public collection if it exists
         if (!publicSnapshot.empty) {
           const publicDoc = publicSnapshot.docs[0];
-          await deleteDoc(doc(db, 'publicBudgetTemplates', publicDoc.id));
+          await deleteDoc(doc(db, `${firestoreRoot}/publicBudgetTemplates`, publicDoc.id));
         }
       }
     } catch (publicError: any) {
@@ -717,13 +713,13 @@ export const updateBudgetTemplateInFirestore = async (userId: string, templateId
 
 export const deleteBudgetTemplateFromFirestore = async (userId: string, templateId: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'users', userId, 'budgetTemplates', templateId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'budgetTemplates', templateId);
     await deleteDoc(docRef);
     
     // Remove from public collection if it exists there
     try {
       const publicQ = query(
-        collection(db, 'publicBudgetTemplates'),
+        collection(db, `${firestoreRoot}/publicBudgetTemplates`),
         where('originalId', '==', templateId),
         where('userId', '==', userId)
       );
@@ -731,7 +727,7 @@ export const deleteBudgetTemplateFromFirestore = async (userId: string, template
       
       if (!publicSnapshot.empty) {
         const publicDoc = publicSnapshot.docs[0];
-        await deleteDoc(doc(db, 'publicBudgetTemplates', publicDoc.id));
+        await deleteDoc(doc(db, `${firestoreRoot}/publicBudgetTemplates`, publicDoc.id));
       }
     } catch (publicError: any) {
       if (publicError.code === 'permission-denied') {
@@ -759,7 +755,7 @@ export const subscribeToBudgetTemplates = (userId: string, callback: (templates:
       return () => {};
     }
 
-    const q = query(collection(db, 'users', userId, 'budgetTemplates'));
+    const q = query(collection(db, `${firestoreRoot}/users`, userId, 'budgetTemplates'));
     
     return onSnapshot(q, 
       (querySnapshot) => {
@@ -795,7 +791,7 @@ export const subscribeToPublicBudgetTemplates = (callback: (templates: any[]) =>
       return () => {};
     }
 
-    const q = query(collection(db, 'publicBudgetTemplates'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, `${firestoreRoot}/publicBudgetTemplates`), orderBy('createdAt', 'desc'));
     
     return onSnapshot(q, 
       (querySnapshot) => {
@@ -839,11 +835,11 @@ export const adoptPublicBudgetTemplate = async (userId: string, publicTemplate: 
       createdBy: `Adopted from ${publicTemplate.createdBy}`
     };
     
-    const docRef = await addDoc(collection(db, 'users', userId, 'budgetTemplates'), templateData);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'budgetTemplates'), templateData);
     
     // Increment usage count in public template
     try {
-      const publicDocRef = doc(db, 'publicBudgetTemplates', publicTemplate.id);
+      const publicDocRef = doc(db, `${firestoreRoot}/publicBudgetTemplates`, publicTemplate.id);
       await updateDoc(publicDocRef, {
         usageCount: (publicTemplate.usageCount || 0) + 1
       });
@@ -867,12 +863,12 @@ export const addPersonToFirestore = async (userId: string, person: Omit<Person, 
       createdAt: new Date().toISOString()
     };
     
-    const docRef = await addDoc(collection(db, 'users', userId, 'customPeople'), personData);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'customPeople'), personData);
     
     // If person is public, also add to global collection
     if (person.isPublic) {
       try {
-        await addDoc(collection(db, 'publicPeople'), {
+        await addDoc(collection(db, `${firestoreRoot}/publicPeople`), {
           ...personData,
           originalId: docRef.id,
           userId: userId
@@ -906,7 +902,7 @@ export const updatePersonInFirestore = async (userId: string, personId: string, 
       Object.entries(person).filter(([_, value]) => value !== undefined)
     );
     
-    await updateDoc(doc(db, 'users', userId, 'customPeople', personId), cleanPerson);
+    await updateDoc(doc(db, `${firestoreRoot}/users`, userId, 'customPeople', personId), cleanPerson);
   } catch (error: any) {
     console.error('Error updating person:', error);
     
@@ -920,7 +916,7 @@ export const updatePersonInFirestore = async (userId: string, personId: string, 
 
 export const deletePersonFromFirestore = async (userId: string, personId: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'users', userId, 'customPeople', personId);
+    const docRef = doc(db, `${firestoreRoot}/users`, userId, 'customPeople', personId);
     await deleteDoc(docRef);
   } catch (error: any) {
     console.error('Error deleting person:', error);
@@ -935,7 +931,7 @@ export const deletePersonFromFirestore = async (userId: string, personId: string
 
 export const subscribeToCustomPeople = (userId: string, callback: (people: Person[]) => void): Unsubscribe => {
   const q = query(
-    collection(db, 'users', userId, 'customPeople'),
+    collection(db, `${firestoreRoot}/users`, userId, 'customPeople'),
     orderBy('name', 'asc')
   );
   
@@ -953,7 +949,7 @@ export const subscribeToCustomPeople = (userId: string, callback: (people: Perso
 
 export const subscribeToPublicPeople = (callback: (people: Person[]) => void): Unsubscribe => {
   const q = query(
-    collection(db, 'publicPeople'),
+    collection(db, `${firestoreRoot}/publicPeople`),
     orderBy('name', 'asc')
   );
   
@@ -970,7 +966,7 @@ export const adoptPublicPerson = async (userId: string, publicPerson: Person): P
   try {
     // Increment usage count for this public person
     try {
-      await updateDoc(doc(db, 'publicPeople', publicPerson.id), {
+      await updateDoc(doc(db, `${firestoreRoot}/publicPeople`, publicPerson.id), {
         usageCount: increment(1)
       });
     } catch (error) {
@@ -989,7 +985,7 @@ export const adoptPublicPerson = async (userId: string, publicPerson: Person): P
       createdBy: `Adopted from ${publicPerson.createdBy}`
     };
     
-    const docRef = await addDoc(collection(db, 'users', userId, 'customPeople'), personData);
+    const docRef = await addDoc(collection(db, `${firestoreRoot}/users`, userId, 'customPeople'), personData);
     return docRef.id;
   } catch (error) {
     console.error('Error adopting public person:', error);

@@ -11,7 +11,7 @@ Implementation integrates through protected `preprod`. The [release controls](re
 
 New items enter the Project through GitHub auto-add. The milestone assignment workflow sends unassigned Dependabot PRs to **Dependency maintenance** and other unassigned work to **Backlog triage**.
 
-The [20 November pre-production and production plan](preproduction-plan.md) reviews the deployed `finbuddy-preprod` environment and the open backlog. It records the release-control and dependency work, pre-production rehearsal, conditional production observability release and later FinVision/MCP sequence. The dated milestones and native issue dependencies are updated in GitHub. The plan records Project-add receipts and the iteration/status corrections still pending with current access.
+The [20 November pre-production and production plan](preproduction-plan.md) records the earlier two-project rehearsal, now superseded by the [22 November shared-project correction](firebase-consolidation.md) and the open backlog. It records the release-control and dependency work, pre-production rehearsal, conditional production observability release and later FinVision/MCP sequence. The dated milestones and native issue dependencies are updated in GitHub. The plan records Project-add receipts and the iteration/status corrections still pending with current access.
 
 Review open work at the start and end of each sprint, check dependencies before starting a task, and publish a Project update when the plan, progress, or risk changes. Keep ownership and decisions in the issue or PR. The Project uses the repository's milestone and the Sprint field as the sources for outcomes and scheduling. The built-in Project workflows move closed items and merged PRs to Done and reopened items to Todo.
 

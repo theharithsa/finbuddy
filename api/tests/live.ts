@@ -1,3 +1,4 @@
+import { dataRoot, deploymentTargets, firebaseProject, type DataEnvironment } from '../shared/environment';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -8,7 +9,8 @@ import { getStorage } from 'firebase-admin/storage';
 import { tokenCreated } from '../shared/developer';
 
 export interface LiveFixture {
-  project: 'finbuddy-preprod' | 'finbuddy-2025';
+  project: 'finbuddy-2025';
+  namespace: DataEnvironment;
   origin: string;
   probe: string;
   accounts: Array<{ uid: string; email: string; password: string; session: string }>;
@@ -24,20 +26,23 @@ function shortLivedCredential() {
     },
   };
 }
-export async function prepare(project: LiveFixture['project'], apiKey: string): Promise<LiveFixture> {
+export async function prepare(namespace: DataEnvironment, apiKey: string): Promise<LiveFixture> {
   assert.equal(process.env.FINBUDDY_ALLOW_SYNTHETIC_WRITES, 'true');
-  assert.ok(['finbuddy-preprod', 'finbuddy-2025'].includes(project));
+  assert.ok(namespace === 'prod' || namespace === 'preprod');
+  const project = firebaseProject;
   assert.ok(apiKey);
   initializeApp({ projectId: project, storageBucket: `${project}.firebasestorage.app`, credential: applicationDefault() });
   // Auth administration consumes OAuth directly; data SDKs use their supported Google ADC path.
   const auth = getAuth(initializeApp({ projectId: project, credential: shortLivedCredential() }, authAppName));
-  const fixture: LiveFixture = { project, origin: `https://${project}.web.app`, probe: randomUUID(), accounts: [] };
+  const fixture: LiveFixture = { project, namespace, origin: `https://${deploymentTargets[namespace].site}.web.app`, probe: randomUUID(), accounts: [] };
   try {
     for (let index = 0; index < 2; index++) {
       const uid = `finbuddy-release-${randomUUID()}`;
       const email = `${uid}@example.test`;
       const password = randomBytes(30).toString('base64url');
       await auth.createUser({ uid, email, password, emailVerified: true, displayName: 'Release test household' });
+      await auth.setCustomUserClaims(uid, namespace === 'preprod'
+        ? { finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' } : { finbuddyEnvironment: 'prod' });
       const account = { uid, email, password, session: '' };
       fixture.accounts.push(account);
       const signed = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
@@ -56,18 +61,18 @@ export async function cleanup(fixture: LiveFixture): Promise<void> {
     assert.match(account.uid, /^finbuddy-release-[a-f0-9-]{36}$/);
     assert.equal(account.email, `${account.uid}@example.test`);
     const db = getFirestore();
-    const tokens = await db.collection('finbuddyApiTokens').where('owner', '==', account.uid).get();
+    const tokens = await db.collection(`${dataRoot(fixture.namespace)}/finbuddyApiTokens`).where('owner', '==', account.uid).get();
     for (const token of tokens.docs) await token.ref.delete();
-    await db.recursiveDelete(db.collection('finbuddyDeveloper').doc(account.uid));
-    await db.recursiveDelete(db.collection('users').doc(account.uid));
+    await db.recursiveDelete(db.collection(`${dataRoot(fixture.namespace)}/finbuddyDeveloper`).doc(account.uid));
+    await db.recursiveDelete(db.collection(`${dataRoot(fixture.namespace)}/users`).doc(account.uid));
     // Categories/people/templates live outside the user document; filter only this fixture owner.
     for (const collection of ['customCategories', 'customPeople', 'billTemplates', 'budgetTemplates']) {
-      const owned = await db.collection(collection).where('userId', '==', account.uid).get();
+      const owned = await db.collection(`${dataRoot(fixture.namespace)}/${collection}`).where('userId', '==', account.uid).get();
       for (const row of owned.docs) await row.ref.delete();
     }
-    await getStorage().bucket().deleteFiles({ prefix: `receipts/${account.uid}/` });
+    await getStorage().bucket().deleteFiles({ prefix: `${fixture.namespace}/receipts/${account.uid}/` });
     await getAuth(getApp(authAppName)).deleteUser(account.uid);
-    assert.equal((await db.collection('users').doc(account.uid).listCollections()).length, 0, 'Fixture cleanup left records');
+    assert.equal((await db.collection(`${dataRoot(fixture.namespace)}/users`).doc(account.uid).listCollections()).length, 0, 'Fixture cleanup left records');
   }
 }
 
@@ -156,11 +161,11 @@ export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: s
 
   checkpoint('receipt-rules-and-api-isolation');
   const bucket = getStorage().bucket();
-  const receiptPath = `receipts/${first.uid}/release.txt`;
+  const receiptPath = `${fixture.namespace}/receipts/${first.uid}/release.txt`;
   const bytes = Buffer.from('FinBuddy synthetic receipt');
   await bucket.file(receiptPath).save(bytes, { contentType: 'text/plain', metadata: { metadata: { firebaseStorageDownloadTokens: 'synthetic' } } });
   const receiptUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(receiptPath)}?alt=media&token=synthetic`;
-  const expenseRef = getFirestore().collection('users').doc(first.uid).collection('expenses').doc(record.id);
+  const expenseRef = getFirestore().collection(`${dataRoot(fixture.namespace)}/users`).doc(first.uid).collection('expenses').doc(record.id);
   await expenseRef.update({ receiptUrl });
   const download = await api(`/expenses/${record.id}/receipt`, read.token);
   assert.equal(download.status, 200);
@@ -194,7 +199,7 @@ export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: s
   assert.equal((await api(`/expenses/${record.id}`, read.token)).status, 404);
   passed.push('expense-delete');
   checkpoint('token-expiry-and-owner-revocation');
-  const tokenDoc = getFirestore().collection('finbuddyApiTokens').doc(read.id);
+  const tokenDoc = getFirestore().collection(`${dataRoot(fixture.namespace)}/finbuddyApiTokens`).doc(read.id);
   assert.equal((await tokenDoc.get()).data()?.owner, first.uid);
   await tokenDoc.update({ expiresAt: '2000-01-01T00:00:00.000Z' });
   assert.equal((await api('/profile', read.token)).status, 401);

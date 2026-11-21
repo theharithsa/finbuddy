@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { tokenCreated, tokenInfo } from '../shared/developer';
@@ -17,13 +18,22 @@ if (![firestoreHost, authHost, storageHost].every((host) => host && /^(127\.0\.0
 const app = initializeApp({ projectId: project, storageBucket: `${project}.appspot.com` });
 const db = getFirestore(app);
 
-async function account() {
+async function account(claims?: Record<string, unknown>) {
+  const email = `${randomUUID()}@example.test`;
   const response = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-key`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: `${randomUUID()}@example.test`, password: 'synthetic-account-only', returnSecureToken: true }),
+    body: JSON.stringify({ email, password: 'synthetic-account-only', returnSecureToken: true }),
   });
   assert.equal(response.status, 200);
-  return await response.json() as { idToken: string; localId: string };
+  const result = await response.json() as { idToken: string; localId: string };
+  if (!claims) return result;
+  await getAuth(app).setCustomUserClaims(result.localId, claims);
+  const signed = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: 'synthetic-account-only', returnSecureToken: true }),
+  });
+  assert.equal(signed.status, 200);
+  return await signed.json() as { idToken: string; localId: string };
 }
 
 function api(path: string, token?: string, method = 'GET', data?: unknown, key?: string) {
@@ -46,6 +56,65 @@ async function mint(session: string, access: 'read' | 'read-write', days: 7 | nu
 }
 
 const expense = { amount: 125.99, category: 'Food & Dining', description: 'Synthetic expense', date: '2026-01-12' };
+
+test('shared-project rules separate prod/preprod and synthetic account permissions', async () => {
+  const prod = await account();
+  const partner = await account();
+  const preprod = await account({ finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' });
+  const other = await account({ finbuddyPreprodAccess: true, finbuddyEnvironment: 'preprod' });
+  const firestore = `http://${firestoreHost}/v1/projects/${project}/databases/(default)/documents`;
+  const paths = [
+    `prod/data/users/${preprod.localId}/expenses/canary`,
+    `preprod/data/users/${preprod.localId}/expenses/canary`,
+    `preprod/data/users/${prod.localId}/expenses/canary`,
+    `users/${preprod.localId}/expenses/canary`,
+    `unknown/data/users/${preprod.localId}/expenses/canary`,
+    `users/${prod.localId}/expenses/canary`,
+  ];
+  const bucket = getStorage(app).bucket();
+  const prodFile = `prod/receipts/${preprod.localId}/canary.txt`;
+  const testFile = `preprod/receipts/${preprod.localId}/canary.txt`;
+  const visionProfile = `Users/${prod.localId}/FinVision/data/Personal_Details/profile`;
+  const visionCode = 'SyncCodes/namespace-canary';
+  const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
+  try {
+    for (const path of paths) await db.doc(path).set({ note: 'Synthetic namespace test' });
+    const read = (path: string, token?: string) => fetch(`${firestore}/${path}`, { headers: token ? headers(token) : undefined });
+    assert.equal((await read(paths[1], preprod.idToken)).status, 200);
+    for (const path of [paths[0], paths[3], paths[4]]) assert.equal((await read(path, preprod.idToken)).status, 403);
+    assert.equal((await read(paths[1], other.idToken)).status, 403);
+    assert.equal((await read(paths[2], prod.idToken)).status, 403);
+    assert.equal((await read(paths[1])).status, 403);
+    await db.doc(visionProfile).set({ linkedAccountIds: [partner.localId, preprod.localId] });
+    await db.doc(visionCode).set({ uid: prod.localId, note: 'Synthetic FinVision fixture' });
+    assert.equal((await read(visionProfile, prod.idToken)).status, 200);
+    assert.equal((await read(visionProfile, partner.idToken)).status, 200);
+    // Existing normal production identities retain the FinVision owner path.
+    assert.equal((await read(visionCode, prod.idToken)).status, 200);
+    assert.equal((await read(visionProfile, preprod.idToken)).status, 403);
+    assert.equal((await read(visionCode, preprod.idToken)).status, 403);
+    assert.equal((await read(paths[5], prod.idToken)).status, process.env.FINBUDDY_TEST_TRANSITION === 'true' ? 200 : 403);
+    const write = await fetch(`${firestore}/${paths[0]}`, { method: 'PATCH', headers: {
+      ...headers(preprod.idToken), 'Content-Type': 'application/json',
+    }, body: JSON.stringify({ fields: { note: { stringValue: 'Denied synthetic write' } } }) });
+    assert.equal(write.status, 403);
+    assert.equal((await api('/developer/tokens', preprod.idToken)).status, 401);
+    for (const path of [prodFile, testFile]) await bucket.file(path).save('Synthetic namespace receipt');
+    const storage = (path: string, token: string) => fetch(
+      `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media`,
+      { headers: { Authorization: `Firebase ${token}` } });
+    assert.equal((await storage(testFile, preprod.idToken)).status, 200);
+    assert.equal((await storage(prodFile, preprod.idToken)).status, 403);
+    assert.equal((await storage(testFile, prod.idToken)).status, 403);
+    assert.equal((await storage(testFile, other.idToken)).status, 403);
+  } finally {
+    for (const path of paths) await db.doc(path).delete();
+    await db.doc(visionProfile).delete();
+    await db.doc(visionCode).delete();
+    for (const path of [prodFile, testFile]) await bucket.file(path).delete({ ignoreNotFound: true });
+    for (const user of [prod, preprod, other, partner]) await getAuth(app).deleteUser(user.localId);
+  }
+});
 const fixtures = {
   budgets: { category: 'Food & Dining', limit: 1000 },
   categories: { name: 'Synthetic', color: '#123456', icon: 'food' },
@@ -79,10 +148,10 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal(listing.status, 200);
     assert.equal(listed.length, 2);
     assert.ok(listed.every((item) => !item.token && !item.digest));
-    const raw = await db.collection('finbuddyApiTokens').doc(read.id).get();
+    const raw = await db.collection('prod/data/finbuddyApiTokens').doc(read.id).get();
     assert.equal(typeof raw.data()?.digest, 'string');
     assert.equal(raw.data()?.token === undefined, true);
-    const document = `http://${firestoreHost}/v1/projects/${project}/databases/(default)/documents/finbuddyApiTokens/${read.id}`;
+    const document = `http://${firestoreHost}/v1/projects/${project}/databases/(default)/documents/prod/data/finbuddyApiTokens/${read.id}`;
     assert.equal((await fetch(document, { headers: { Authorization: `Bearer ${first.idToken}` } })).status, 403);
     assert.equal((await api(`/developer/tokens/${read.id}`, second.idToken, 'DELETE')).status, 204);
     assert.equal((await api('/profile', read.token)).status, 200);
@@ -147,9 +216,9 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
   await t.test('only streams a receipt from the verified owner prefix', async () => {
     assert.ok(expenseId);
     const bucket = getStorage(app).bucket();
-    const path = `receipts/${first.localId}/sample.pdf`;
+    const path = `prod/receipts/${first.localId}/sample.pdf`;
     await bucket.file(path).save(Buffer.from('Synthetic receipt'), { contentType: 'application/pdf' });
-    const record = db.collection('users').doc(first.localId).collection('expenses').doc(expenseId);
+    const record = db.collection('prod/data/users').doc(first.localId).collection('expenses').doc(expenseId);
     const url = `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=synthetic`;
     await record.update({ receiptUrl: url });
     const download = await api(`/expenses/${expenseId}/receipt`, read.token);
@@ -159,13 +228,13 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal((await api(`/expenses/${expenseId}`, write.token, 'DELETE')).status, 409);
     const row = await api(`/expenses/${expenseId}`, read.token);
     assert.equal((await row.json() as { receiptUrl?: string }).receiptUrl === undefined, true);
-    await record.update({ receiptUrl: url.replace(encodeURIComponent(path), encodeURIComponent(`receipts/${second.localId}/sample.pdf`)) });
+    await record.update({ receiptUrl: url.replace(encodeURIComponent(path), encodeURIComponent(`prod/receipts/${second.localId}/sample.pdf`)) });
     assert.equal((await api(`/expenses/${expenseId}/receipt`, read.token)).status, 404);
   });
 
   await t.test('Storage rules isolate receipt reads, metadata changes and deletes, and deny flat paths', async () => {
     const bucket = getStorage(app).bucket();
-    const ownerPath = `receipts/${first.localId}/rules-check.txt`;
+    const ownerPath = `prod/receipts/${first.localId}/rules-check.txt`;
     const legacyPath = 'receipts/legacy-rules-check.txt';
     const bytes = 'Synthetic rules fixture';
     await bucket.file(ownerPath).save(Buffer.from(bytes), { contentType: 'text/plain' });
@@ -197,8 +266,8 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal(never.expiresAt, null);
     assert.ok(write.expiresAt);
     assert.equal(Date.parse(write.expiresAt) - Date.parse(write.createdAt), 7 * 86_400_000);
-    const owned = db.collection('finbuddyDeveloper').doc(first.localId);
-    const readLookup = db.collection('finbuddyApiTokens').doc(read.id);
+    const owned = db.collection('prod/data/finbuddyDeveloper').doc(first.localId);
+    const readLookup = db.collection('prod/data/finbuddyApiTokens').doc(read.id);
     const expiresAt = '2000-01-01T00:00:00.000Z';
     const existing = tokenInfo.array().parse((await owned.get()).data()?.tokens);
     await owned.update({ tokens: existing.map((row) => row.id === read.id ? { ...row, expiresAt } : row) });

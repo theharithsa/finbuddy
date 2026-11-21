@@ -1,13 +1,14 @@
+import { dataRoot, deploymentTargets, firebaseProject } from '../api/shared/environment.ts';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, expect } from '@playwright/test';
 
 const live = createRequire(import.meta.url)('../api/dist/tests/live.js') as typeof import('../api/tests/live.js');
 const environment = process.argv[2];
 assert.ok(environment === 'pre-production' || environment === 'production');
-const project = environment === 'pre-production' ? 'finbuddy-preprod' : 'finbuddy-2025';
+const project = firebaseProject;
+const namespace = environment === 'pre-production' ? 'preprod' : 'prod';
 assert.equal(process.env.FINBUDDY_ALLOW_SYNTHETIC_WRITES, 'true');
 assert.ok(process.env.FINBUDDY_LIVE_API_KEY, 'Missing environment-specific public Firebase API key');
 const passed: string[] = [];
@@ -16,29 +17,25 @@ let fixture: Awaited<ReturnType<typeof live.prepare>> | undefined;
 let cleaned = false;
 
 try {
-  fixture = await live.prepare(project, process.env.FINBUDDY_LIVE_API_KEY);
+  fixture = await live.prepare(namespace, process.env.FINBUDDY_LIVE_API_KEY);
   currentCase = 'hosted-api';
   passed.push(...await live.exerciseApi(fixture, scenario => { currentCase = `hosted-api/${scenario}`; }));
   if (environment === 'pre-production') {
-    currentCase = 'effective-production-isolation';
-    const cli = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
-    const runtime = 'finbuddy-runtime@finbuddy-preprod.iam.gserviceaccount.com';
-    for (const args of [[], ['--impersonate-service-account=' + runtime]]) {
-      const result = spawnSync(cli, ['auth', 'print-access-token', ...args], { encoding: 'utf8', shell: process.platform === 'win32' });
-      assert.equal(result.status, 0, 'Cannot verify the intended pre-production identity');
-      const credential = result.stdout.trim();
-      const targets: string[] = [
-        `https://firestore.googleapis.com/v1/projects/finbuddy-2025/databases/(default)/documents/users/${fixture.accounts[0].uid}`,
-        `https://storage.googleapis.com/storage/v1/b/finbuddy-2025.firebasestorage.app/o/${encodeURIComponent(`receipts/${fixture.accounts[0].uid}/missing-isolation-probe.txt`)}`,
-        'https://secretmanager.googleapis.com/v1/projects/finbuddy-2025/secrets/FINBUDDY_DT_INGEST_AUTHORIZATION/versions/latest:access',
-      ];
-      for (const target of targets) {
-        const denied: Response = await fetch(target, { headers: { Authorization: `Bearer ${credential}` }, signal: AbortSignal.timeout(20_000), redirect: 'error' });
-        assert.equal(denied.status, 403, 'Pre-production identity can access a production resource');
-        await denied.body?.cancel();
-      }
+    currentCase = 'shared-project-client-isolation';
+    const owner = fixture.accounts[0];
+    const targets = [
+      `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/prod/data/users/${owner.uid}/expenses/isolation-canary`,
+      `https://firebasestorage.googleapis.com/v0/b/${project}.firebasestorage.app/o/${encodeURIComponent(`prod/receipts/${owner.uid}/isolation-canary.txt`)}?alt=media`,
+      'https://finbuddy-2025.web.app/api/v1/developer/tokens',
+    ];
+    for (const target of targets) {
+      const denied = await fetch(target, { headers: { Authorization: `Bearer ${owner.session}` },
+        signal: AbortSignal.timeout(20_000), redirect: 'error' });
+      assert.ok([401, 403].includes(denied.status), 'Synthetic preprod account reached production through a client endpoint');
+      await denied.body?.cancel();
     }
-    passed.push('release-and-runtime-identities-denied-production-data-files-and-secret');
+    passed.push('shared-project-preprod-account-denied-production-client-paths');
+
   }
 
   currentCase = 'hosted-browser-launch';
@@ -151,7 +148,7 @@ try {
     catch { process.stderr.write('Synthetic cleanup incomplete; retain the owning verification run for recovery.\n'); process.exitCode = 1; }
   }
   await mkdir('verification', { recursive: true });
-  await writeFile(`verification/${environment}-live.json`, JSON.stringify({ environment, project,
+  await writeFile(`verification/${environment}-live.json`, JSON.stringify({ environment, project, namespace, site: deploymentTargets[namespace].site, dataRoot: dataRoot(namespace),
     source: process.env.CANDIDATE_SHA ?? process.env.GITHUB_SHA, at: new Date().toISOString(),
     probe: fixture?.probe, passed, failedCase: process.exitCode ? currentCase : null, cleaned,
     rumVerificationTag: 'finbuddy-release-verification',
