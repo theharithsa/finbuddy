@@ -1,8 +1,13 @@
 # API continuation
 
+Current architecture correction, [#184](https://github.com/theharithsa/finbuddy/issues/184), supersedes the two-project plan below. Both branches deploy to `finbuddy-2025`, Hosting targets `prod` and `preprod`, with `prod/data` and `preprod/data` roots and environment-bound backend/token/receipt paths. FinVision is explicitly preserved. Follow [consolidation](../../docs/firebase-consolidation.md) and current issue evidence; historical deployments below are not acceptance of this migration. The owner authorised the configured India CS MCP credential for the production ingest secret; do not treat a new credential as a prerequisite.
+
+
+The release-control implementation for [#172](https://github.com/theharithsa/finbuddy/issues/172) uses isolated pre-production and production runtime identities, explicit source markers and environment-local secret bindings. `finbuddyExpenseAudit` captures committed expense changes without values/owner identifiers. `api/tests/live.ts` adds guarded synthetic API, ownership, receipt, expiry/revocation and record/file recovery checks. Follow [release controls](../../docs/release-controls.md); current provider and tenant evidence stays in [#174](https://github.com/theharithsa/finbuddy/issues/174) and [#169](https://github.com/theharithsa/finbuddy/issues/169).
+
 - [Issue #119](https://github.com/theharithsa/finbuddy/issues/119) completed in [PR #120](https://github.com/theharithsa/finbuddy/pull/120). The first production API revision was `finbuddyapi-00001-sav` in `asia-south1`. Direct and Hosting API smoke checks passed. A synthetic signed-in browser test generated and revoked a token in production.
 - [Issue #122](https://github.com/theharithsa/finbuddy/issues/122) adds optional non-expiring tokens. Deploy the API before the sidebar update and retain a null-aware API and Settings revision for recovery after non-expiring credentials are issued.
 - Source includes the HTTP API, Swagger UI, shared finance and token contracts, and Settings Developer Options.
 - The [application workflow](../../.github/workflows/finbuddy.yml) runs the API contract and isolated emulator suites. Review the current PR head checks for evidence.
 - The Gen 2 release uses the dedicated `finbuddy-api` codebase in `asia-south1`. Release it before publishing the Hosting rewrite.
-- Dynatrace API runtime export is optional and remains unverified in production. The CI observer uses a separate credential and service identity.
+- Deploy the API and expense audit with the environment-specific ingest secret and verify the resulting signals in the matching Dynatrace segment. Follow [observability delivery](../../docs/observability.md#production-delivery). The CI observer uses a separate credential and service identity.

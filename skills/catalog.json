@@ -175,7 +175,10 @@
       ],
       "entrypoints": [
         "scripts/check_foundation.py",
-        "scripts/add_service_skill.py"
+        "scripts/add_service_skill.py",
+        "scripts/release-control.mts",
+        "scripts/deploy-release.mts",
+        "scripts/live-acceptance.mts"
       ],
       "owner": "theharithsa",
       "status": "active",
@@ -215,9 +218,11 @@
       ],
       "testCommands": [
         "npm run lint -- --quiet",
+        "npm run typecheck:release",
+        "npm run test:release-control",
         "npm run build",
         "npm run test:run",
-        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
       "continuation": "skills/service-web/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
@@ -269,7 +274,7 @@
       ],
       "testCommands": [
         "npm run test:run",
-        "npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy \"npm run test:browser\""
       ],
       "continuation": "skills/service-firebase-data/continuation.md",
       "lastReviewedRevision": "22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115"
@@ -282,7 +287,8 @@
       ],
       "entrypoints": [
         "api/src/index.ts",
-        "api/src/openapi.ts"
+        "api/src/openapi.ts",
+        "api/src/expense-events.ts"
       ],
       "owner": "theharithsa",
       "status": "active",
@@ -292,12 +298,13 @@
       "contracts": [
         "firebase.json",
         "firebase.api.json",
+        "firebase.preprod.json",
         "docs/api.md",
         "docs/observability.md"
       ],
       "testCommands": [
         "npm --prefix api test",
-        "npx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
+        "npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy \"npm --prefix api run test:emulator\""
       ],
       "continuation": "skills/service-api/continuation.md",
       "lastReviewedRevision": null

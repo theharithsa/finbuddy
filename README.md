@@ -26,7 +26,7 @@ The signed-in workspace adds expense entry and receipts, category budgets, recur
 | Account and data | Firebase Authentication, Firestore for financial records, and Cloud Storage for receipt attachments. |
 | REST API | Firebase Functions serve `/api/v1` through Firebase Hosting. Developer Options issues scoped personal tokens. OpenAPI and Swagger describe the supported operations. |
 | Money and dates | The household model stores integer paise. The monthly views use local calendar boundaries, and bill payments link to expense records. |
-| Delivery | GitHub Actions runs foundation, web, browser, and API checks. Firebase Hosting serves the app. GitHub Pages publishes the product site from `site/`. |
+| Delivery | Protected `preprod` runs audits, foundation, web/browser/API and Functions checks, then isolated hosted acceptance. A verified promotion releases the accepted production artifact and Pages source. See [release controls](docs/release-controls.md). |
 
 [Service inventory](docs/services.md) · [Material 3 design](docs/design.md) · [Observability](docs/observability.md) · [SDLC](docs/sdlc.md) · [Release and rollback](docs/release-plan.md)
 
@@ -46,3 +46,7 @@ Open the address printed by Vite and add `?demo=1`. Use the testing guide for em
 Start with a linked GitHub issue, keep changes focused, and include verification in your PR. Use synthetic data in public artifacts. Report suspected security issues privately through the repository's Security tab. [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Issue forms](https://github.com/theharithsa/finbuddy/issues/new/choose) · [Project board](https://github.com/users/theharithsa/projects/1)
 
 Licensed under [MIT](LICENSE). Template version: **1.14.1** · [App Launchpad provenance](project.json)
+
+## Firebase environments
+
+FinBuddy uses one Firebase project, `finbuddy-2025`. The protected `preprod` and `main` branches deploy the `preprod` and `prod` Hosting targets, with separate Firestore roots `preprod/data` and `prod/data`. Existing Auth identities are shared. [Read the architecture, migration, verification and recovery guide](docs/firebase-consolidation.md). FinVision's existing resources are preserved.

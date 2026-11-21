@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules for FinBuddy
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    match /{environment}/receipts/{userId}/{allPaths=**} {
+      function owner() {
+        return request.auth != null && request.auth.uid == userId
+          && ((environment == 'prod' && request.auth.token.get('finbuddyEnvironment', 'prod') != 'preprod')
+            || (environment == 'preprod' && request.auth.token.get('finbuddyPreprodAccess', false) == true));
+      }
+      allow read, delete: if owner();
+      allow create, update: if owner() && request.resource.size <= 10 * 1024 * 1024;
+    }
+    
+    // Owner-only legacy uploads remain compatible until production cutover.
+    match /receipts/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+        && request.auth.token.get('finbuddyEnvironment', 'prod') != 'preprod';
+    }
+    // Deny all other storage access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

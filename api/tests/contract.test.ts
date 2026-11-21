@@ -30,8 +30,9 @@ test('validates monetary precision, path segments and credential syntax', () => 
 test('retains monthly bill clamping and rejects foreign receipt references', () => {
   const bill = { name: 'Rent', amountPaise: 1000, dueDate: '2024-01-31', repeat: 'monthly' } as const;
   assert.equal(billDateInMonth(bill, '2024-02'), '2024-02-29');
-  const url = 'https://firebasestorage.googleapis.com/v0/b/finbuddy-2025.firebasestorage.app/o/receipts%2Fowner%2Fnote.pdf';
-  assert.equal(receiptPath('owner', url), 'receipts/owner/note.pdf');
+  const url = 'https://firebasestorage.googleapis.com/v0/b/finbuddy-2025.firebasestorage.app/o/prod%2Freceipts%2Fowner%2Fnote.pdf';
+  assert.equal(receiptPath('owner', url), 'prod/receipts/owner/note.pdf');
+  assert.equal(receiptPath('owner', url.replace('prod%2F', 'preprod%2F')), undefined);
   assert.equal(receiptPath('other', url), undefined);
   assert.equal(receiptPath('owner', url.replace('firebasestorage.googleapis.com', 'files.example.test')), undefined);
   assert.equal(receiptPath('owner', url.replace('%2Fnote.pdf', '%2F..%2Fnote.pdf')), undefined);

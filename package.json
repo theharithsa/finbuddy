@@ -1,7 +1,7 @@
 {
     "name": "finbuddy",
     "private": true,
-    "version": "3.1.1",
+    "version": "3.1.2",
     "type": "module",
     "scripts": {
         "predev": "python scripts/build_public_docs.py --hosting",
@@ -26,12 +26,10 @@
         "version:minor": "npm run version:bump minor",
         "version:patch": "npm run version:bump patch",
         "changelog": "code CHANGELOG.md",
-        "deploy:build": "npm run build",
-        "deploy:firebase": "firebase deploy --only hosting",
-        "deploy": "npm run deploy:build && npm run deploy:firebase",
-        "deploy:preview": "npm run deploy:build && firebase hosting:channel:deploy preview",
         "test:browser": "playwright test",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "typecheck:release": "tsc --project tsconfig.release.json",
+        "test:release-control": "node --test tests/release-control.test.mts"
     },
     "dependencies": {
         "@fontsource-variable/google-sans": "5.3.2",
@@ -48,7 +46,7 @@
         "@radix-ui/react-dropdown-menu": "^2.1.6",
         "@radix-ui/react-label": "^2.1.2",
         "@radix-ui/react-popover": "^1.1.6",
-        "@radix-ui/react-progress": "^1.1.2",
+        "@radix-ui/react-progress": "^1.2.1",
         "@radix-ui/react-select": "2.4.1",
         "@radix-ui/react-separator": "^1.1.2",
         "@radix-ui/react-slot": "^1.1.2",
@@ -70,8 +68,9 @@
         "@eslint/js": "^9.21.0",
         "@playwright/test": "1.65.0",
         "@testing-library/jest-dom": "^6.8.0",
-        "@testing-library/react": "^16.3.0",
+        "@testing-library/react": "^16.3.3",
         "@testing-library/user-event": "^14.6.1",
+        "@types/node": "24.19.2",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react-swc": "4.3.3",
@@ -80,11 +79,11 @@
         "eslint": "^9.28.0",
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-react-refresh": "^0.4.19",
-        "globals": "^16.0.0",
+        "globals": "^17.14.0",
         "jsdom": "^26.1.0",
         "tailwindcss": "^4.1.11",
         "typescript": "~5.9.2",
-        "typescript-eslint": "^8.38.0",
+        "typescript-eslint": "8.73.0",
         "vite": "^7.1.7",
         "vitest": "4.1.12"
     },

@@ -8,6 +8,7 @@ import { BrandMark, Wordmark } from '@/components/brand/BrandMark';
 import { observeOperation } from '@/lib/operation-monitoring';
 
 type Mode = 'signin' | 'signup' | 'reset' | 'link' | 'complete-link';
+const isPreProduction = import.meta.env.MODE === 'preprod';
 const headings: Record<Mode, string> = {
   signin: 'Welcome to FinBuddy', signup: 'Create your account', reset: 'Reset your password',
   link: 'Sign in with an email link', 'complete-link': 'Confirm your email',
@@ -26,6 +27,9 @@ function getAuthError(error: unknown): string {
     case 'auth/weak-password': return 'Choose a stronger password and try again.';
     case 'auth/email-already-in-use': return 'An account already uses this email. Sign in or reset your password.';
     case 'auth/invalid-credential': return 'The email or password didn’t match. Try again or reset your password.';
+    case 'auth/environment-not-allowed': return isPreProduction
+      ? 'This account is not enabled for pre-production. Use the production site or contact the app owner.'
+      : 'This is a test account. Use the pre-production site to sign in.';
     case 'auth/unauthorized-domain': return 'Google and email links require an authorized FinBuddy address. Sign in with your email and password, or open the main FinBuddy site.';
     default: return 'Couldn’t complete that request. Please try again.';
   }
@@ -126,14 +130,14 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
               <Button disabled={busy} type="submit">{busy ? 'Please wait…' : submitLabels[mode]}<ArrowRight size={17} /></Button>
             </form>
             <div className="m3-login-links">
-              {mode === 'signin' ? <>
+              {mode === 'signin' ? !isPreProduction && <>
                 <button type="button" disabled={busy} onClick={() => changeMode('signup')}>Create account</button>
                 <button type="button" disabled={busy} onClick={() => changeMode('reset')}>Forgot password?</button>
                 <button type="button" disabled={busy} onClick={() => changeMode('link')}>Email me a sign-in link</button>
               </> : <button type="button" disabled={busy} onClick={() => changeMode('signin')}>Back to sign in</button>}
             </div>
             {mode === 'signin' && <div className="m3-demo-invite">
-              <p>See a sample household before making an account.</p>
+              <p>{isPreProduction ? 'Explore an example with sample household data.' : 'See a sample household before making an account.'}</p>
               <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
               <div className="m3-login-links"><a href="/docs/index.html">Open the Help Center</a></div>
             </div>}

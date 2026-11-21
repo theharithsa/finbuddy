@@ -1,3 +1,4 @@
+import { firestoreRoot } from './firebase-environment';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, runTransaction, updateDoc } from 'firebase/firestore';
 import type { z } from 'zod';
 import { db } from '@/lib/firebase';
@@ -27,7 +28,7 @@ export function watchHousehold(uid: string, onData: (data: Household) => void, o
     schema: z.ZodType<T>,
     set: (value: (T & { id: string })[]) => void,
   ) {
-    const ref = collection(db, 'users', uid, paths[key]);
+    const ref = collection(db, `${firestoreRoot}/users`, uid, paths[key]);
     subscriptions.push(onSnapshot(ref, (snapshot) => {
       try {
         set(snapshot.docs.map((item) => ({ ...schema.parse(item.data()), id: item.id })));
@@ -62,7 +63,7 @@ export async function saveHouseholdEntry<K extends Editable>(
 ): Promise<void> {
   const record = schemas[kind].parse(draft);
   if ('date' in record && record.date > localDate()) throw new Error('Income must already have been received.');
-  const path = collection(db, 'users', uid, paths[kind]);
+  const path = collection(db, `${firestoreRoot}/users`, uid, paths[kind]);
   await observeOperation('household.save', async () => {
     if (id) await updateDoc(doc(path, id), record);
     else await addDoc(path, record);
@@ -70,7 +71,7 @@ export async function saveHouseholdEntry<K extends Editable>(
 }
 
 export function removeHouseholdEntry(uid: string, kind: Editable, id: string): Promise<void> {
-  return observeOperation('household.remove', () => deleteDoc(doc(db, 'users', uid, paths[kind], id)));
+  return observeOperation('household.remove', () => deleteDoc(doc(db, `${firestoreRoot}/users`, uid, paths[kind], id)));
 }
 
 export function recordBillPayment(
@@ -79,9 +80,9 @@ export function recordBillPayment(
   dueDate: string,
   input: PaymentInput,
 ): Promise<'recorded' | 'already-recorded'> {
-  const bills = collection(db, 'users', uid, paths.bills);
-  const payments = collection(db, 'users', uid, paths.payments);
-  const expenses = collection(db, 'users', uid, 'expenses');
+  const bills = collection(db, `${firestoreRoot}/users`, uid, paths.bills);
+  const payments = collection(db, `${firestoreRoot}/users`, uid, paths.payments);
+  const expenses = collection(db, `${firestoreRoot}/users`, uid, 'expenses');
 
   return observeOperation('bill.payment', async () => {
     const result = await runTransaction(db, (transaction) => applyBillPayment({

@@ -1,5 +1,10 @@
 # FinBuddy web continuation
 
+Current architecture correction, [#184](https://github.com/theharithsa/finbuddy/issues/184), supersedes the two-project plan below. Both branches deploy to `finbuddy-2025`, Hosting targets `prod` and `preprod`, with `prod/data` and `preprod/data` roots and environment-bound backend/token/receipt paths. FinVision is explicitly preserved. Follow [consolidation](../../docs/firebase-consolidation.md) and current issue evidence; historical deployments below are not acceptance of this migration. The owner authorised the configured India CS MCP credential for the production ingest secret; do not treat a new credential as a prerequisite.
+
+
+Release controls for [#172](https://github.com/theharithsa/finbuddy/issues/172) build both Firebase environment bundles from one staging source and preserve their artifact identities through promotion. The production and public handbook source markers use that accepted source, with the promotion merge SHA tracked separately. Hosted desktop/mobile verification uses only guarded synthetic accounts; runtime acceptance, recovery and fresh RUM evidence belong to #174/#169. No household workflow or data schema changes in this delivery update.
+
 [PR #120](https://github.com/theharithsa/finbuddy/pull/120) released the signed-in token manager at `ef4020b601eb9d236aff6c8692b0c4b4b9b5ccce`. Hosting published the artifact and the initial workflow probe saw the older revision. A later live revision check and synthetic browser token lifecycle passed. [Hosting workflow](https://github.com/theharithsa/finbuddy/actions/runs/42805609215).
 
 [Issue #122](https://github.com/theharithsa/finbuddy/issues/122) moves the appearance controls to Preferences and the token manager to Developer Options. Publish the compatible API before Hosting and verify both revisions.

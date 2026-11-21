@@ -2,7 +2,7 @@
 
 Start with a [GitHub issue](https://github.com/theharithsa/finbuddy/issues/new/choose) and check the [Project board](https://github.com/users/theharithsa/projects/1) for existing work. Describe the behavior, the expected result, and how to verify it.
 
-1. Work on a branch from `main` and keep the change focused on the linked issue.
+1. Work on a branch from `preprod` and keep the change focused on the linked issue. Implementation PRs integrate there; a tested candidate reaches `main` through the [production promotion gate](docs/release-controls.md).
 2. Use Node.js 24 for the web app, Python 3.12 for the public documentation build, and `npm ci` to install locked dependencies. The API runs on Node.js 22.
 3. Use the public demo for screenshots and Firebase emulators for account and data changes. Use fictional records in screenshots, logs, and test fixtures. See the [testing guide](docs/testing.md) for emulator setup and checks.
 4. Run the checks that cover your change. Use `sh scripts/check.sh` for foundation checks and see the [testing guide](docs/testing.md) for web and API checks.

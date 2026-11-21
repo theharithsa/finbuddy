@@ -6,7 +6,9 @@ import { hasControlCharacters, paymentInput, paymentOutput, resource, resourceOu
 import { ApiError, requestData } from './errors';
 import { digest } from './tokens';
 
-export const receiptBucket = process.env.FUNCTIONS_EMULATOR === 'true' ? 'demo-finbuddy.appspot.com' : 'finbuddy-2025.firebasestorage.app';
+import { storageBucket, dataNamespace, environment } from './deployment';
+
+export const receiptBucket = storageBucket;
 const maximumSummaryRows = 2000;
 export function receiptPath(uid: string, value: unknown): string | undefined {
   if (typeof value !== 'string') return;
@@ -19,8 +21,8 @@ export function receiptPath(uid: string, value: unknown): string | undefined {
     if (!url.pathname.startsWith(prefix)) return;
     const path = decodeURIComponent(url.pathname.slice(prefix.length));
     const segments = path.split('/');
-    if (segments.length === 3 && segments[0] === 'receipts' && segments[1] === uid &&
-        segments[2] && segments[2] !== '.' && segments[2] !== '..' && !segments[2].includes('\\') && !hasControlCharacters(segments[2])) return path;
+    if (segments.length === 4 && segments[0] === environment && segments[1] === 'receipts' && segments[2] === uid &&
+        segments[3] && segments[3] !== '.' && segments[3] !== '..' && !segments[3].includes('\\') && !hasControlCharacters(segments[3])) return path;
   } catch {
     return;
   }
@@ -28,7 +30,7 @@ export function receiptPath(uid: string, value: unknown): string | undefined {
 }
 
 function ownerCollection(db: Firestore, uid: string, collection: string) {
-  return db.collection('users').doc(uid).collection(collection);
+  return db.collection(`${dataNamespace}/users`).doc(uid).collection(collection);
 }
 
 function project(schema: z.ZodObject, value: Record<string, unknown>) {
@@ -96,7 +98,7 @@ export async function createRecord(db: Firestore, user: UserRecord, name: Resour
   const input = requestData(resource(name).write, body);
   const uid = user.uid;
   const fingerprint = digest(JSON.stringify(input));
-  const operation = db.collection('finbuddyDeveloper').doc(uid).collection('creates').doc(digest(`${name}\0${key}`));
+  const operation = db.collection(`${dataNamespace}/finbuddyDeveloper`).doc(uid).collection('creates').doc(digest(`${name}\0${key}`));
   const records = ownerCollection(db, uid, resource(name).collection);
   const record = records.doc();
   return db.runTransaction(async (tx) => {

@@ -1,8 +1,9 @@
 name: FinBuddy checks and Hosting
 on:
   pull_request:
+    branches: [main, preprod]
   push:
-    branches: [main]
+    branches: [main, preprod]
 
 permissions:
   contents: read
@@ -12,9 +13,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  release-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - run: sh scripts/check.sh
+
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -30,20 +43,40 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - run: npm ci
+      - run: npm ci --no-fund --no-audit
+      - run: npm audit --audit-level=low
       - run: npm run lint -- --quiet
+      - run: npm --prefix api ci --no-fund --no-audit
+      - run: npm run typecheck:release
+      - run: node --test tests/release-control.test.mts tests/namespace-migration.test.mts tests/receipt-copy.test.mts
       - run: npm run test:run
       - run: npx --no-install playwright install --with-deps chromium
-      - run: npx --yes firebase-tools@14.20.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
-      - name: Build release artifact
+      - run: npx --yes firebase-tools@15.37.0 emulators:exec --only auth,firestore,storage --project demo-finbuddy "npm run test:browser"
+      - name: Check web build
         run: npm run build
         env:
           VITE_RELEASE_REVISION: ${{ github.sha }}
+      - name: Build both environment artifacts from the staging source
+        if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
+        env:
+          VITE_RELEASE_REVISION: ${{ github.sha }}
+          PREPROD_RUM_URL: ${{ vars.FINBUDDY_PREPROD_RUM_URL }}
+          PRODUCTION_RUM_URL: ${{ vars.FINBUDDY_PROD_RUM_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$PREPROD_RUM_URL"
+          test -n "$PRODUCTION_RUM_URL"
+          mkdir release
+          VITE_FINBUDDY_RUM_URL="$PRODUCTION_RUM_URL" npm run build
+          mv dist release/production
+          VITE_FINBUDDY_RUM_URL="$PREPROD_RUM_URL" npm run build -- --mode preprod
+          mv dist release/preprod
+          node scripts/release-control.mts create
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
         with:
-          name: finbuddy-hosting
-          path: dist/
+          name: finbuddy-release-${{ github.run_attempt }}
+          path: release/
           if-no-files-found: error
           retention-days: 7
 
@@ -63,41 +96,202 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - run: npm --prefix api ci
+      - run: npm --prefix api ci --no-fund --no-audit
+      - run: npm --prefix api audit --audit-level=low
       - run: npm --prefix api test
-      - run: npx --yes firebase-tools@14.27.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+      - run: npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+      - name: Verify transitional policy and preserved FinVision access
+        run: npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.transition-test.json --only auth,firestore,functions,storage --project demo-finbuddy "npm --prefix api run test:emulator"
+        env:
+          FINBUDDY_TEST_TRANSITION: 'true'
 
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [verify, verify-api]
+  verify-functions:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: production
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - run: npm --prefix functions ci --no-fund --no-audit
+      - run: npm --prefix functions audit --audit-level=low
+      - run: npm --prefix functions run build
+
+  promotion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      statuses: read
+      pull-requests: read
+    outputs:
+      source: ${{ steps.accepted.outputs.source }}
+      run: ${{ steps.accepted.outputs.run }}
+      receipt: ${{ steps.accepted.outputs.receipt }}
+      attempt: ${{ steps.accepted.outputs.attempt }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+      - name: Resolve the accepted source and exact staging run
+        id: accepted
+        if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+        run: node scripts/release-control.mts resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: steps.accepted.outputs.run != ''
+        with:
+          name: finbuddy-release-${{ steps.accepted.outputs.attempt }}
+          path: release/
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.accepted.outputs.run }}
+      - name: Reject changed source, artifact, receipt or merge result
+        if: steps.accepted.outputs.run != ''
+        run: node scripts/release-control.mts verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ steps.accepted.outputs.source }}
+          ACCEPTANCE_RECEIPT: ${{ steps.accepted.outputs.receipt }}
+
+  deploy-preprod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
+    needs: [release-foundation, verify, verify-api, verify-functions]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: pre-production
+      url: https://finbuddy-2025-preprod.web.app
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: finbuddy-preprod-deployment
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: finbuddy-hosting
-          path: dist/
-      - name: Deploy verified Hosting artifact
-        uses: FirebaseExtended/action-hosting-deploy@7c850a480ce753f4f06f010801fc5a43787740bb # v0
+          name: finbuddy-release-${{ github.run_attempt }}
+          path: release/
+      - run: node scripts/release-control.mts verify
+      - run: npm ci --no-fund --no-audit
+      - run: npm --prefix api ci --no-fund --no-audit
+      - run: npm --prefix api run build
+      - run: npx --no-install playwright install --with-deps chromium
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FINBUDDY_2025 }}
-          channelId: live
-          projectId: finbuddy-2025
-          firebaseToolsVersion: '14.20.0'
-      - name: Verify live revision and asset
-        run: node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$GITHUB_SHA" --wait-for-revision
-      - name: Verify live API routes
-        run: node scripts/verify-api.mjs https://finbuddy-2025.web.app
+          project_id: finbuddy-2025
+          workload_identity_provider: ${{ vars.FINBUDDY_WIF_PROVIDER }}
+          service_account: ${{ vars.FINBUDDY_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+      - name: Deploy the isolated checked backend and Hosting
+        run: node scripts/deploy-release.mts pre-production "$GITHUB_SHA"
+      - name: Verify live source and API denial
+        run: |
+          node scripts/verify-hosting.mjs https://finbuddy-2025-preprod.web.app "$GITHUB_SHA" --wait-for-revision
+          node scripts/verify-api.mjs https://finbuddy-2025-preprod.web.app "$GITHUB_SHA"
+      - name: Verify live synthetic journeys and isolation
+        run: node scripts/live-acceptance.mts pre-production
+        env:
+          FINBUDDY_LIVE_API_KEY: ${{ vars.FINBUDDY_PROD_API_KEY }}
+          FINBUDDY_ALLOW_SYNTHETIC_WRITES: 'true'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: preprod-verification-${{ github.run_attempt }}
+          path: verification/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [release-foundation, verify, verify-api, verify-functions, promotion]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: Production
+      url: https://finbuddy-2025.web.app
+    permissions:
+      contents: read
+      actions: read
+      statuses: read
+      id-token: write
+    concurrency:
+      group: finbuddy-production-deployment
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: finbuddy-release-${{ needs.promotion.outputs.attempt }}
+          path: release/
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.promotion.outputs.run }}
+      - name: Recheck the accepted artifacts before cloud authentication
+        run: node scripts/release-control.mts verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ needs.promotion.outputs.source }}
+          ACCEPTANCE_RECEIPT: ${{ needs.promotion.outputs.receipt }}
+      - run: npm ci --no-fund --no-audit
+      - run: npm --prefix api ci --no-fund --no-audit
+      - run: npm --prefix api run build
+      - run: npx --no-install playwright install --with-deps chromium
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: finbuddy-2025
+          workload_identity_provider: ${{ vars.FINBUDDY_WIF_PROVIDER }}
+          service_account: ${{ vars.FINBUDDY_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+      - name: Deploy backend prerequisites then the accepted production web artifact
+        run: node scripts/deploy-release.mts production "$CANDIDATE_SHA"
+        env:
+          CANDIDATE_SHA: ${{ needs.promotion.outputs.source }}
+          ACCEPTANCE_RECEIPT: ${{ needs.promotion.outputs.receipt }}
+          GH_TOKEN: ${{ github.token }}
+      - name: Verify the accepted live source, denial and synthetic journeys
+        run: |
+          node scripts/verify-hosting.mjs https://finbuddy-2025.web.app "$CANDIDATE_SHA" --wait-for-revision
+          node scripts/verify-api.mjs https://finbuddy-2025.web.app "$CANDIDATE_SHA"
+          node scripts/live-acceptance.mts production
+        env:
+          CANDIDATE_SHA: ${{ needs.promotion.outputs.source }}
+          FINBUDDY_LIVE_API_KEY: ${{ vars.FINBUDDY_PROD_API_KEY }}
+          FINBUDDY_ALLOW_SYNTHETIC_WRITES: 'true'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: production-verification-${{ github.run_attempt }}
+          path: verification/*.json
+          if-no-files-found: warn
+          retention-days: 14
 
   publish-product-site:
     if: github.event.repository.has_pages && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: deploy
+    needs: [deploy, promotion]
     permissions:
       contents: read
       pages: write
       id-token: write
     uses: ./.github/workflows/product-pages.yml
+    with:
+      source_revision: ${{ needs.promotion.outputs.source }}
