@@ -14,9 +14,9 @@ See the [Firebase data handoff](../skills/service-firebase-data/continuation.md)
 
 ## REST API
 
-The REST API emits OTLP/HTTP protobuf spans, request logs, and request count and duration metrics as `finbuddy-api` in the `finbuddy` service namespace. Use the registered route template, method and response status to find related signals. The Firebase project determines `deployment.environment.name` for supported live deployments.
+The REST API emits OTLP/HTTP protobuf spans, request logs, and request count and duration metrics as `finbuddy-api` in the `finbuddy` service namespace. Use the registered route template, method and response status to find related signals. Explicit server configuration `FINBUDDY_ENVIRONMENT=prod` or `preprod` determines `deployment.environment.name`; both environments share the Firebase project.
 
-Set `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved Dynatrace OTLP base URL and bind `FINBUDDY_DT_INGEST_AUTHORIZATION` from the deployment's Firebase Secret Manager. Store the full authorization header there. Use a separate credential for each Firebase project and for the CI observer. Existing trace-only deployments can still use `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` and secret-backed `OTEL_EXPORTER_OTLP_TRACES_HEADERS` or `OTEL_EXPORTER_OTLP_HEADERS`. Tokens, owner IDs, request bodies, receipt paths and financial values stay out of custom telemetry.
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` to the approved Dynatrace OTLP base URL and bind the selected environment's named Secret Manager secret below. Store the full authorization header there. Keep runtime secret bindings separate from the CI observer; production uses the configured MCP credential under the owner's explicit authorization. Existing trace-only deployments can still use `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` and secret-backed `OTEL_EXPORTER_OTLP_TRACES_HEADERS` or `OTEL_EXPORTER_OTLP_HEADERS`. Tokens, owner IDs, request bodies, receipt paths and financial values stay out of custom telemetry.
 
 ## Delivery
 
