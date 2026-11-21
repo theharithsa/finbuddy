@@ -74,6 +74,8 @@ test('shared-project rules separate prod/preprod and synthetic account permissio
   const bucket = getStorage(app).bucket();
   const prodFile = `prod/receipts/${preprod.localId}/canary.txt`;
   const testFile = `preprod/receipts/${preprod.localId}/canary.txt`;
+  const oldOwnerFile = `receipts/${prod.localId}/existing.txt`;
+  const oldTestFile = `receipts/${preprod.localId}/existing.txt`;
   const visionProfile = `Users/${prod.localId}/FinVision/data/Personal_Details/profile`;
   const visionCode = 'SyncCodes/namespace-canary';
   const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
@@ -99,7 +101,7 @@ test('shared-project rules separate prod/preprod and synthetic account permissio
     }, body: JSON.stringify({ fields: { note: { stringValue: 'Denied synthetic write' } } }) });
     assert.equal(write.status, 403);
     assert.equal((await api('/developer/tokens', preprod.idToken)).status, 401);
-    for (const path of [prodFile, testFile]) await bucket.file(path).save('Synthetic namespace receipt');
+    for (const path of [prodFile, testFile, oldOwnerFile, oldTestFile]) await bucket.file(path).save('Synthetic namespace receipt');
     const storage = (path: string, token: string) => fetch(
       `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media`,
       { headers: { Authorization: `Firebase ${token}` } });
@@ -107,11 +109,13 @@ test('shared-project rules separate prod/preprod and synthetic account permissio
     assert.equal((await storage(prodFile, preprod.idToken)).status, 403);
     assert.equal((await storage(testFile, prod.idToken)).status, 403);
     assert.equal((await storage(testFile, other.idToken)).status, 403);
+    assert.equal((await storage(oldOwnerFile, prod.idToken)).status, process.env.FINBUDDY_TEST_TRANSITION === 'true' ? 200 : 403);
+    assert.equal((await storage(oldTestFile, preprod.idToken)).status, 403);
   } finally {
     for (const path of paths) await db.doc(path).delete();
     await db.doc(visionProfile).delete();
     await db.doc(visionCode).delete();
-    for (const path of [prodFile, testFile]) await bucket.file(path).delete({ ignoreNotFound: true });
+    for (const path of [prodFile, testFile, oldOwnerFile, oldTestFile]) await bucket.file(path).delete({ ignoreNotFound: true });
     for (const user of [prod, preprod, other, partner]) await getAuth(app).deleteUser(user.localId);
   }
 });
