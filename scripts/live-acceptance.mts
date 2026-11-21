@@ -37,8 +37,7 @@ try {
       await page.goto(fixture.origin, { waitUntil: 'networkidle' });
       assert.equal(rumRequests.length, 0, 'RUM loaded before opt-in');
       const google = page.getByRole('button', { name: 'Continue with Google', exact: true });
-      if (environment === 'production') await expect(google).toBeVisible();
-      else await expect(google).toHaveCount(0); // Existing pre-production uses admin-provisioned email accounts.
+      await expect(google).toBeVisible();
       // Explicit opt-in belongs only to this disposable synthetic browser context.
       currentCase = `browser-${width}-rum-opt-in`;
       await page.evaluate(() => localStorage.setItem('finbuddy-usage-analytics', 'granted'));
