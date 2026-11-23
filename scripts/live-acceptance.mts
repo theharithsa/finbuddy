@@ -82,8 +82,18 @@ try {
       await page.getByRole('button',{name:'FinBuddy home'}).click();
       passed.push(`hosted-planner-${width}`);
       const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
-      currentCase = `browser-${width}-expense-create-edit-delete`;
+      currentCase = `browser-${width}-expense-date-filter`;
       await nav.getByRole('button', { name: 'Expenses', exact: true }).click();
+      await page.getByRole('button', { name: 'Filters', exact: true }).click();
+      const filters = page.getByRole('dialog', { name: 'Filter expenses' });
+      await filters.getByRole('button', { name: /^Date range:/ }).click();
+      await page.getByRole('button', { name: 'All time', exact: true }).click();
+      await filters.getByRole('button', { name: 'Done', exact: true }).click();
+      await expect(filters).toHaveCount(0);
+      await expect(page.getByRole('main').getByText('All time', { exact: true })).toBeVisible();
+      await page.getByRole('button', { name: 'This month', exact: true }).click();
+      passed.push(currentCase);
+      currentCase = `browser-${width}-expense-create-edit-delete`;
       await page.getByRole('button', { name: 'Add expense', exact: true }).click();
       const add = page.getByRole('dialog', { name: 'Add expense', exact: true });
       await add.getByLabel('Amount').fill('24.50');
@@ -100,7 +110,14 @@ try {
       await expect(edit).toHaveCount(0);
       await page.getByRole('button', { name: `Actions for Release browser ${width}`, exact: true }).click();
       await page.getByRole('menuitem', { name: 'Delete expense', exact: true }).click();
-      await page.getByRole('alertdialog', { name: 'Delete expense?', exact: true }).getByRole('button', { name: 'Delete expense', exact: true }).click();
+      const confirmDelete = page.getByRole('alertdialog', { name: 'Delete expense?', exact: true });
+      await confirmDelete.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await expect(confirmDelete).toHaveCount(0);
+      await expect(page.getByRole('button', { name: `Edit expense: Release browser ${width}`, exact: true })).toBeVisible();
+      await page.getByRole('button', { name: `Actions for Release browser ${width}`, exact: true }).click();
+      await page.getByRole('menuitem', { name: 'Delete expense', exact: true }).click();
+      await confirmDelete.getByRole('button', { name: 'Delete expense', exact: true }).click();
+      passed.push(`browser-${width}-cancel-and-confirm-delete`);
       await expect(page.getByRole('button', { name: `Edit expense: Release browser ${width}`, exact: true })).toHaveCount(0);
       passed.push(`browser-${width}-expense-create-edit-reload-delete`);
       for (const [label, heading] of [['Bills & EMIs', 'Bills & EMIs'], ['Budgets', 'Budgets'], ['Overview', 'Overview'],

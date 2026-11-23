@@ -5,9 +5,3 @@ updates:
     target-branch: "preprod"
     schedule:
       interval: "daily"
-
-  - package-ecosystem: "devcontainers"
-    directory: "/"
-    target-branch: "preprod"
-    schedule:
-      interval: "weekly"
