@@ -16,6 +16,8 @@ import { serveSwagger } from './swagger';
 import { observe, reportFailure } from './telemetry';
 import { authenticate, bearer, createToken, listTokens, requireRecentSignIn, revokeToken, sessionUser } from './tokens';
 
+import { planningDispatch } from './planning-routes';
+
 const app = initializeApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -79,6 +81,13 @@ async function dispatch(operation: Operation, request: Request, response: Respon
     return jsonReply(response, 200, { status: 'ok' });
   }
   const token = bearer(request.get('Authorization'));
+  if (operation.id.startsWith('planning-')) {
+    const principal = operation.access === 'session' || !token.startsWith('fbp_')
+      ? await sessionUser(auth, token)
+      : await authenticate(db, auth, token, operation.access === 'planning-write', true);
+    const body = operation.request ? requestBody(request) : undefined;
+    return jsonReply(response, 200, await planningDispatch(db, principal.uid, operation, id, request.get('If-Match'), request.query, body));
+  }
   if (operation.access === 'session') {
     const session = await sessionUser(auth, token);
     if (operation.id === 'list-tokens') {

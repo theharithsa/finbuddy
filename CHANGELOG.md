@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-23
+
+- Added FinVision goals, share-based savings progress, planned SIPs, an interactive demo and scoped developer APIs.
+- Added owner-reviewed transfer, standalone individual projection reads, old-tab protection and an enrolment switch.
+
+
 ## [3.1.2] - 2026-11-22
 
 - Consolidated production and pre-production into one Firebase project with explicit Hosting targets, namespaced records/tokens/receipts, shared Auth and preserved FinVision resources.

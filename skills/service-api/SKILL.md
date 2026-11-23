@@ -8,7 +8,7 @@ description: Maintain FinBuddy's owner-scoped REST API, personal API tokens, Swa
 Read the [continuation](continuation.md), [API guide](../../docs/api.md), and [release plan](../../docs/release-plan.md). The Node.js 22 Gen 2 HTTP function is `api/src/index.ts` in the `finbuddy-api` Firebase codebase. Use [its own Firebase configuration](../../firebase.api.json) for deployment and emulator tests. Hosting rewrites `/api/v1/**` to the deployed function.
 
 - Derive the owner UID from the validated credential. Admin SDK calls bypass Firestore rules, so use only the owned collection for data requests. Keep `finbuddyApiTokens` and `finbuddyDeveloper` outside the browser-owned data tree.
-- Store the verifier hash and token metadata. Only return the raw credential on successful issuance. Keep private responses uncached and accept Firebase ID tokens only at the Developer Options routes.
+- Store the verifier hash and token metadata. Only return the raw credential on successful issuance. Keep private responses uncached and accept Firebase ID tokens only at Developer Options and owner planning routes.
 - The token contract uses a UTC timestamp for dated credentials and `expiresAt: null` for non-expiring credentials. Apply the same expiry check when authenticating, listing, and pruning tokens. Revocation and account disablement apply to both kinds.
 - Keep write validators, operation routing, and Swagger schemas aligned. Use the shared household transaction for bill payments and the create transaction's idempotency record for retries.
 - Protect receipt references with the owner prefix, configured bucket, and response size cap. Do not fetch arbitrary receipt URLs or return their download tokens.
@@ -16,3 +16,5 @@ Read the [continuation](continuation.md), [API guide](../../docs/api.md), and [r
 - Keep the Firebase Admin and Functions SDK versions compatible. Import the HTTP request and response types from the Functions SDK so they match the Express version it runs.
 - The API and committed-expense audit deploy as `finbuddy-api` to `asia-south1` with `finbuddy-runtime@<selected-project>.iam.gserviceaccount.com`. Bind only that project's ingest secret and receipt bucket. The pre-production runtime must be denied production data/files/secrets.
 - Keep live synthetic acceptance under `api/tests/live.ts` and the root orchestration script. Generate credentials in memory, verify token and resource isolation, and clean only guarded `finbuddy-release-` fixture identities, including external token/idempotency documents and receipt objects. An interactive Google login is separate from this Admin-provisioned email test.
+
+The planning endpoints also accept an owner Firebase session. Personal tokens must explicitly include planning access before reading or writing goals and SIPs. [FinVision pilot](../../docs/finvision.md).

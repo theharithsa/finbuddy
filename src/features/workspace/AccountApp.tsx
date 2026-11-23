@@ -1,3 +1,5 @@
+import { useWorkspaceNavigation } from './useWorkspaceNavigation';
+import { indiaDate, monthlyCash } from '../../../api/shared/planning';
 import { lazy, Suspense, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { Trash2 } from '@/components/brand/Icons';
@@ -22,8 +24,10 @@ import { SavingsPage } from '@/features/household/SavingsPage';
 import { HouseholdEditor, type Editor } from '@/features/household/HouseholdEditor';
 import { BillPaymentEditor } from '@/features/household/BillPaymentEditor';
 import { ComingSoonPage } from '@/features/workspace/ComingSoonPage';
-import { WorkspaceShell, type WorkspacePage } from '@/features/workspace/WorkspaceShell';
+import { WorkspaceShell } from '@/features/workspace/WorkspaceShell';
 import { SettingsPage } from '@/features/settings/SettingsPage';
+
+const PlannerPage = lazy(() => import('@/features/finvision/PlannerPage'));
 
 const BudgetManager = lazy(() => import('@/components/BudgetManager').then(({ BudgetManager }) => ({ default: BudgetManager })));
 const RecurringTemplates = lazy(() => import('@/components/RecurringTemplates').then(({ RecurringTemplates }) => ({ default: RecurringTemplates })));
@@ -34,7 +38,8 @@ function Workspace({ user }: { user: User }) {
   const data = useFirestoreData();
   const household = useHouseholdData(user.uid);
   const shortcut = new URLSearchParams(location.search).get('action');
-  const [page, setPage] = useState<WorkspacePage>(shortcut === 'view-budget' ? 'budgets' : shortcut === 'add-expense' ? 'expenses' : 'home');
+  const mainRef = useRef<HTMLElement>(null);
+  const { page, navigate } = useWorkspaceNavigation(shortcut === 'view-budget' ? 'budgets' : shortcut === 'add-expense' ? 'expenses' : 'home', mainRef);
   const [adding, setAdding] = useState(shortcut === 'add-expense');
   const [entryEditor, setEntryEditor] = useState<Editor | null>(null);
   const [paymentEditor, setPaymentEditor] = useState<BillOccurrence | null>(null);
@@ -45,13 +50,13 @@ function Workspace({ user }: { user: User }) {
   const [homeMonth, setHomeMonth] = useState<string | null>(null);
   const [range, setRange] = useState(() => monthRange(month));
   const [signingOut, setSigningOut] = useState(false);
-  const mainRef = useRef<HTMLElement>(null);
+
   const people = getAllPeople([...data.customPeople, ...data.publicPeople]);
   const categories = getAllCategories(data.customCategories);
   const name = user.displayName || user.email || 'Your account';
   const photoUrl = user.providerData.find(({ providerId }) => providerId === 'google.com')?.photoURL || user.photoURL || undefined;
 
-  const today = localDate();
+  const today = indiaDate();
   const currentMonth = today.slice(0, 7);
   const selectedMonth = page === 'home' ? homeMonth ?? currentMonth : currentMonth;
   const selectedRange = monthRange(selectedMonth);
@@ -59,14 +64,9 @@ function Workspace({ user }: { user: User }) {
   const selectedIncome = household.data.income.filter(({ date }) => date >= selectedRange.from && date <= throughDate).sort((a, b) => b.date.localeCompare(a.date));
   const spentPaise = Math.round(totalAmount(periodExpenses(data.expenses, selectedRange.from, throughDate)) * 100);
   const bills = listBillOccurrences(household.data.bills, household.data.payments, data.expenses, selectedMonth, throughDate);
-  const householdPage = page === 'home' || page === 'bills' || page === 'savings';
+  const householdPage = page === 'finvision' || page === 'home' || page === 'bills' || page === 'savings';
   const expenseDependentPage = page !== 'savings' && page !== 'ai-chat' && page !== 'explorer' && page !== 'settings';
 
-  function navigate(next: WorkspacePage) {
-    setPage(next);
-    window.scrollTo(0, 0);
-    requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
-  }
 
   async function addExpense(values: Omit<Expense, 'id' | 'createdAt'>) {
     await data.addExpense(values);
@@ -120,7 +120,9 @@ function Workspace({ user }: { user: User }) {
                 onBills={() => navigate('bills')} onSavings={() => navigate('savings')}
               />}
               {page === 'bills' && <BillsPage bills={household.data.bills} occurrences={bills} today={today} onEdit={setEntryEditor} onPay={setPaymentEditor} />}
-              {page === 'savings' && <SavingsPage holdings={household.data.holdings} onEdit={setEntryEditor} />}
+              {page === 'savings' && <SavingsPage onPlan={() => navigate('finvision')} holdings={household.data.holdings} onEdit={setEntryEditor} />}
+              {page === 'finvision' && <PlannerPage user={user} holdings={household.data.holdings} month={currentMonth}
+                left={selectedIncome.length ? monthlyCash(selectedIncome, spentPaise, bills).left : null} onIncome={() => setEntryEditor({kind:'income'})} />}
               {page === 'settings' && <SettingsPage user={user} />}
               {page === 'dashboard' && <Overview expenses={data.expenses} budgets={data.budgets} categories={categories} month={month} onMonthChange={setMonth} onOpenLedger={() => { setRange(monthRange(month)); navigate('expenses'); }} onOpenBudgets={() => navigate('budgets')} onAddExpense={() => setAdding(true)} />}
               {page === 'expenses' && <Ledger expenses={data.expenses} categories={categories} people={people} range={range} onRangeChange={setRange} onEdit={setEditing} onDelete={setDeleting} onAdd={() => setAdding(true)} />}

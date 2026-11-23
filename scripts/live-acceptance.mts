@@ -20,6 +20,8 @@ try {
   fixture = await live.prepare(namespace, process.env.FINBUDDY_LIVE_API_KEY);
   currentCase = 'hosted-api';
   passed.push(...await live.exerciseApi(fixture, scenario => { currentCase = `hosted-api/${scenario}`; }));
+  currentCase = 'hosted-planning-transfer';
+  passed.push(...await live.exercisePlanning(fixture));
   currentCase = 'shared-project-environment-boundary';
   passed.push(...await live.exerciseNamespaceBoundary(fixture, process.env.FINBUDDY_LIVE_API_KEY));
 
@@ -53,6 +55,12 @@ try {
       await page.getByLabel('Password', { exact: true }).fill(fixture.accounts[0].password);
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Your money, in view.', exact: true })).toBeVisible();
+      currentCase = `browser-${width}-planning`;
+      await page.goto(fixture.origin + '/finvision');
+      await expect(page.getByRole('heading', { name:'Goals & savings' })).toBeVisible();
+      await expect(page.getByRole('button',{name:/Release current goal/})).toBeVisible();
+      await page.getByRole('button',{name:'FinBuddy home'}).click();
+      passed.push(`hosted-planner-${width}`);
       const nav = page.getByRole('navigation', { name: 'Workspace', exact: true });
       currentCase = `browser-${width}-expense-create-edit-delete`;
       await nav.getByRole('button', { name: 'Expenses', exact: true }).click();
