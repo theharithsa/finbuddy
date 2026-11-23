@@ -1,16 +1,16 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { isWorkspacePage, type WorkspacePage } from './WorkspaceShell';
 
-function destination(fallback: WorkspacePage): WorkspacePage {
+function destination(fallback: WorkspacePage, restoreHistory = false): WorkspacePage {
   if (location.pathname.replace(/\/$/, '') === '/finvision') return 'finvision';
-  const saved: unknown = history.state?.finbuddyPage;
+  const saved: unknown = restoreHistory ? history.state?.finbuddyPage : undefined;
   return isWorkspacePage(saved) ? saved : fallback;
 }
 export function useWorkspaceNavigation(initial: WorkspacePage, main: RefObject<HTMLElement | null>) {
   const [page, setPage] = useState(() => destination(initial));
   useEffect(() => {
     function back() {
-      setPage(destination(initial));
+      setPage(destination(initial, true));
       requestAnimationFrame(() => main.current?.focus({ preventScroll: true }));
     }
     window.addEventListener('popstate', back);

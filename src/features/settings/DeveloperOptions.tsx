@@ -81,7 +81,7 @@ export function DeveloperOptions({ user }: { user: User }) {
     const fields = new FormData(event.currentTarget);
     const expiry = fields.get('days');
     const data = tokenCreate.safeParse({
-      planning: fields.get('planning') === 'on', name: fields.get('name'), access: fields.get('access'), days: expiry === 'never' ? null : Number(expiry),
+      ...(fields.get('planning') === 'on' && { planning: true }), name: fields.get('name'), access: fields.get('access'), days: expiry === 'never' ? null : Number(expiry),
     });
     if (!data.success) { setError('Enter a name and choose the token access and expiry.'); return; }
     void run(async () => {
