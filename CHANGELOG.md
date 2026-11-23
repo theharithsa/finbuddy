@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [3.3.3] - 2026-11-24
+
+- Updated the Firebase web SDK to 13.4.0 for sign-in, saved expenses, receipts and FinVision goals. The web toolchain continues to use the Node 24 types matching CI.
+
 ## [3.3.2] - 2026-11-24
 
 - Updated Tailwind and its Vite plugin together. Aligned dialogs, popovers and menus so the date picker stays usable inside expense filters. The browser checks cover applying a date and cancelling a deletion.
