@@ -1,3 +1,4 @@
+import { checkLibraryTabs } from './library-tabs';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { shiftMonth } from '../../src/lib/finance-period';
@@ -38,21 +39,10 @@ async function expectBareIcon(holder: Locator) {
 test('keyboard switches category and people tabs and exposes the selected panel', async ({ page }) => {
   await createAccount(page, false);
   const workspace = page.getByRole('navigation', { name: 'Workspace', exact: true });
-  for (const [destination, personal, library] of [
-    ['Categories', /^My Categories/, /^Community/],
-    ['People', /^My People/, /^Public Library/],
-  ] as const) {
+  for (const destination of ['Categories', 'People'] as const) {
     await workspace.getByRole('button', { name: 'More', exact: true }).click();
     await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: new RegExp('^' + destination) }).click();
-    const first = page.getByRole('tab', { name: personal });
-    const second = page.getByRole('tab', { name: library });
-    await expect(first).toHaveAttribute('aria-selected', 'true');
-    await first.press('ArrowRight');
-    await expect(second).toBeFocused();
-    await expect(page.getByRole('tabpanel', { name: library })).toBeVisible();
-    await second.press('ArrowLeft');
-    await expect(first).toBeFocused();
-    await expect(page.getByRole('tabpanel', { name: personal })).toBeVisible();
+    await checkLibraryTabs(page, destination);
   }
 });
 
