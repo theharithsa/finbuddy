@@ -1,6 +1,14 @@
-# FinVision personal planning pilot
+# FinVision dashboard and personal planning
 
-Open **More → FinVision** or **Savings → Plan a goal**. A new goal needs a name, its target amount in future rupees and its target month. A family can assign some or all of a holding. Recorded balances drive progress and a planned SIP remains a schedule. See the [first-time walkthrough](https://theharithsa.github.io/finbuddy/docs/product.html#plan-a-goal) or [try the sample](https://finbuddy-2025.web.app/finvision?demo=1).
+Open **Home → FinVision dashboard**. The same page is available from **Savings → Plan a goal** and **More → FinVision**. Add a goal with the amount you expect to need and its deadline. In **Link savings**, choose the share of an existing holding dedicated to that goal. Use **View goal** to switch between deadlines.
+
+Choose **Add recurring deposit**, enter the monthly amount and the annual rate from your bank, then select the goal. Use **Deposit term** if the bank term differs from the goal date, or to estimate an unlinked deposit. For example, ₹5,000 at the start of each month for 12 months at 7% gives ₹60,000 in deposits and ₹2,310.66 in estimated interest. A blank rate shows deposits alone. Check the preview and save. The goal outlook shows the estimated balance, the remaining gap or surplus, and dated checkpoints.
+
+The estimate uses beginning-of-month instalments and a quarterly nominal rate for RDs. Other investments use an effective annual return. Growth stops at the last deposit month. When a goal falls earlier, the page also shows the value at its date. Tax, early-withdrawal charges and bank rounding may change the payout. For the quarterly convention, see [ICICI Bank’s recurring deposit calculator](https://www.icici.bank.in/personal-banking/deposits/recurring-deposits/rd-calculator).
+
+Each linked holding enters the goal at its recorded value. This month’s instalment is assumed due. If you have already recorded it in a holding, select **Instalments already paid → This month’s deposit is already in my linked savings**. For an ongoing RD whose earlier instalments are outside those holdings, you can explicitly count them from its start. A deposit’s full-term estimate always shows the scheduled term. Saving a forecast creates no income, expense or holding entry.
+
+[Walk through a family goal](https://theharithsa.github.io/finbuddy/docs/product.html#plan-a-goal) · [Try the sample](https://finbuddy-2025.web.app/finvision?demo=1)
 
 ## Ownership and migration
 

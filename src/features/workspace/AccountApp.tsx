@@ -117,7 +117,7 @@ function Workspace({ user }: { user: User }) {
                   setHomeMonth(next >= currentMonth ? null : next);
                 }}
                 onEdit={setEntryEditor} onExpenses={() => { setMonth(selectedMonth); setRange(selectedRange); navigate('expenses'); }}
-                onBills={() => navigate('bills')} onSavings={() => navigate('savings')}
+                onBills={() => navigate('bills')} onSavings={() => navigate('savings')} onPlanner={() => navigate('finvision')}
               />}
               {page === 'bills' && <BillsPage bills={household.data.bills} occurrences={bills} today={today} onEdit={setEntryEditor} onPay={setPaymentEditor} />}
               {page === 'savings' && <SavingsPage onPlan={() => navigate('finvision')} holdings={household.data.holdings} onEdit={setEntryEditor} />}

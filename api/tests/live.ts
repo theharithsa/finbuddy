@@ -1,4 +1,4 @@
-import { planSchema, previewSchema } from '../shared/planning';
+import { indiaDate, planSchema, previewSchema } from '../shared/planning';
 import { dataRoot, deploymentTargets, firebaseProject, type DataEnvironment } from '../shared/environment';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -232,7 +232,9 @@ export async function exercisePlanning(fixture: LiveFixture): Promise<string[]> 
     fetch(fixture.origin + '/api/v1/finvision' + path, { method, headers: { Authorization: 'Bearer ' + session,
       ...(body && { 'Content-Type': 'application/json' }), ...(revision && { 'If-Match': revision }) },
       ...(body && { body: JSON.stringify(body) }), signal: AbortSignal.timeout(25000) });
-  const goal = {id:'reserve', name:'Release reserve', todayValue:120000,targetYear:2028,inflationRate:0};
+  const month=indiaDate().slice(0,7);
+  const targetYear=Number(month.slice(0,4))+2;
+  const goal = {id:'reserve', name:'Release reserve', todayValue:120000,targetYear,inflationRate:0};
   if (fixture.namespace === 'preprod') {
     const source = getFirestore().doc('preprod/data/finvisionFixtures/' + owner.uid);
     await source.create({accepting:true,limit:1,enrolled:0});
@@ -245,7 +247,7 @@ export async function exercisePlanning(fixture: LiveFixture): Promise<string[]> 
   } else {
     // Exercise a production owner read/write without enrolling any family or reading a legacy profile.
     await getFirestore().doc('prod/data/finvisionPlans/' + owner.uid).create({revision:1,
-      goals:[{id:'reserve', name:'Release reserve',targetPaise:12000000,targetMonth:'2028-12',allocations:[]}],schedules:[]});
+      goals:[{id:'reserve', name:'Release reserve',targetPaise:12000000,targetMonth:targetYear+'-12',allocations:[]}],schedules:[]});
   }
   const changed = await get('/goals/reserve',owner.session,'PATCH',{name:'Release current goal'},'1');
   assert.equal(changed.status,200);
@@ -255,7 +257,22 @@ export async function exercisePlanning(fixture: LiveFixture): Promise<string[]> 
   assert.equal(inputs.goals[0].name,'Release current goal');
   const second = await (await get('/projection',other.session)).json() as {adopted:boolean};
   assert.equal(second.adopted,false);
-  return [...(fixture.namespace === 'preprod' ? ['planning-scenario-transfer-and-replay'] : []),'planning-owner-projection-conflict-and-isolation'];
+  const deposit={id:'forecast',name:'Synthetic RD',monthlyPaise:500000,startMonth:month,endMonth:month,annualRate:0,type:'RD',goalId:'reserve',assetKey:null};
+  const created=await get('/schedules',owner.session,'POST',deposit,'2');
+  assert.equal(created.status,200);
+  const revision=planSchema.parse(await created.json()).revision;
+  const response=await get('/summary',owner.session);
+  assert.equal(response.status,200);
+  const summary=await response.json() as {goals:{id:string;saved:number;forecast:{balancePaise:number;principalPaise:number}}[];schedules:{id:string;maturity:{valuePaise:number}}[]};
+  const projected=summary.schedules.find(s=>s.id==='forecast');
+  assert.equal(projected?.maturity.valuePaise,500000);
+  const planned=summary.goals.find(g=>g.id==='reserve');
+  assert.ok(planned);
+  assert.equal(planned.forecast.principalPaise,500000);
+  assert.equal(planned.forecast.balancePaise,planned.saved+500000);
+  assert.equal((await get('/schedules/forecast',other.session)).status,404);
+  assert.equal((await get('/schedules/forecast',owner.session,'DELETE',undefined,String(revision))).status,200);
+  return [...(fixture.namespace === 'preprod' ? ['planning-scenario-transfer-and-replay'] : []),'planning-owner-projection-conflict-and-isolation','planning-rd-summary-and-isolation'];
 }
 
 export async function exerciseNamespaceBoundary(fixture: LiveFixture, apiKey: string): Promise<string[]> {

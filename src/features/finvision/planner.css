@@ -1,14 +1,52 @@
 .finvision-page { display: grid; gap: 1rem; }
 .finvision-page .m3-panel { padding: clamp(1rem, 3vw, 2rem); }
 .finvision-page h2 { font-size: 1.3rem; font-weight: 650; }
-.planner-hero dl, .planner-review, .planner-share { display: grid; gap: .65rem; }
-.planner-hero dl div { display: flex; gap: 1rem; justify-content: space-between; }
-.planner-hero dd { font-weight: 650; text-align: end; }
-.planner-hero > p { grid-column: 1 / -1; }
-.planner-list > button:not([data-slot]), .planner-review li { display: grid; gap: .25rem; text-align: start; padding: .75rem 0; overflow-wrap: anywhere; }
-.planner-list > button:not([data-slot]) { width: 100%; }
-.planner-list p, .planner-review p { margin-block: .4rem .8rem; }
-.planner-share { padding-block: .5rem; }
-.planner-share input[type=checkbox] { accent-color: var(--primary); }
-.planner-review small { display: block; }
-@media (max-width: 560px) { .planner-hero dl div { flex-wrap: wrap; } }
+.planner-review, .planner-share { display: grid; gap: .65rem; }
+.planner-review li, .planner-share { padding-block: .5rem; }
+.planner-review small, .planner-record span, .planner-record small { display: block; }
+.planner-stats, .planner-outlook-body, .planner-panels, .forecast-dates { display: grid; gap: 1rem; min-width: 0; }
+.planner-stats { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.planner-stats > div { background: var(--m3-surface-low); border-radius: var(--m3-shape-large); padding: clamp(.9rem,2vw,1.4rem); }
+.planner-stats dd { font-size: clamp(1.15rem,2vw,1.7rem); font-weight: 650; }
+.planner-stats small, .planner-stats button, .planner-record small { color: var(--m3-on-surface-variant); }
+.planner-stats button { text-decoration: underline; }
+.planner-outlook { border-radius: var(--m3-shape-xl); color: var(--m3-on-primary-container); background: var(--m3-primary-container); padding: clamp(1.15rem,3.5vw,2.2rem); }
+.planner-outlook-head, .planner-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-block-end: 1rem; }
+.planner-outlook-head h2 { font-size: clamp(1.4rem,2.75vw,2rem); }
+.planner-outlook-head .m3-field { max-width: 100%; }
+.planner-outlook-body, .planner-panels { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.forecast-total, .forecast-preview strong { display: block; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.forecast-total { font-size: clamp(1.85rem,4.5vw,3.3rem); line-height: 1.2; margin: .15em 0; }
+.planner-outlook progress { display: block; width: 100%; max-width: 22rem; height: .55rem; margin: .85rem 0 .18rem; border: 0; border-radius: .5rem; overflow: hidden; appearance: none; background: var(--m3-surface); accent-color: var(--m3-primary); }
+.planner-outlook progress::-webkit-progress-bar { background: var(--m3-surface); }
+.planner-outlook progress::-webkit-progress-value { background: var(--m3-primary); }
+.planner-outlook progress::-moz-progress-bar { background: var(--m3-primary); }
+.forecast-breakdown > div, .forecast-checkpoints th, .forecast-checkpoints td { padding: .45rem 0; }
+.forecast-breakdown > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; border-bottom: 1px solid color-mix(in srgb,currentColor 18%,transparent); }
+.forecast-breakdown dd, .forecast-checkpoints td { text-align: end; font-weight: 650; font-variant-numeric: tabular-nums; }
+.forecast-verdict { margin-block: 1rem .65rem; font-weight: 550; }
+.forecast-checkpoints summary, .forecast-method summary { cursor: pointer; padding-block: .45rem; font-weight: 550; }
+.forecast-checkpoints table { width: 100%; max-width: 34rem; text-align: start; margin-block-start: .5rem; }
+.forecast-checkpoints th { text-align: start; }
+.forecast-checkpoints thead th:last-child { text-align: end; }
+.forecast-checkpoints tbody th { font-weight: 450; }
+.planner-list .planner-record { width: 100%; position: relative; display: block; padding: .85rem 1.5rem .85rem 0; text-align: start; border-top: 1px solid var(--m3-outline-variant); overflow-wrap: anywhere; }
+.planner-record svg { position: absolute; inset-inline-end: 0; top: 50%; transform: translateY(-50%); }
+.planner-list p, .forecast-method p { margin-block: .45rem .75rem; }
+.forecast-dates { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.forecast-preview { padding: .9rem 1rem; background: var(--m3-secondary-container); color: var(--m3-on-secondary-container); border-radius: var(--m3-shape-medium); }
+.forecast-preview strong { font-size: 1.65rem; }
+.forecast-preview small { display: block; }
+.planner-choice { display: flex; align-items: baseline; gap: .5rem; margin-block: .5rem; }
+.planner-choice input, .planner-share input { accent-color: var(--m3-primary); }
+@media (max-width: 700px) {
+  .planner-panels, .planner-outlook-body { grid-template-columns: 1fr; }
+  .planner-stats { grid-template-columns: 1fr; gap: .4rem; }
+  .planner-stats > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; padding: .65rem .85rem; }
+  .planner-stats dt { font-size: .88rem; font-weight: 550; }
+  .planner-stats small, .planner-stats button { grid-column: 1; font-size: .77rem; text-align: start; }
+  .planner-stats dd { grid-area: 1 / 2 / span 2; text-align: end; overflow-wrap: anywhere; }
+}
+@media (max-width: 375px) { .forecast-dates { grid-template-columns: 1fr; } }
+
+.planner-actions { display: flex; flex-wrap: wrap; gap: .65rem; }

@@ -95,7 +95,7 @@ export default function DemoWorkspace() {
         spentPaise={Math.round(totalAmount(periodExpenses(expenses, homeRange.from, through)) * 100)}
         bills={homeBills} holdings={household.holdings}
         onMonthChange={(direction) => setHomeMonth(shiftMonth(homeMonth, direction))}
-        onExpenses={() => openLedger(homeMonth)} onBills={() => navigate('bills')} onSavings={() => navigate('savings')}
+        onExpenses={() => openLedger(homeMonth)} onBills={() => navigate('bills')} onSavings={() => navigate('savings')} onPlanner={() => navigate('finvision')}
       />}
       {page === 'expenses' && <Ledger expenses={expenses} categories={categories} people={[]} range={range} onRangeChange={setRange} />}
       {page === 'bills' && <BillsPage bills={household.bills} occurrences={occurrences} today={today} />}

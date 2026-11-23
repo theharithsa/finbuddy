@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 for (const width of [1365, 390]) {
   test('sample goals remain usable through navigation at ' + width + 'px', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-15T09:00:00Z'));
     await page.setViewportSize({width,height:900});
     const accountCalls: string[] = [];
     page.on('request', r => { if (/\/api\/v1\/|googleapis\.com\/(v1|google\.firestore)/.test(r.url())) accountCalls.push(r.url()); });
@@ -9,7 +10,7 @@ for (const width of [1365, 390]) {
     await page.getByRole('navigation',{name:'Workspace',exact:true}).getByRole('button',{name:'Savings',exact:true}).click();
     await page.getByRole('button',{name:'Plan a goal'}).click();
     await expect(page).toHaveURL(/\/finvision\?demo=1/);
-    await expect(page.getByRole('heading',{name:'Goals & savings'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'FinVision dashboard'})).toBeVisible();
     await page.getByRole('button',{name:'Add goal'}).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Goal name').fill('School fees');
@@ -17,12 +18,39 @@ for (const width of [1365, 390]) {
     await dialog.getByLabel('Target month').fill('2028-05');
     await dialog.getByRole('button',{name:'Save goal'}).click();
     await expect(page.getByRole('button',{name:/School fees/})).toBeVisible();
+    await page.getByLabel('View goal').selectOption({label:'School fees'});
+    await page.getByRole('button',{name:'Add recurring deposit'}).click();
+    await dialog.getByLabel('Deposit name').fill('Tuition RD');
+    await dialog.getByLabel('Monthly deposit').fill('5000');
+    await dialog.getByLabel('First deposit month').fill('2027-01');
+    await dialog.getByLabel('Deposit term').selectOption('term');
+    await dialog.getByLabel('Number of monthly deposits').fill('12');
+    const preview = dialog.getByRole('status',{name:'Deposit estimate'});
+    await expect(preview).toContainText('₹60,000.00');
+    await dialog.getByLabel('Annual interest rate').fill('7');
+    await expect(preview).toContainText('₹62,310.66');
+    await expect(preview).toContainText('12 instalments');
+    await expect(preview).toContainText('School fees is projected to reach ₹62,310.66');
+    await dialog.getByRole('button',{name:'Save recurring deposit'}).click();
+    const outlook = page.getByRole('region',{name:'Goal outlook'});
+    await expect(outlook).toContainText('₹62,310.66');
+    await expect(outlook).toContainText('₹57,689.34');
+    await outlook.getByText('See the balance along the way').click();
+    await expect(outlook.getByRole('table')).toBeVisible();
+    await page.getByRole('button',{name:'Edit Tuition RD'}).click();
+    await dialog.getByLabel('Annual interest rate').fill('0');
+    await dialog.getByRole('button',{name:'Save recurring deposit'}).click();
+    await expect(outlook).toContainText('Estimated gap of ₹60,000.00');
+    await page.getByRole('button',{name:'Edit Tuition RD'}).click();
+    await dialog.getByRole('button',{name:'Remove',exact:true}).click();
+    await dialog.getByRole('button',{name:'Remove entry'}).click();
+    await expect(outlook).toContainText('Estimated gap of ₹1,20,000.00');
     await page.goBack();
     await expect(page.getByRole('heading',{name:'Savings & investments'})).toBeVisible();
     await page.goForward();
     await expect(page.getByRole('button',{name:/School fees/})).toBeVisible();
     await page.reload();
-    await expect(page.getByRole('heading',{name:'Goals & savings'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'FinVision dashboard'})).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(accountCalls).toEqual([]);
   });

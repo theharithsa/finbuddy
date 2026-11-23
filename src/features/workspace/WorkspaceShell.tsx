@@ -15,7 +15,7 @@ const mainPages = [
 ] as const;
 
 const moneyPages = [
-  { id: 'finvision', label: 'FinVision', description: 'Plan a goal and track its savings', icon: Target },
+  { id: 'finvision', label: 'FinVision', description: 'Dashboard, goal forecasts and recurring deposits', icon: Target },
   { id: 'bills', label: 'Bills & EMIs', description: 'See payments still due', icon: CalendarDays },
   { id: 'budgets', label: 'Budgets', description: 'Set category spending limits', icon: Wallet },
   { id: 'dashboard', label: 'Overview', description: 'Review your spending by month', icon: LayoutDashboard },

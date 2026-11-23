@@ -15,7 +15,7 @@ export const goal = goalInput.extend({
 });
 export const scheduleInput = z.strictObject({
   name: label, monthlyPaise: amount, startMonth: planningMonth, endMonth: planningMonth.nullable(),
-  annualRate: z.number().min(0).max(2), type: label, goalId: planningId.nullable(), assetKey: label.nullable(),
+  annualRate: z.number().min(0).max(2), type: label, includePastInstalments: z.boolean().optional(), balanceThroughMonth: planningMonth.nullable().optional(), goalId: planningId.nullable(), assetKey: label.nullable(),
 });
 export const schedule = scheduleInput.extend({
   id: planningId, original: z.object({ instrumentLabel: z.string(), investmentFamily: z.string(), investmentFamilyLabel: z.string(), assetClass: z.string(), customFamily: z.string(), customInstrument: z.string(), visibility: z.string() }).partial().optional(),
@@ -75,6 +75,7 @@ export function planProblem(plan: Plan): string | undefined {
     }
   }
   for (const row of plan.schedules) {
+    if (row.includePastInstalments && row.balanceThroughMonth) return 'Choose how previously paid instalments are counted once.';
     if (row.endMonth && row.endMonth < row.startMonth) return 'Choose an end month on or after the start.';
     if (row.goalId && row.assetKey) return 'Link the schedule to one goal or one asset category.';
     if (row.goalId && !plan.goals.some(g => g.id === row.goalId)) return 'Choose a current goal for this schedule.';
