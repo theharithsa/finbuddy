@@ -991,6 +991,22 @@
       ],
       "releases": [
         {
+          "version": "3.3.3",
+          "status": "Maintenance · November 2026",
+          "title": "Updated Firebase client",
+          "summary": "FinBuddy now uses Firebase 13 for account sign-in, expense history, receipts and FinVision plans. Existing accounts use the same sign-in and saved data.",
+          "links": [
+            [
+              "Find an expense and its receipt",
+              "product.html#log-your-first-expense"
+            ],
+            [
+              "Firebase upgrade checks",
+              "https://github.com/theharithsa/finbuddy/issues/207"
+            ]
+          ]
+        },
+        {
           "version": "3.3.2",
           "status": "Maintenance · November 2026",
           "title": "Updated forms and confirmation dialogs",
