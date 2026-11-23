@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-11-24
+
+- Updated Radix Tabs for Categories and People, with keyboard and panel selection covered in the browser suite.
+- Updated ESLint and React Hooks checks, reused the existing recurring-template subscription and routed future Dependabot version updates through pre-production.
+- Defined the initial read-only MCP tools and the synthetic checks needed before a pilot.
+
 ## [3.3.0] - 2026-11-24
 
 - Added a FinVision dashboard reachable from Home, with a goal-by-goal outlook and monthly checkpoints.

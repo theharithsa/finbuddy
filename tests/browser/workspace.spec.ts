@@ -35,6 +35,27 @@ async function expectBareIcon(holder: Locator) {
   await expect(holder).toHaveCSS('border-top-width', '0px');
 }
 
+test('keyboard switches category and people tabs and exposes the selected panel', async ({ page }) => {
+  await createAccount(page, false);
+  const workspace = page.getByRole('navigation', { name: 'Workspace', exact: true });
+  for (const [destination, personal, library] of [
+    ['Categories', /^My Categories/, /^Community/],
+    ['People', /^My People/, /^Public Library/],
+  ] as const) {
+    await workspace.getByRole('button', { name: 'More', exact: true }).click();
+    await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: new RegExp('^' + destination) }).click();
+    const first = page.getByRole('tab', { name: personal });
+    const second = page.getByRole('tab', { name: library });
+    await expect(first).toHaveAttribute('aria-selected', 'true');
+    await first.press('ArrowRight');
+    await expect(second).toBeFocused();
+    await expect(page.getByRole('tabpanel', { name: library })).toBeVisible();
+    await second.press('ArrowLeft');
+    await expect(first).toBeFocused();
+    await expect(page.getByRole('tabpanel', { name: personal })).toBeVisible();
+  }
+});
+
 test('category, person and bill icons have a single fill and no colored tiles or borders', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await createAccount(page, false);

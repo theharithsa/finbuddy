@@ -8,8 +8,6 @@ export function useHouseholdData(uid: string) {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
-    setError(false);
     return watchHousehold(uid, (next) => {
       setData(next);
       setError(false);
@@ -20,5 +18,11 @@ export function useHouseholdData(uid: string) {
     });
   }, [uid, attempt]);
 
-  return { data, loading, error, retry: () => setAttempt((value) => value + 1) };
+  function retry() {
+    setLoading(true);
+    setError(false);
+    setAttempt((value) => value + 1);
+  }
+
+  return { data, loading, error, retry };
 }

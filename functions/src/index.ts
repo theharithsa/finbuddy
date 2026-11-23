@@ -382,7 +382,7 @@ export const chatWithGemini = onCall({
     
   } catch (error) {
     logger.error("Error in enhanced chat", {error});
-    throw new Error(`KautilyaAI error: ${error}`);
+    throw new Error(`KautilyaAI error: ${error}`, { cause: error });
   }
 });
 
@@ -561,7 +561,7 @@ export const getFinancialInsights = onCall({
 
   } catch (error) {
     logger.error("Error in getFinancialInsights", { error });
-    throw new Error(`Financial insights error: ${error}`);
+    throw new Error(`Financial insights error: ${error}`, { cause: error });
   }
 });
 

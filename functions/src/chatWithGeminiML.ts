@@ -112,7 +112,7 @@ async function handleDataRetrieval(intent: QueryIntent, userData: any, message: 
   const { parameters } = intent;
   const entity = intent.subtype;
   
-  let data = [];
+  let data: unknown[];
   
   // Get data based on entity type
   switch (entity) {
