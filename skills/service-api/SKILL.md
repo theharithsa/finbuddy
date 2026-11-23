@@ -17,4 +17,6 @@ Read the [continuation](continuation.md), [API guide](../../docs/api.md), and [r
 - The API and committed-expense audit deploy as `finbuddy-api` to `asia-south1` with `finbuddy-runtime@<selected-project>.iam.gserviceaccount.com`. Bind only that project's ingest secret and receipt bucket. The pre-production runtime must be denied production data/files/secrets.
 - Keep live synthetic acceptance under `api/tests/live.ts` and the root orchestration script. Generate credentials in memory, verify token and resource isolation, and clean only guarded `finbuddy-release-` fixture identities, including external token/idempotency documents and receipt objects. An interactive Google login is separate from this Admin-provisioned email test.
 
+Use the shared planning forecast for goal and schedule estimates in the summary. Preserve the recorded progress fields, ownership checks and the standalone projection inputs.
+
 The planning endpoints also accept an owner Firebase session. Personal tokens must explicitly include planning access before reading or writing goals and SIPs. [FinVision pilot](../../docs/finvision.md).

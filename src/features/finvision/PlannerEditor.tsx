@@ -1,10 +1,11 @@
-import { assetCategories, instruments } from './instruments';
+import { instruments } from './instruments';
+import { ScheduleFields } from './ScheduleFields';
 import { useState } from 'react';
 import { RecordDialog, EntryError } from '@/features/household/RecordDialog';
 import { money, parsePaise, type Holding } from '@/lib/household';
 import { goalInput, scheduleInput, type Goal, type Plan, type Schedule } from '../../../api/shared/planning';
 
-export type Edit = { kind: 'goals'; item?: Goal } | { kind: 'schedules'; item?: Schedule };
+export type Edit = { kind: 'goals'; item?: Goal } | { kind: 'schedules'; item?: Schedule; type?: string; goalId?: string };
 export type Change = (kind: Edit['kind'], method: 'POST' | 'PATCH' | 'DELETE', id: string, body?: object) => Promise<void>;
 
 function HoldingShare({ holding, current, available }: { holding: Holding; current?: number; available: number }) {
@@ -20,9 +21,11 @@ export function PlannerEditor({ edit, plan, holdings, month, change, close }: { 
   const [id] = useState(() => edit.item?.id ?? crypto.randomUUID());
   const g = edit.kind === 'goals' ? edit.item : undefined;
   const s = edit.kind === 'schedules' ? edit.item : undefined;
-  const label = edit.kind === 'goals' ? 'goal' : 'SIP';
+  const defaultType = edit.kind === 'schedules' ? s?.type ?? edit.type ?? 'MF_SIP' : '';
+  const [chosenType,setChosenType] = useState(defaultType);
+  const label = edit.kind === 'goals' ? 'goal' : chosenType === 'RD' ? 'recurring deposit' : 'investment';
   async function save(form: FormData) {
-    const name = String(form.get('name') ?? '').trim();
+    const name = String(form.get('name') ?? '').trim() || (edit.kind === 'schedules' ? instruments.find(i => i.key === form.get('type'))?.label ?? 'Monthly investment' : '');
     const amount = parsePaise(form.get('amount'));
     if (!name || !amount) throw new EntryError('Enter a name and a positive rupee amount with up to two decimal places.');
     let input: object;
@@ -33,7 +36,10 @@ export function PlannerEditor({ edit, plan, holdings, month, change, close }: { 
       input = result.data;
     } else {
       const selected = String(form.get('link') ?? '');
+      if (form.get('until') !== 'goal' && !form.get('end')) throw new EntryError('Enter the last deposit month or a whole number of months.');
+      if (form.get('until') === 'goal' && form.get('type') === 'RD' && !selected.startsWith('goal:') && !edit.item) throw new EntryError('Choose a goal or enter a deposit term to see its maturity.');
       const result = scheduleInput.safeParse({ name, monthlyPaise: amount, startMonth: form.get('start'), endMonth: form.get('end') || null,
+        includePastInstalments: form.get('includePast') === 'on', balanceThroughMonth: form.get('paidCurrent') === 'on' ? month : null,
         type: form.get('type'), annualRate: Number(form.get('rate') ?? 0) / 100,
         goalId: selected.startsWith('goal:') ? selected.slice(5) : null, assetKey: selected.startsWith('asset:') ? selected.slice(6) : null });
       if (!result.success || (result.data.endMonth && result.data.endMonth < result.data.startMonth)) throw new EntryError('Check the investment type, rate and start and end months.');
@@ -41,11 +47,11 @@ export function PlannerEditor({ edit, plan, holdings, month, change, close }: { 
     }
     await change(edit.kind, edit.item ? 'PATCH' : 'POST', id, input);
   }
-  return <RecordDialog title={(edit.item ? 'Edit ' : 'Add ') + label} description={edit.kind === 'goals' ? 'Use the amount you expect to need by the target month.' : 'A monthly instruction. Your recorded savings change when you update a holding.'} submitLabel={'Save ' + label}
+  return <RecordDialog title={(edit.item ? 'Edit ' : 'Add ') + label} description={edit.kind === 'goals' ? 'Use the amount you expect to need by the target month.' : 'Enter the amount you set aside each month to see what it could grow to.'} submitLabel={'Save ' + label}
     onSave={save} onClose={close} onRemove={edit.item ? () => change(edit.kind, 'DELETE', id) : undefined} removeDescription={'Remove this ' + label + ' from your plan?'}>
-    <label className="m3-field"><span>{edit.kind === 'goals' ? 'Goal name' : 'Investment name'}</span><input name="name" maxLength={160} defaultValue={edit.item?.name} required /></label>
-    <label className="m3-field"><span>{edit.kind === 'goals' ? 'Target amount (₹)' : 'Planned each month (₹)'}</span><input type="text" inputMode="decimal" name="amount" defaultValue={g ? g.targetPaise / 100 : s ? s.monthlyPaise / 100 : ''} required /></label>
     {edit.kind === 'goals' ? <>
+      <label className="m3-field"><span>Goal name</span><input name="name" maxLength={160} defaultValue={g?.name} required /></label>
+      <label className="m3-field"><span>Target amount (₹)</span><input type="text" inputMode="decimal" name="amount" defaultValue={g ? g.targetPaise / 100 : ''} required /></label>
       <label className="m3-field"><span>Target month</span><input name="month" type="month" defaultValue={g?.targetMonth} required /></label>
       <details className="money-details" open={g?.allocations.length ? true : undefined}><summary>Link savings <small>Optional</small></summary>
         {holdings.length === 0 && <p>Add a balance in Savings when you’re ready.</p>}
@@ -53,17 +59,6 @@ export function PlannerEditor({ edit, plan, holdings, month, change, close }: { 
         {holdings.map(h => <HoldingShare key={h.id} holding={h} current={g?.allocations.find(a => a.holdingId === h.id)?.basisPoints}
           available={10000 - plan.goals.filter(other => other.id !== g?.id).flatMap(other => other.allocations).filter(a => a.holdingId === h.id).reduce((sum, a) => sum + a.basisPoints, 0)} />)}
       </details>
-    </> : <>
-      <label className="m3-field"><span>For which goal?</span><select name="link" defaultValue={s?.goalId ? 'goal:' + s.goalId : s?.assetKey ? 'asset:' + s.assetKey : ''}><option value="">Keep unlinked</option>
-        {s?.assetKey && !assetCategories.some(a => a.key === s.assetKey) && <option value={'asset:'+s.assetKey}>{s.assetKey}</option>}
-        <optgroup label="FinVision asset categories">{assetCategories.map(a => <option key={a.key} value={'asset:'+a.key}>{a.label}</option>)}</optgroup>
-        {plan.goals.map(item => <option key={item.id} value={'goal:' + item.id}>{item.name}</option>)}</select></label>
-      <details className="money-details"><summary>Schedule and projection assumptions</summary>
-        <label className="m3-field"><span>Starts</span><input type="month" name="start" defaultValue={s?.startMonth ?? month} required /></label>
-        <label className="m3-field"><span>Ends (optional)</span><input type="month" name="end" defaultValue={s?.endMonth ?? ''} /></label>
-        <label className="m3-field"><span>Investment type</span><select name="type" defaultValue={s?.type ?? 'MF_SIP'}>{s && !instruments.some(i => i.key === s.type) && <option value={s.type}>{s.original?.instrumentLabel || s.type}</option>}{instruments.map(i => <option key={i.key} value={i.key}>{i.label}</option>)}</select></label>
-        <label className="m3-field"><span>Annual projection return (%)</span><input type="number" name="rate" step="any" min="0" max="200" defaultValue={(s?.annualRate ?? 0) * 100} /></label>
-      </details>
-    </>}
+    </> : <ScheduleFields item={s} type={defaultType} goals={plan.goals} schedules={plan.schedules} holdings={holdings} onTypeChange={setChosenType} goalId={edit.goalId} month={month} />}
   </RecordDialog>;
 }

@@ -145,20 +145,21 @@
         },
         {
           "id": "plan-a-goal",
-          "title": "Plan a goal with the savings you already track",
+          "title": "Forecast a goal with a monthly recurring deposit",
           "paragraphs": [
-            "A family wants ₹1,20,000 in ten months. Half of an ₹80,000 fixed deposit gives them ₹40,000 toward that goal. They need ₹8,000 each month to close the gap. A ₹5,000 SIP is a monthly instruction and contributes to the recorded balance only when they update their holding."
+            "A family needs ₹1,20,000 for school fees. They already have ₹40,000 set aside. Twelve monthly deposits of ₹5,000 at 7% would add an estimated ₹62,310.66. The goal would reach ₹1,02,310.66, leaving ₹17,689.34 to cover."
           ],
           "steps": [
-            "Open Savings → Plan a goal or More → FinVision. In the demo, choose Add goal and try a name, a target amount in rupees, and a target month.",
-            "Open Link savings to choose a holding. The share starts at its available percentage. Use 50 for half. Save the goal and check the amount still to set aside.",
-            "Choose Add SIP to record the intended amount each month. You can link the instruction to a goal. Compare Needed each month with Left after bills. Add income received on Home if that comparison has no income yet.",
-            "If you already have FinVision data and the pilot has space, review the working plan or choose one saved scenario. Resolve any flagged SIP links, check the future cost and confirm Move this plan to FinBuddy. Your individual FinVision projections will pick up later edits."
+            "Open Home → FinVision dashboard. Choose Add goal. Enter the target amount and the last month of the goal. Under Link savings, assign the part of a holding you want to count. Save goal.",
+            "Choose Add recurring deposit. Enter the monthly amount and the annual interest rate. Choose your goal. For a fixed bank term, select Number of months or Choose end month. Check the preview for total deposits, interest and estimated maturity, then save.",
+            "Use View goal to see its projected balance and any extra saving needed each month. Open See the balance along the way for interim estimates. If your goal comes before the deposit matures, the goal uses only the value reached by its deadline.",
+            "For an existing RD, open Instalments already paid. Mark this month as recorded if it is in a linked holding. Count earlier instalments only if they are outside those holdings. You can edit or remove a schedule by selecting its name.",
+            "If you already use standalone FinVision, review the working plan or choose a saved scenario when offered. Confirm the links and future cost before moving your plan. The public sample is available without signing in."
           ],
           "figure": [
             "finvision.jpg",
-            "Sample family emergency goal showing the saved balance, monthly pace and money left after bills",
-            "The sample goal separates the balance already held from the amount the family still needs to save."
+            "FinVision dashboard with a family emergency goal, its recorded balance, planned deposits and estimated interest",
+            "Select a goal to see how much you have today and how much the linked contributions could add by its deadline."
           ],
           "links": [
             [
@@ -476,7 +477,7 @@
           "title": "Read a private plan through the API",
           "steps": [
             "Open Settings → Developer Options, choose Read only, select Include private FinVision goals and SIPs, and generate a token. Existing tokens need an explicit replacement for planner access.",
-            "Open the Swagger reference. Authorize with your own token and run GET /finvision/summary for the current savings gap. The response uses integer paise. An empty goals array means this account has no adopted goals.",
+            "Open the Swagger reference. Authorize with your own token and run GET /finvision/summary for recorded progress, forecast balances and deposit maturity estimates. The response uses integer paise. An empty goals array means this account has no adopted goals.",
             "For a write, read GET /finvision first. Use its revision as the If-Match header. A 409 means another edit won. Reload the plan and review the change before retrying. Creating and adopting a plan requires a signed-in owner in the web app."
           ],
           "links": [
@@ -899,7 +900,7 @@
           "id": "finvision-integration-in-discovery",
           "title": "FinVision goals and savings pilot",
           "paragraphs": [
-            "FinBuddy owns adopted goals and SIP schedules. The standalone site reads current inputs for individual retirement projections. Partners keep their previous shared view. The original scenarios remain in FinVision."
+            "FinBuddy owns adopted goals and SIP schedules. The standalone site reads current inputs for individual retirement projections. Partners keep their previous shared view. The original scenarios remain in FinVision. The FinVision dashboard forecasts recurring deposits and SIPs at the goal deadline and at maturity."
           ],
           "links": [
             [
@@ -985,6 +986,26 @@
         }
       ],
       "releases": [
+        {
+          "version": "3.3.0",
+          "status": "Personal planning pilot · November 2026",
+          "title": "See what your monthly deposits can grow to",
+          "summary": "Open FinVision from Home to see each goal’s recorded savings, future deposits, interest and gap. Preview maturity and the goal-date estimate before saving an RD.",
+          "links": [
+            [
+              "Try the dashboard",
+              "https://finbuddy-2025.web.app/finvision?demo=1"
+            ],
+            [
+              "Follow the walkthrough",
+              "product.html#plan-a-goal"
+            ],
+            [
+              "Feature and verification",
+              "https://github.com/theharithsa/finbuddy/issues/194"
+            ]
+          ]
+        },
         {
           "version": "3.2.0",
           "status": "Opt-in goals and savings pilot",

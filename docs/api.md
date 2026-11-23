@@ -46,3 +46,5 @@ npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --onl
 See the [release procedure](release-plan.md) for the first API deployment and Hosting cutover.
 
 FinVision resources are documented in Swagger. Include the planning scope for personal tokens. Session-only adoption and projection routes bind identity to Firebase Auth. Read the current revision before writing. [FinVision pilot](finvision.md).
+
+`GET /api/v1/finvision/summary` returns each goal’s recorded progress and a `forecast` with future principal, explicitly included past principal, estimated interest, balance at target, shortfall and extra monthly saving needed. Each schedule has `maturity` (whole term), `atGoal` (whole schedule through the linked deadline) and `remaining` (future instalments through maturity). Amounts use integer paise. An absent horizon or an amount outside the safe integer range yields a null estimate. Existing accounts and schedules use future-only contributions by default. `includePastInstalments` counts earlier deposits the owner has excluded from linked holdings. `balanceThroughMonth` skips contributions already included in a recorded balance.

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-24
+
+- Added a FinVision dashboard reachable from Home, with a goal-by-goal outlook and monthly checkpoints.
+- Added recurring deposit maturity and goal-date estimates, a live preview, and controls for instalments already recorded. The planning summary API returns the same figures in paise.
+
 ## [3.2.0] - 2026-11-23
 
 - Added FinVision goals, share-based savings progress, planned SIPs, an interactive demo and scoped developer APIs.

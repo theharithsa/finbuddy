@@ -10,11 +10,15 @@ const version = { name: 'If-Match', in: 'header' as const, required: true, schem
 const recordId = { name: 'id', in: 'path' as const, required: true, schema: planningId };
 const projectionGoal = z.object({ id: planningId, name: z.string(), type: z.string(), targetYear: z.number(), targetMonth: z.string(), todayValue: z.number(), inflationRate: z.literal(0), visibility: z.literal('private') });
 const projectionSchedule = z.object({ id: planningId, name: z.string(), type: z.string(), monthlyAmount: z.number(), annualRate: z.number(), startDate: z.string(), endDate: z.string(), linkType: z.enum(['goal','asset']).nullable(), linkedGoalId: planningId.nullable(), linkedAssetKey: z.string().nullable(), visibility: z.literal('private') }).extend(schedule.shape.original.unwrap().shape);
-const progress = z.object({ id: planningId, saved: z.number(), gap: z.number(), monthly: z.number().nullable(), missing: z.array(planningId) });
+const estimatedPaise = z.number().int().nonnegative().nullable();
+const deposit = z.object({ instalments: z.number().int(), throughMonth: z.string(), principalPaise: estimatedPaise, interestPaise: estimatedPaise, valuePaise: estimatedPaise });
+const scheduleEstimate = z.object({ id: planningId, maturity: deposit.nullable(), atGoal: deposit.nullable(), remaining: deposit.nullable() });
+const forecast = z.object({ principalPaise: estimatedPaise, pastPrincipalPaise: estimatedPaise, interestPaise: estimatedPaise, balancePaise: estimatedPaise, shortfallPaise: estimatedPaise, extraMonthlyPaise: estimatedPaise, monthlyPlannedPaise: z.number() });
+const progress = z.object({ id: planningId, saved: z.number(), gap: z.number(), monthly: z.number().nullable(), missing: z.array(planningId), forecast });
 
 export const planningOperations: Operation[] = [
   { id: 'planning-state', path: '/finvision', method: 'GET', tag, access: 'planning-read', summary: 'Check enrolment and read the owner’s plan', response: stateSchema },
-  { id: 'planning-summary', path: '/finvision/summary', method: 'GET', tag, access: 'planning-read', summary: 'Read current goal progress in paise', response: z.object({ month: z.string(), revision: z.number(), cashAvailablePaise: z.number().nullable(), goals: z.array(progress) }) },
+  { id: 'planning-summary', path: '/finvision/summary', method: 'GET', tag, access: 'planning-read', summary: 'Read goal progress, estimated balances and deposit maturities in paise', response: z.object({ month: z.string(), revision: z.number(), cashAvailablePaise: z.number().nullable(), goals: z.array(progress), schedules: z.array(scheduleEstimate) }) },
   { id: 'planning-preview', path: '/finvision/adoption', method: 'GET', tag, access: 'session', summary: 'Preview one working plan or saved scenario', parameters: [{name:'source', in:'query',schema:sourceKey}], response: previewSchema },
   { id: 'planning-adopt', path: '/finvision/adoption', method: 'POST', tag, access: 'session', summary: 'Confirm the reviewed transfer exactly once', request: adoptionInput, response: planSchema },
   { id: 'planning-projection', path: '/finvision/projection', method: 'GET', tag, access: 'session', summary: 'Read current individual projection inputs', response: z.object({ adopted:z.boolean(), revision:z.number(), goals:z.array(projectionGoal), activeSavings:z.array(projectionSchedule) }) },
