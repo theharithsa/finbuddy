@@ -4,7 +4,7 @@
 
 ## [3.3.2] - 2026-11-24
 
-- Updated Tailwind and its Vite plugin together. Updated the dialog and confirmation components used to add, edit and delete records.
+- Updated Tailwind and its Vite plugin together. Aligned dialogs, popovers and menus so the date picker stays usable inside expense filters. The browser checks cover applying a date and cancelling a deletion.
 - Removed the unused devcontainer update schedule. The npm update schedule continues to target pre-production.
 
 ## [3.3.1] - 2026-11-24

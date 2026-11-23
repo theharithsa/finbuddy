@@ -994,7 +994,7 @@
           "version": "3.3.2",
           "status": "Maintenance · November 2026",
           "title": "Updated forms and confirmation dialogs",
-          "summary": "The app now uses updated styling and dialog libraries. The release checks exercise keyboard focus, cancelling an edit and confirming a deletion on the account used for testing.",
+          "summary": "Choose All time inside expense filters or cancel a deletion to keep the entry. The updated styling and dialog libraries are tested on desktop and mobile.",
           "links": [
             [
               "Follow the expense walkthrough",
