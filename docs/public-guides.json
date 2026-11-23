@@ -991,6 +991,22 @@
       ],
       "releases": [
         {
+          "version": "3.3.2",
+          "status": "Maintenance · November 2026",
+          "title": "Updated forms and confirmation dialogs",
+          "summary": "Choose All time inside expense filters or cancel a deletion to keep the entry. The updated styling and dialog libraries are tested on desktop and mobile.",
+          "links": [
+            [
+              "Follow the expense walkthrough",
+              "product.html"
+            ],
+            [
+              "Updates and verification",
+              "https://github.com/theharithsa/finbuddy/issues/202"
+            ]
+          ]
+        },
+        {
           "version": "3.3.1",
           "status": "Maintenance · November 2026",
           "title": "Keyboard navigation in Categories and People",
