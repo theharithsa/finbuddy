@@ -1,8 +1,9 @@
+import { planningForecasts } from '../shared/planning-forecast';
 import { randomUUID } from 'node:crypto';
 import { reportPlanningTransfer } from './telemetry';
 import { FieldValue, type Firestore, type Transaction } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { adoptionInput, emptyPlan, goal, goalInput, goalProgress, indiaDate, monthlyCash, individualProjection, planProblem, planSchema, planningId, schedule, scheduleInput, sourceKey, type Plan, type Preview } from '../shared/planning';
+import { adoptionInput, emptyPlan, goal, goalInput, indiaDate, monthlyCash, individualProjection, planProblem, planSchema, planningId, schedule, scheduleInput, sourceKey, type Plan, type Preview } from '../shared/planning';
 import { billSchema, currentOccurrences, householdPaths } from '../shared/household';
 import { dataNamespace, isPreProduction } from './deployment';
 import { ApiError, requestData } from './errors';
@@ -111,7 +112,7 @@ export async function planningSummary(db: Firestore, uid: string) {
   const occurrences = currentOccurrences(bills.docs.flatMap(d=>{const b=billSchema.safeParse(d.data()); return b.success ? [{...b.data,id:d.id}] : [];}),
     payments.docs.map(d=>({id:d.id,expenseId:String(d.get('expenseId'))})), entries,month,today);
   const cash = monthlyCash(income.docs.flatMap(d=>Number.isSafeInteger(d.get('amountPaise')) ? [{amountPaise:Number(d.get('amountPaise'))}] : []),spent,occurrences);
-  return { month, revision: plan.revision, cashAvailablePaise:cash.known ? cash.left : null, goals: plan.goals.map(g => ({ id: g.id, ...goalProgress(g, holdings, month) })) };
+  return { month, revision: plan.revision, cashAvailablePaise:cash.known ? cash.left : null, ...planningForecasts(plan, holdings, month) };
 }
 
 export async function changePlanning(db: Firestore, uid: string, kind: 'goals' | 'schedules', method: string, id: string, version: string | undefined, body?: unknown) {

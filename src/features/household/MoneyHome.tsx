@@ -20,6 +20,7 @@ interface MoneyHomeProps {
   onExpenses: () => void;
   onBills: () => void;
   onSavings: () => void;
+  onPlanner: () => void;
 }
 
 function dueLabel(dueDate: string, today: string) {
@@ -27,7 +28,7 @@ function dueLabel(dueDate: string, today: string) {
   return (dueDate < today ? 'Overdue · ' : 'Due ') + formatDate(dueDate);
 }
 
-export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise, bills, holdings, onMonthChange, onEdit, onExpenses, onBills, onSavings }: MoneyHomeProps) {
+export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise, bills, holdings, onMonthChange, onEdit, onExpenses, onBills, onSavings, onPlanner }: MoneyHomeProps) {
   const { earned, billsPaise, left } = monthlyCash(income, spentPaise, bills);
   const due = bills.filter(({ expense }) => !expense);
 
@@ -104,6 +105,7 @@ export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise,
             {holdings.length
               ? <Button variant="secondary" onClick={onSavings}>Open savings <ArrowRight size={17} /></Button>
               : onEdit && <Button variant="secondary" onClick={() => onEdit({ kind: 'holdings' })}><Plus size={17} /> Add savings or investment</Button>}
+            <Button variant="secondary" onClick={onPlanner}>FinVision dashboard <ArrowRight size={17} /></Button>
           </div>
         </section>
       </div>

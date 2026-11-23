@@ -13,3 +13,5 @@ The release-control implementation for [#172](https://github.com/theharithsa/fin
 - Deploy the API and expense audit with the environment-specific ingest secret and verify the resulting signals in the matching Dynatrace segment. Follow [observability delivery](../../docs/observability.md#production-delivery). The CI observer uses a separate credential and service identity.
 
 Planning adds session-owner adoption and projection routes, scoped personal-token reads and writes, revision checks and a private adoption receipt. [FinVision pilot](../../docs/finvision.md).
+
+The owner-scoped FinVision summary derives goal-date and maturity forecasts from the same shared calculation as the dashboard. Keep the standalone projection input contract compatible. Cover previously saved schedules and a synthetic two-owner summary test on each release. [Planner contract](../../docs/api.md)
