@@ -1,3 +1,4 @@
+import { checkLibraryTabs } from '../tests/browser/library-tabs.ts';
 import { dataRoot, deploymentTargets, firebaseProject } from '../api/shared/environment.ts';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -109,6 +110,11 @@ try {
         await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: new RegExp(`^${label}`) }).click();
         await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Horizontal page overflow');
+        if (label === 'Categories' || label === 'People') {
+          currentCase = `browser-${width}-library-tabs-${label}`;
+          await checkLibraryTabs(page, label);
+          passed.push(currentCase);
+        }
       }
       currentCase = `browser-${width}-preferences-and-developer-options`;
       await nav.getByRole('button', { name: 'More', exact: true }).click();
