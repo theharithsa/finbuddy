@@ -37,6 +37,8 @@ import { type Expense, type Budget, type RecurringTemplate, type CustomCategory,
 
 export function useFirestoreData() {
   const { user } = useAuth();
+  const userId = user?.uid;
+  const [previousUserId, setPreviousUserId] = useState(userId);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [templates, setTemplates] = useState<RecurringTemplate[]>([]);
@@ -46,11 +48,11 @@ export function useFirestoreData() {
   const [publicPeople, setPublicPeople] = useState<Person[]>([]);
   const [budgetTemplates, setBudgetTemplates] = useState<BudgetTemplate[]>([]);
   const [publicBudgetTemplates, setPublicBudgetTemplates] = useState<BudgetTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(userId));
   const [error, setError] = useState(false);
-  const userId = user?.uid;
 
-  useEffect(() => {
+  if (previousUserId !== userId) {
+    setPreviousUserId(userId);
     setLoading(Boolean(userId));
     setError(false);
     setExpenses([]);
@@ -62,6 +64,9 @@ export function useFirestoreData() {
     setPublicPeople([]);
     setBudgetTemplates([]);
     setPublicBudgetTemplates([]);
+  }
+
+  useEffect(() => {
     if (!userId) return;
 
     const unsubscribers: (() => void)[] = [];

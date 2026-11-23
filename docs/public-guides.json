@@ -938,11 +938,15 @@
             ],
             [
               "Replacement MCP integration",
-              "Backlog. Scope, permitted actions and availability are undecided.",
-              "The REST API supports direct integrations."
+              "Scoped for a read-only desktop pilot. Implementation is unscheduled.",
+              "Use the monthly summary in the REST API today."
             ]
           ],
           "links": [
+            [
+              "Read the proposed tools and pilot checks",
+              "https://github.com/theharithsa/finbuddy/blob/main/docs/mcp-scope.md"
+            ],
             [
               "Replacement MCP discovery",
               "https://github.com/theharithsa/finbuddy/issues/126"
@@ -986,6 +990,22 @@
         }
       ],
       "releases": [
+        {
+          "version": "3.3.1",
+          "status": "Maintenance · November 2026",
+          "title": "Keyboard navigation in Categories and People",
+          "summary": "Use the left and right arrow keys to move between your lists and the public library. This release updates the tab component and development checks. The roadmap describes the planned read-only desktop connector.",
+          "links": [
+            [
+              "Read the connector scope",
+              "roadmap.html#replacement-mcp-integration-backlog"
+            ],
+            [
+              "Dependency update and checks",
+              "https://github.com/theharithsa/finbuddy/issues/197"
+            ]
+          ]
+        },
         {
           "version": "3.3.0",
           "status": "Personal planning pilot · November 2026",

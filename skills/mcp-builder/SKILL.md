@@ -8,7 +8,7 @@ license: Complete terms in LICENSE.txt
 
 ## FinBuddy usage
 
-The replacement FinBuddy MCP service is planned. Read the [Firebase data boundary](../service-firebase-data/SKILL.md) and agree on operator identity, authorized data access, transport, and tool contracts before implementation. Register the new service through the [catalog procedure](../README.md). Use the [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) and its pinned version for implementation.
+Start with the [read-only pilot scope](../../docs/mcp-scope.md) for the proposed tools, credential handling and two-account verification. Read the [Firebase data boundary](../service-firebase-data/SKILL.md) and agree on operator identity, authorized data access, transport, and tool contracts before implementation. Register the new service through the [catalog procedure](../README.md). Use the [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) and its pinned version for implementation.
 
 
 ## Overview

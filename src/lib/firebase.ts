@@ -56,7 +56,7 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
-    throw new Error('Failed to upload file. Please try again.');
+    throw new Error('Failed to upload file. Please try again.', { cause: error });
   }
 };
 
@@ -237,7 +237,7 @@ export const getExpensesFromFirestore = async (userId: string): Promise<any[]> =
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting expenses:', error);
-    throw new Error('Failed to load expenses. Please try again.');
+    throw new Error('Failed to load expenses. Please try again.', { cause: error });
   }
 };
 
@@ -257,7 +257,7 @@ export const addBudgetToFirestore = async (userId: string, budget: any): Promise
     return docRef.id;
   } catch (error) {
     console.error('Error adding budget:', error);
-    throw new Error('Failed to save budget. Please try again.');
+    throw new Error('Failed to save budget. Please try again.', { cause: error });
   }
 };
 
@@ -272,7 +272,7 @@ export const updateBudgetInFirestore = async (userId: string, budgetId: string, 
     await updateDoc(docRef, cleanBudget);
   } catch (error) {
     console.error('Error updating budget:', error);
-    throw new Error('Failed to update budget. Please try again.');
+    throw new Error('Failed to update budget. Please try again.', { cause: error });
   }
 };
 
@@ -282,7 +282,7 @@ export const deleteBudgetFromFirestore = async (userId: string, budgetId: string
     await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting budget:', error);
-    throw new Error('Failed to delete budget. Please try again.');
+    throw new Error('Failed to delete budget. Please try again.', { cause: error });
   }
 };
 
@@ -302,7 +302,7 @@ export const addTemplateToFirestore = async (userId: string, template: any): Pro
     return docRef.id;
   } catch (error) {
     console.error('Error adding template:', error);
-    throw new Error('Failed to save template. Please try again.');
+    throw new Error('Failed to save template. Please try again.', { cause: error });
   }
 };
 
@@ -312,7 +312,7 @@ export const deleteTemplateFromFirestore = async (userId: string, templateId: st
     await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting template:', error);
-    throw new Error('Failed to delete template. Please try again.');
+    throw new Error('Failed to delete template. Please try again.', { cause: error });
   }
 };
 
@@ -382,9 +382,9 @@ export const addCustomCategoryToFirestore = async (userId: string, category: any
     console.error('Error adding custom category:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to create categories.');
+      throw new Error('You don\'t have permission to create categories.', { cause: error });
     } else {
-      throw new Error('Failed to save custom category. Please try again.');
+      throw new Error('Failed to save custom category. Please try again.', { cause: error });
     }
   }
 };
@@ -461,9 +461,9 @@ export const updateCustomCategoryInFirestore = async (userId: string, categoryId
     if (error.message === 'Category not found') {
       throw error;
     } else if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to update this category.');
+      throw new Error('You don\'t have permission to update this category.', { cause: error });
     } else {
-      throw new Error('Failed to update custom category. Please try again.');
+      throw new Error('Failed to update custom category. Please try again.', { cause: error });
     }
   }
 };
@@ -500,9 +500,9 @@ export const deleteCustomCategoryFromFirestore = async (userId: string, category
     console.error('Error deleting custom category:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to delete this category.');
+      throw new Error('You don\'t have permission to delete this category.', { cause: error });
     } else {
-      throw new Error('Failed to delete custom category. Please try again.');
+      throw new Error('Failed to delete custom category. Please try again.', { cause: error });
     }
   }
 };
@@ -597,7 +597,7 @@ export const adoptPublicCategory = async (userId: string, publicCategory: any): 
     return docRef.id;
   } catch (error) {
     console.error('Error adopting public category:', error);
-    throw new Error('Failed to adopt category. Please try again.');
+    throw new Error('Failed to adopt category. Please try again.', { cause: error });
   }
 };
 
@@ -629,9 +629,9 @@ export const addBudgetTemplateToFirestore = async (userId: string, template: any
     console.error('Error adding budget template:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to create budget templates.');
+      throw new Error('You don\'t have permission to create budget templates.', { cause: error });
     } else {
-      throw new Error('Failed to save budget template. Please try again.');
+      throw new Error('Failed to save budget template. Please try again.', { cause: error });
     }
   }
 };
@@ -704,9 +704,9 @@ export const updateBudgetTemplateInFirestore = async (userId: string, templateId
     if (error.message === 'Budget template not found') {
       throw error;
     } else if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to update this budget template.');
+      throw new Error('You don\'t have permission to update this budget template.', { cause: error });
     } else {
-      throw new Error('Failed to update budget template. Please try again.');
+      throw new Error('Failed to update budget template. Please try again.', { cause: error });
     }
   }
 };
@@ -740,9 +740,9 @@ export const deleteBudgetTemplateFromFirestore = async (userId: string, template
     console.error('Error deleting budget template:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to delete this budget template.');
+      throw new Error('You don\'t have permission to delete this budget template.', { cause: error });
     } else {
-      throw new Error('Failed to delete budget template. Please try again.');
+      throw new Error('Failed to delete budget template. Please try again.', { cause: error });
     }
   }
 };
@@ -850,7 +850,7 @@ export const adoptPublicBudgetTemplate = async (userId: string, publicTemplate: 
     return docRef.id;
   } catch (error) {
     console.error('Error adopting public budget template:', error);
-    throw new Error('Failed to adopt budget template. Please try again.');
+    throw new Error('Failed to adopt budget template. Please try again.', { cause: error });
   }
 };
 
@@ -888,9 +888,9 @@ export const addPersonToFirestore = async (userId: string, person: Omit<Person, 
     console.error('Error adding person:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to create people.');
+      throw new Error('You don\'t have permission to create people.', { cause: error });
     } else {
-      throw new Error('Failed to save person. Please try again.');
+      throw new Error('Failed to save person. Please try again.', { cause: error });
     }
   }
 };
@@ -907,9 +907,9 @@ export const updatePersonInFirestore = async (userId: string, personId: string, 
     console.error('Error updating person:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to update this person.');
+      throw new Error('You don\'t have permission to update this person.', { cause: error });
     } else {
-      throw new Error('Failed to update person. Please try again.');
+      throw new Error('Failed to update person. Please try again.', { cause: error });
     }
   }
 };
@@ -922,9 +922,9 @@ export const deletePersonFromFirestore = async (userId: string, personId: string
     console.error('Error deleting person:', error);
     
     if (error.code === 'permission-denied') {
-      throw new Error('You don\'t have permission to delete this person.');
+      throw new Error('You don\'t have permission to delete this person.', { cause: error });
     } else {
-      throw new Error('Failed to delete person. Please try again.');
+      throw new Error('Failed to delete person. Please try again.', { cause: error });
     }
   }
 };
@@ -989,6 +989,6 @@ export const adoptPublicPerson = async (userId: string, publicPerson: Person): P
     return docRef.id;
   } catch (error) {
     console.error('Error adopting public person:', error);
-    throw new Error('Failed to adopt person. Please try again.');
+    throw new Error('Failed to adopt person. Please try again.', { cause: error });
   }
 };

@@ -2,6 +2,8 @@
 
 Open **More → Settings → Developer Options** in the signed-in workspace. Generate a token, copy it once, and choose **Authorize** in the Swagger reference. Use a read-only token for exports and a read/write token for automations that change records.
 
+The [read-only MCP pilot scope](mcp-scope.md) maps the planned desktop tools to the current REST operations.
+
 ## Endpoints
 
 All routes use `/api/v1`. Swagger is at `/api/v1/docs` and the machine-readable OpenAPI 3.1 document is at `/api/v1/openapi.json`.

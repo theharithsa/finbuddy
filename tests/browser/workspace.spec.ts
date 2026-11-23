@@ -1,3 +1,4 @@
+import { checkLibraryTabs } from './library-tabs';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { shiftMonth } from '../../src/lib/finance-period';
@@ -34,6 +35,16 @@ async function expectBareIcon(holder: Locator) {
   await expect(holder).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(holder).toHaveCSS('border-top-width', '0px');
 }
+
+test('keyboard switches category and people tabs and exposes the selected panel', async ({ page }) => {
+  await createAccount(page, false);
+  const workspace = page.getByRole('navigation', { name: 'Workspace', exact: true });
+  for (const destination of ['Categories', 'People'] as const) {
+    await workspace.getByRole('button', { name: 'More', exact: true }).click();
+    await page.getByRole('navigation', { name: 'More destinations' }).getByRole('button', { name: new RegExp('^' + destination) }).click();
+    await checkLibraryTabs(page, destination);
+  }
+});
 
 test('category, person and bill icons have a single fill and no colored tiles or borders', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

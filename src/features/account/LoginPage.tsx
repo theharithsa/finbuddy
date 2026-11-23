@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ArrowRight, CalendarDays, Landmark, LockKeyhole, ReceiptText } from '@/components/brand/Icons';
 import { checkMagicLinkOnLoad, resetPassword, sendMagicLink, signInWithEmail, signInWithGoogle, signInWithMagicLink, signUpWithEmail } from '@/lib/firebase';
 import { UsageAnalytics } from './UsageAnalytics';
@@ -39,21 +39,22 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
   const [mode, setMode] = useState<Mode>(() => checkMagicLinkOnLoad() ? 'complete-link' : 'signin');
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setError] = useState('');
+  const [redirectDismissed, setRedirectDismissed] = useState(false);
   const [status, setStatus] = useState('');
 
-  useEffect(() => {
-    if (redirectError) setError('Couldn’t complete Google sign-in. Please try again.');
-  }, [redirectError]);
+  const error = formError || (redirectError && !redirectDismissed ? 'Couldn’t complete Google sign-in. Please try again.' : '');
 
   function changeMode(next: Mode) {
     setMode(next);
+    setRedirectDismissed(redirectError);
     setError('');
     setStatus('');
   }
 
   async function run(execute: () => Promise<unknown>) {
     setBusy(true);
+    setRedirectDismissed(redirectError);
     setError('');
     setStatus('');
     try {

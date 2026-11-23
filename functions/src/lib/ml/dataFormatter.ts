@@ -57,7 +57,7 @@ export class DataFormatter {
       };
     }
 
-    let content = '';
+    let content: string;
     
     // Format based on entity type
     switch (entity) {

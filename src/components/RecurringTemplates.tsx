@@ -18,12 +18,11 @@ import {
   Check
 } from '@/components/brand/Icons';
 import { type RecurringTemplate, type Expense, type CustomCategory, type Person, DEFAULT_CATEGORIES, getAllCategories, DEFAULT_RECURRING_TEMPLATES, formatCurrency } from '@/lib/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { subscribeToTemplates } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
 
 interface RecurringTemplatesProps {
+  userTemplates: RecurringTemplate[];
   onAddExpense: (expenseData: Omit<Expense, 'id' | 'createdAt'>) => Promise<void>;
   onAddTemplate: (template: Omit<RecurringTemplate, 'id' | 'createdAt'>) => Promise<void>;
   onDeleteTemplate: (templateId: string) => Promise<void>;
@@ -64,10 +63,9 @@ const starterTemplateIcons: Readonly<Record<string, ItemIconName | undefined>> =
   'income-tax': 'receipt',
 };
 
-export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTemplate, customCategories = [], customPeople = [], publicPeople = [] }: RecurringTemplatesProps) {
+export function RecurringTemplates({ userTemplates, onAddExpense, onAddTemplate, onDeleteTemplate, customCategories = [], customPeople = [], publicPeople = [] }: RecurringTemplatesProps) {
   const allCategories = getAllCategories(customCategories);
-  const { user } = useAuth();
-  const [templates, setTemplates] = useState<RecurringTemplate[]>(DEFAULT_RECURRING_TEMPLATES);
+  const templates = [...DEFAULT_RECURRING_TEMPLATES, ...userTemplates];
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<RecurringTemplate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,21 +100,6 @@ export function RecurringTemplates({ onAddExpense, onAddTemplate, onDeleteTempla
     description: '',
     frequency: 'monthly'
   });
-
-  // Subscribe to user templates from Firebase
-  useEffect(() => {
-    if (!user) {
-      setTemplates(DEFAULT_RECURRING_TEMPLATES);
-      return;
-    }
-
-    const unsubscribe = subscribeToTemplates(user.uid, (userTemplates) => {
-      // Combine default templates with user templates
-      setTemplates([...DEFAULT_RECURRING_TEMPLATES, ...userTemplates]);
-    });
-
-    return unsubscribe;
-  }, [user]);
 
   const resetForm = () => {
     setFormData({
