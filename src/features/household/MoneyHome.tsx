@@ -1,3 +1,4 @@
+import { monthlyCash } from '../../../api/shared/planning';
 import { ArrowDownLeft, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Landmark, Plus, Wallet } from '@/components/brand/Icons';
 import { Button } from '@/components/ui/button';
 import { BrandMark } from '@/components/brand/BrandMark';
@@ -27,10 +28,9 @@ function dueLabel(dueDate: string, today: string) {
 }
 
 export function MoneyHome({ monthLabel, currentMonth, today, income, spentPaise, bills, holdings, onMonthChange, onEdit, onExpenses, onBills, onSavings }: MoneyHomeProps) {
-  const earned = income.reduce((total, entry) => total + entry.amountPaise, 0);
+  const { earned, billsPaise, left } = monthlyCash(income, spentPaise, bills);
   const due = bills.filter(({ expense }) => !expense);
-  const billsPaise = due.reduce((total, { bill }) => total + bill.amountPaise, 0);
-  const left = earned - spentPaise - billsPaise;
+
   const estimateCopy = !income.length
     ? 'Add income you’ve received to see what’s left.'
     : left < 0

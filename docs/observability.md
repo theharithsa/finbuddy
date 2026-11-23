@@ -64,3 +64,5 @@ Remove the endpoint variable to pause export. Retry the observer only for a diag
 | Save household records or pay a bill | Operation result, persisted values, and one expense after concurrent submissions | Firestore emulator for tests |
 | Browse overview and filter ledger | Browser test and responsive checks | Browser with synthetic data |
 | Publish and verify | GitHub jobs, Firebase version, served revision | GitHub and Firebase Hosting |
+
+Planning transfer emits a server-confirmed finbuddy.planning.transfer log and span event with a stable random event ID and an adopted or replayed outcome. Request metrics use the registered route. Never add owner, holding, name, goal amount or SIP data to telemetry. [FinVision pilot](finvision.md).

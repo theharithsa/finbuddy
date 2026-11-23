@@ -159,6 +159,16 @@ export async function observeExpenseAudit(operation: (span: Span) => Promise<voi
   });
 }
 
+export function reportPlanningTransfer(eventId: string, replay: boolean) {
+  try {
+    const attributes = { 'event.id': eventId, 'finbuddy.outcome': replay ? 'replayed' : 'adopted' };
+    trace.getActiveSpan()?.addEvent('finbuddy.planning.transfer', attributes);
+    runtime?.logger?.emit({ body: 'finbuddy.planning.transfer', severityNumber: SeverityNumber.INFO, attributes, context: context.active() });
+  } catch {
+    warn('Planning transfer telemetry unavailable');
+  }
+}
+
 export function reportFailure(operation: string) {
   error('FinBuddy API request failed', { operation });
 }

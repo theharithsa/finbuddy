@@ -2,8 +2,10 @@ import { z } from 'zod';
 import { tokenCreated } from '../shared/developer';
 import { catalogOutput, documentId, errorOutput, month, pageQuery, paymentInput, paymentOutput, paymentResult, profileOutput, resourceOutput, resources, summaryOutput, tokenCreate, tokenInfo } from './contracts';
 
+import { planningOperations } from './planning-routes';
+
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
-export type Access = 'read' | 'write' | 'session' | 'public';
+export type Access = 'read' | 'write' | 'session' | 'public' | 'planning-read' | 'planning-write';
 type Parameter = { name: string; in: 'path' | 'query' | 'header'; required?: boolean; schema: z.ZodType };
 export type Operation = {
   id: string; method: Method; path: string; tag: string; summary: string; access: Access;
@@ -30,6 +32,7 @@ function crud(name: string, entry: (typeof resources)[keyof typeof resources]): 
 }
 
 export const operations: Operation[] = [
+  ...planningOperations,
   { id: 'health', method: 'GET', path: '/health', tag: 'Service', summary: 'Check API availability', access: 'public', response: z.object({ status: z.literal('ok') }) },
   { id: 'profile', method: 'GET', path: '/profile', tag: 'Account', summary: 'Get the current account', access: 'read', response: profileOutput },
   { id: 'catalog', method: 'GET', path: '/catalog', tag: 'Account', summary: 'Get built-in categories, platforms and people', access: 'read', response: catalogOutput },
@@ -65,8 +68,9 @@ export function openApi() {
     const path = paths[operation.path] ??= {};
     path[operation.method.toLowerCase()] = {
       operationId: operation.id, tags: [operation.tag], summary: operation.summary,
+      ...(operation.access.startsWith('planning-') && { description: 'Requires the owner session or a personal token with explicit planning access and the corresponding read/write level.' }),
       ...(operation.access === 'write' && { description: 'Requires a read/write API token.' }),
-      security: operation.access === 'public' ? [] : [{ [operation.access === 'session' ? 'FirebaseSession' : 'FinBuddyToken']: [] }],
+      security: operation.access.startsWith('planning-') ? [{ FirebaseSession: [] }, { FinBuddyToken: [] }] : operation.access === 'public' ? [] : [{ [operation.access === 'session' ? 'FirebaseSession' : 'FinBuddyToken']: [] }],
       ...(operation.parameters && { parameters: operation.parameters.map((parameter) => ({ ...parameter, schema: schema(parameter.schema) })) }),
       ...(operation.request && { requestBody: { required: true, content: json(operation.request) } }),
       responses: { ...errorResponses, [status]: success, ...(operation.replay && { 200: { ...success, description: 'Existing result for this idempotency key' } }) },

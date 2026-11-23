@@ -21,15 +21,26 @@ service cloud.firestore {
         allow delete: if environmentAccess(environment) && request.auth.uid == resource.data.userId;
       }
     }
+    function adopted(userId) {
+      return exists(/databases/$(database)/documents/prod/data/finvisionPlans/$(userId));
+    }
+    function isWorkingProfile(userId) {
+      return request.path == /databases/$(database)/documents/Users/$(userId)/FinVision/data/Personal_Details/profile;
+    }
     // Preserve FinVision's existing owner and linked-partner behavior.
     // Synthetic preprod identities cannot enter the existing production app.
     match /Users/{userId}/FinVision/data/Personal_Details/profile {
       allow read: if productionIdentity() && (request.auth.uid == userId
         || request.auth.uid in resource.data.linkedAccountIds);
-      allow write: if productionIdentity() && request.auth.uid == userId;
+      allow create: if productionIdentity() && request.auth.uid == userId && (!adopted(userId)
+        || !request.resource.data.keys().hasAny(['goals', 'activeSavings']));
+      allow update: if productionIdentity() && request.auth.uid == userId && (!adopted(userId)
+        || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals', 'activeSavings']));
+      allow delete: if productionIdentity() && request.auth.uid == userId && !adopted(userId);
     }
     match /Users/{userId}/{document=**} {
-      allow read, write: if productionIdentity() && request.auth.uid == userId;
+      allow read: if productionIdentity() && request.auth.uid == userId;
+      allow write: if productionIdentity() && request.auth.uid == userId && !isWorkingProfile(userId);
     }
     match /SyncCodes/{code} {
       allow read: if productionIdentity();

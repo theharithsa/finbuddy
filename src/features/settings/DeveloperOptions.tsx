@@ -81,7 +81,7 @@ export function DeveloperOptions({ user }: { user: User }) {
     const fields = new FormData(event.currentTarget);
     const expiry = fields.get('days');
     const data = tokenCreate.safeParse({
-      name: fields.get('name'), access: fields.get('access'), days: expiry === 'never' ? null : Number(expiry),
+      ...(fields.get('planning') === 'on' && { planning: true }), name: fields.get('name'), access: fields.get('access'), days: expiry === 'never' ? null : Number(expiry),
     });
     if (!data.success) { setError('Enter a name and choose the token access and expiry.'); return; }
     void run(async () => {
@@ -128,6 +128,7 @@ export function DeveloperOptions({ user }: { user: User }) {
         <label className="m3-field"><span>Token name</span><input name="name" placeholder="Monthly expense export" maxLength={60} required /></label>
         <label className="m3-field"><span>Access</span><select name="access" defaultValue="read"><option value="read">Read only</option><option value="read-write">Read and write</option></select></label>
         <label className="m3-field"><span>Expires in</span><select name="days" defaultValue="30"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="never">Never expires</option></select></label>
+        <label><input type="checkbox" name="planning" /> Include private FinVision goals and SIPs</label>
         <Button type="submit" disabled={busy || loading}>Generate token</Button>
       </form>
       {revealed && (
@@ -148,7 +149,7 @@ export function DeveloperOptions({ user }: { user: User }) {
         <ul className="developer-tokens">
           {tokens.map((token) => (
             <li key={token.id}>
-              <div><strong>{token.name}</strong><p>{accessLabel(token.access)} · {token.expiresAt === null ? 'Never expires' : `Expires ${displayDate.format(new Date(token.expiresAt))}`}</p></div>
+              <div><strong>{token.name}</strong><p>{accessLabel(token.access)}{token.planning ? ' · FinVision planning' : ''} · {token.expiresAt === null ? 'Never expires' : `Expires ${displayDate.format(new Date(token.expiresAt))}`}</p></div>
               <Button variant="ghost" disabled={busy} onClick={() => setToRevoke(token)} aria-label={`Revoke ${token.name}`}>Revoke</Button>
             </li>
           ))}

@@ -6,6 +6,9 @@ FinBuddy is an INR-first household finance workspace. See what came in this mont
 
 [Roadmap](https://theharithsa.github.io/finbuddy/docs/roadmap.html) · [Release history](https://theharithsa.github.io/finbuddy/docs/releases.html)
 
+
+**Plan a family goal.** In Savings, choose **Plan a goal**. Link a share of a holding, see the monthly gap and record a planned SIP. Existing FinVision users can preview one plan before moving it during the personal pilot. [Try the sample planner](https://finbuddy-2025.web.app/finvision?demo=1) · [Transfer and recovery](docs/finvision.md)
+
 ## A month in FinBuddy
 
 The public demo opens without an account and uses a fictional household. Screenshots below show the running demo.

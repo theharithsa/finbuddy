@@ -4,6 +4,8 @@ FinBuddy integrates through protected `preprod` and promotes through a PR from `
 
 ## Candidate and promotion
 
+Both protected branches require an up-to-date PR. Before starting a new candidate, check `git merge-base --is-ancestor origin/main origin/preprod`. If the previous production merge is missing, create a branch from current preprod, merge current main into it, and open a PR back to preprod. Merge that PR with a merge commit so Git retains the production parent. Build and accept the resulting preprod commit before opening the next promotion. The GitHub Update branch button cannot write directly to protected preprod.
+
 The [application workflow](../.github/workflows/finbuddy.yml) checks foundation contracts, web lint/unit/browser behavior, API contracts/emulators, and the historical Functions build. All three package trees have an audit gate. PR jobs receive no cloud identity or Dynatrace ingest credential.
 
 A trusted push to `preprod` builds the pre-production and production web bundles from the same source, using the shared Firebase configuration and each environment's RUM configuration. The `finbuddy-release-<attempt>` artifact contains both bundles and a schema-2 receipt with the shared project, exact pre-production site, both data roots, source SHA, Git tree, CI run and attempt, creation time, and SHA-256 directory digests for both bundles and the API source. Retention is seven days; acceptance expires after 24 hours. A workflow rerun changes its attempt and requires a full rebuild and fresh acceptance. Verification artifacts also include the attempt so earlier failure/recovery reports remain available.

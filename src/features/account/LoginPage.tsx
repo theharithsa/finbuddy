@@ -139,7 +139,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             {mode === 'signin' && <div className="m3-demo-invite">
               <p>{isPreProduction ? 'Explore an example with sample household data.' : 'See a sample household before making an account.'}</p>
               <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
-              <div className="m3-login-links"><a href="/docs/index.html">Open the Help Center</a></div>
+              <div className="m3-login-links"><a href="/finvision?demo=1">Try a sample savings goal</a> · <a href="/docs/index.html">Open the Help Center</a></div>
             </div>}
           </div>
         </section>

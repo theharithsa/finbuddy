@@ -35,6 +35,30 @@ export function billPaymentKey(billId: string, dueDate: string): string {
   return `${billId}_${dueDate.slice(0, 7)}`;
 }
 
+export function currentOccurrences<B extends z.infer<typeof billSchema> & {id: string}, E extends {id: string; date: string}>(
+  bills: B[], payments: {id: string; expenseId: string}[], expenses: E[], month: string, asOf: string,
+) {
+  const byPayment = new Map(payments.map(payment => [payment.id, payment.expenseId]));
+  const byExpense = new Map(expenses.map(expense => [expense.id, expense]));
+  const occurrences: {bill: B; dueDate: string; expense?: E}[] = [];
+  for (const bill of bills) {
+    let dueMonth = bill.dueDate.slice(0, 7);
+    while (dueMonth <= month) {
+      const dueDate = billDateInMonth(bill, dueMonth);
+      if (!dueDate) break;
+      const expenseId = byPayment.get(billPaymentKey(bill.id, dueDate));
+      const linked = expenseId ? byExpense.get(expenseId) : undefined;
+      const expense = linked && linked.date.slice(0, 10) <= asOf ? linked : undefined;
+      if (dueMonth === month || !expense || expense.date.slice(0, 7) === month) occurrences.push({ bill, dueDate, expense });
+      if (bill.repeat === 'once' || dueMonth === month) break;
+      const next = new Date(dueMonth + '-01T12:00:00Z');
+      next.setUTCMonth(next.getUTCMonth() + (bill.repeat === 'yearly' ? 12 : 1));
+      dueMonth = next.toISOString().slice(0, 7);
+    }
+  }
+  return occurrences.sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.bill.name.localeCompare(b.bill.name));
+}
+
 export type PaymentInput = { amountPaise: number; date: string } | { expenseId: string };
 
 interface PaymentExpense {
