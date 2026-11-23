@@ -100,7 +100,14 @@ try {
       await expect(edit).toHaveCount(0);
       await page.getByRole('button', { name: `Actions for Release browser ${width}`, exact: true }).click();
       await page.getByRole('menuitem', { name: 'Delete expense', exact: true }).click();
-      await page.getByRole('alertdialog', { name: 'Delete expense?', exact: true }).getByRole('button', { name: 'Delete expense', exact: true }).click();
+      const confirmDelete = page.getByRole('alertdialog', { name: 'Delete expense?', exact: true });
+      await confirmDelete.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await expect(confirmDelete).toHaveCount(0);
+      await expect(page.getByRole('button', { name: `Edit expense: Release browser ${width}`, exact: true })).toBeVisible();
+      await page.getByRole('button', { name: `Actions for Release browser ${width}`, exact: true }).click();
+      await page.getByRole('menuitem', { name: 'Delete expense', exact: true }).click();
+      await confirmDelete.getByRole('button', { name: 'Delete expense', exact: true }).click();
+      passed.push(`browser-${width}-cancel-and-confirm-delete`);
       await expect(page.getByRole('button', { name: `Edit expense: Release browser ${width}`, exact: true })).toHaveCount(0);
       passed.push(`browser-${width}-expense-create-edit-reload-delete`);
       for (const [label, heading] of [['Bills & EMIs', 'Bills & EMIs'], ['Budgets', 'Budgets'], ['Overview', 'Overview'],
