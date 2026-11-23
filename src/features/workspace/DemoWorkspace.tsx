@@ -1,17 +1,22 @@
-import { useRef, useState } from 'react';
+import { samplePlan } from '@/features/finvision/sample';
+import { useWorkspaceNavigation } from './useWorkspaceNavigation';
+import { indiaDate, monthlyCash } from '../../../api/shared/planning';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { BillsPage } from '@/features/household/BillsPage';
 import { MoneyHome } from '@/features/household/MoneyHome';
 import { SavingsPage } from '@/features/household/SavingsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
-import { localDate, monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
+import { monthRange, periodExpenses, shiftMonth, totalAmount } from '@/lib/finance-period';
 import { billPaymentKey, listBillOccurrences, type Household } from '@/lib/household';
 import { getAllCategories, type Budget, type Expense } from '@/lib/types';
 import { ComingSoonPage } from './ComingSoonPage';
 import { Ledger } from './Ledger';
 import { Overview } from './Overview';
-import { WorkspaceShell, type WorkspacePage } from './WorkspaceShell';
+import { WorkspaceShell } from './WorkspaceShell';
 
 const categories = getAllCategories();
+
+const PlannerPage = lazy(() => import('@/features/finvision/PlannerPage'));
 
 function sampleHousehold(today: string): { household: Household; expenses: Expense[]; budgets: Budget[] } {
   const month = today.slice(0, 7);
@@ -60,24 +65,21 @@ function sampleHousehold(today: string): { household: Household; expenses: Expen
 }
 
 export default function DemoWorkspace() {
-  const [today] = useState(localDate);
+  const [today] = useState(indiaDate);
   const [{ household, expenses, budgets }] = useState(() => sampleHousehold(today));
   const currentMonth = today.slice(0, 7);
-  const [page, setPage] = useState<WorkspacePage>('home');
+  const mainRef = useRef<HTMLElement>(null);
+  const { page, navigate } = useWorkspaceNavigation('home', mainRef);
+  const [demoPlan, setDemoPlan] = useState(() => samplePlan(currentMonth));
   const [homeMonth, setHomeMonth] = useState(currentMonth);
   const [overviewMonth, setOverviewMonth] = useState(currentMonth);
   const [range, setRange] = useState(() => monthRange(currentMonth));
-  const mainRef = useRef<HTMLElement>(null);
+
   const homeRange = monthRange(homeMonth);
   const through = homeMonth === currentMonth ? today : homeRange.to;
   const occurrences = listBillOccurrences(household.bills, household.payments, expenses, currentMonth, today);
   const homeBills = homeMonth === currentMonth ? occurrences : listBillOccurrences(household.bills, household.payments, expenses, homeMonth, through);
 
-  function navigate(next: WorkspacePage) {
-    setPage(next);
-    window.scrollTo(0, 0);
-    requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
-  }
 
   function openLedger(month: string) {
     setRange(monthRange(month));
@@ -97,7 +99,9 @@ export default function DemoWorkspace() {
       />}
       {page === 'expenses' && <Ledger expenses={expenses} categories={categories} people={[]} range={range} onRangeChange={setRange} />}
       {page === 'bills' && <BillsPage bills={household.bills} occurrences={occurrences} today={today} />}
-      {page === 'savings' && <SavingsPage holdings={household.holdings} />}
+      {page === 'savings' && <SavingsPage onPlan={() => navigate('finvision')} holdings={household.holdings} />}
+      {page === 'finvision' && <Suspense fallback={<p role="status">Opening sample goals…</p>}><PlannerPage demo={demoPlan} onDemoChange={setDemoPlan} holdings={household.holdings} month={currentMonth}
+        left={monthlyCash(household.income.filter(i => i.date.slice(0,7) === currentMonth), Math.round(totalAmount(periodExpenses(expenses, currentMonth+'-01', today))*100), occurrences).left} /></Suspense>}
       {page === 'dashboard' && <Overview expenses={expenses} budgets={budgets} categories={categories} month={overviewMonth}
         onMonthChange={setOverviewMonth} onOpenLedger={() => openLedger(overviewMonth)} />}
       {page === 'settings' && <SettingsPage />}

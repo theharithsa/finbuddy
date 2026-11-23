@@ -5,7 +5,7 @@ import { money, type Holding } from '@/lib/household';
 import type { Editor } from './HouseholdEditor';
 import { MoneyRecordRow } from './MoneyRecordRow';
 
-export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit?: (editor: Editor) => void }) {
+export function SavingsPage({ holdings, onEdit, onPlan }: { holdings: Holding[]; onPlan: () => void; onEdit?: (editor: Editor) => void }) {
   const total = holdings.reduce((sum, holding) => sum + holding.amountPaise, 0);
   return (
     <>
@@ -19,6 +19,8 @@ export function SavingsPage({ holdings, onEdit }: { holdings: Holding[]; onEdit?
         <div><span>Total recorded value</span><strong>{money(total)}</strong></div>
         <span className="m3-summary-count">{holdings.length} {holdings.length === 1 ? 'entry' : 'entries'}</span>
       </section>
+
+      <div><Button variant="secondary" onClick={onPlan}>Plan a goal</Button></div>
 
       <section className="money-page-list">
         <header className="money-panel-heading">

@@ -1,3 +1,4 @@
+import { adoptionInput, planSchema, previewSchema } from '../shared/planning';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
@@ -36,12 +37,13 @@ async function account(claims?: Record<string, unknown>) {
   return await signed.json() as { idToken: string; localId: string };
 }
 
-function api(path: string, token?: string, method = 'GET', data?: unknown, key?: string) {
+function api(path: string, token?: string, method = 'GET', data?: unknown, key?: string, revision?: string) {
   return fetch(`${base}${path}`, {
     method, headers: {
       ...(token && { Authorization: `Bearer ${token}` }),
       ...(data !== undefined && { 'Content-Type': 'application/json' }),
       ...(key && { 'Idempotency-Key': key }),
+      ...(revision && { 'If-Match': revision }),
     },
     ...(data !== undefined && { body: JSON.stringify(data) }),
     signal: AbortSignal.timeout(25_000),
@@ -293,4 +295,60 @@ test('FinBuddy HTTP API through Firebase emulators', async (t) => {
     assert.equal((await api(`/developer/tokens/${write.id}`, first.idToken, 'DELETE')).status, 204);
     assert.equal((await api('/profile', write.token)).status, 401);
   });
+});
+
+test('FinVision owner transfer survives retries and protects existing plans and current projections', async () => {
+  const owner = await account();
+  const second = await account();
+  const staging = await account({finbuddyPreprodAccess:true,finbuddyEnvironment:'preprod'});
+  const root = 'Users/' + owner.localId + '/FinVision/data';
+  const profile = db.doc(root + '/Personal_Details/profile');
+  const gate = db.doc('prod/data/finvisionControl/pilot');
+  await gate.set({ accepting:true, enrolled:0, limit:3 });
+  const legacy = { goals:[{id:'g',name:'Reserve',todayValue:120000,targetYear:2028,inflationRate:0}], activeSavings:[] };
+  await profile.set(legacy);
+  const snapshot = db.doc(root + '/Financial_Plans/saved');
+  await snapshot.set({...legacy,name:'Scenario'});
+  const preview = async () => previewSchema.parse(await (await api('/finvision/adoption',owner.idToken)).json());
+  const confirmation = (p: ReturnType<typeof previewSchema.parse>) => adoptionInput.parse({source:p.source,fingerprint:p.fingerprint,links:[]});
+  const p = await preview();
+  assert.equal(p.choices.length,2);
+  await profile.update({note:'Changed between preview and confirmation'});
+  assert.equal((await api('/finvision/adoption',owner.idToken,'POST',confirmation(p))).status,409);
+  const current = confirmation(await preview());
+  const results = await Promise.all([1,2].map(() => api('/finvision/adoption',owner.idToken,'POST',current)));
+  assert.ok(results.every(r=>r.status===200));
+  assert.equal((await gate.get()).get('enrolled'),1);
+  const token = await mint(owner.idToken,'read-write',null);
+  assert.equal((await api('/finvision',token.token)).status,403);
+  assert.equal((await api('/finvision/projection',token.token)).status,401);
+  const scoped = tokenCreated.parse(await (await api('/developer/tokens',owner.idToken,'POST',{name:'Planner',access:'read-write',days:null,planning:true})).json());
+  const fd=db.doc('prod/data/users/'+owner.localId+'/householdHoldings/fd');
+  await fd.set({amountPaise:8000000});
+  const patch = (name:string) => api('/finvision/goals/g',scoped.token,'PATCH',{name,allocations:[{holdingId:'fd',basisPoints:5000}]},undefined,'1');
+  const edits=await Promise.all([patch('First'),patch('Second')]);
+  assert.deepEqual(edits.map(r=>r.status).sort(),[200,409]);
+  const plan=planSchema.parse(await edits.find(r=>r.status===200)!.json());
+  const add=()=>api('/finvision/goals',scoped.token,'POST',{id:'extra',name:'Fees',targetPaise:10000,targetMonth:'2028-01',allocations:[{holdingId:'fd',basisPoints:5001}]},undefined,String(plan.revision));
+  assert.equal((await add()).status,409);
+  const summary=await (await api('/finvision/summary',scoped.token)).json() as {goals:{saved:number}[]};
+  assert.equal(summary.goals[0].saved,4000000);
+  await gate.update({accepting:false});
+  const projection=await (await api('/finvision/projection',owner.idToken)).json() as {adopted:boolean;goals:{name:string}[]};
+  assert.equal(projection.goals[0].name,plan.goals[0].name);
+  assert.equal((await (await api('/finvision/projection',second.idToken)).json() as {adopted:boolean}).adopted,false);
+  assert.equal((await api('/finvision/projection',staging.idToken)).status,401);
+  assert.equal((await api('/finvision/adoption',second.idToken)).status,403);
+  const firestore='http://'+firestoreHost+'/v1/projects/'+project+'/databases/(default)/documents/';
+  const hdr={Authorization:'Bearer '+owner.idToken,'Content-Type':'application/json'};
+  for (const field of ['goals','activeSavings']) {
+    const stale=await fetch(firestore+profile.path+'?updateMask.fieldPaths='+field,{method:'PATCH',headers:hdr,body:JSON.stringify({fields:{[field]:{arrayValue:{values:[{stringValue:'old tab'}]}}}})});
+    assert.equal(stale.status,403);
+  }
+  assert.equal((await fetch(firestore+profile.path,{method:'DELETE',headers:hdr})).status,403);
+  assert.equal((await fetch(firestore+profile.path+'?updateMask.fieldPaths=note',{method:'PATCH',headers:hdr,body:JSON.stringify({fields:{note:{stringValue:'Other details can still be edited'}}})})).status,200);
+  assert.equal((await fetch(firestore+'prod/data/finvisionPlans/'+owner.localId,{headers:hdr})).status,403);
+  assert.deepEqual((await profile.get()).get('goals'),legacy.goals);
+  await profile.delete();
+  assert.equal((await fetch(firestore+profile.path,{method:'PATCH',headers:hdr,body:JSON.stringify({fields:{goals:{arrayValue:{values:[]}}}})})).status,403);
 });

@@ -1,3 +1,4 @@
+import { planSchema, previewSchema } from '../shared/planning';
 import { dataRoot, deploymentTargets, firebaseProject, type DataEnvironment } from '../shared/environment';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -74,6 +75,8 @@ export async function cleanup(fixture: LiveFixture): Promise<void> {
     for (const token of tokens.docs) await token.ref.delete();
     await db.recursiveDelete(db.collection(`${dataRoot(fixture.namespace)}/finbuddyDeveloper`).doc(account.uid));
     await db.recursiveDelete(db.collection(`${dataRoot(fixture.namespace)}/users`).doc(account.uid));
+    await db.recursiveDelete(db.doc(dataRoot(fixture.namespace) + '/finvisionPlans/' + account.uid));
+    if (fixture.namespace === 'preprod') await db.recursiveDelete(db.doc('preprod/data/finvisionFixtures/' + account.uid));
     // Categories/people/templates live outside the user document; filter only this fixture owner.
     for (const collection of ['customCategories', 'customPeople', 'billTemplates', 'budgetTemplates']) {
       const owned = await db.collection(`${dataRoot(fixture.namespace)}/${collection}`).where('userId', '==', account.uid).get();
@@ -220,6 +223,39 @@ export async function exerciseApi(fixture: LiveFixture, checkpoint: (scenario: s
   assert.equal((await api('/profile', write.token)).status, 401);
   passed.push('expired-token-denial-and-owner-only-revocation');
   return passed;
+}
+
+export async function exercisePlanning(fixture: LiveFixture): Promise<string[]> {
+  const [owner, other] = fixture.accounts;
+  assert.match(owner.uid, /^finbuddy-release-[a-f0-9-]{36}$/);
+  const get = async (path: string, session: string, method = 'GET', body?: object, revision?: string) =>
+    fetch(fixture.origin + '/api/v1/finvision' + path, { method, headers: { Authorization: 'Bearer ' + session,
+      ...(body && { 'Content-Type': 'application/json' }), ...(revision && { 'If-Match': revision }) },
+      ...(body && { body: JSON.stringify(body) }), signal: AbortSignal.timeout(25000) });
+  const goal = {id:'reserve', name:'Release reserve', todayValue:120000,targetYear:2028,inflationRate:0};
+  if (fixture.namespace === 'preprod') {
+    const source = getFirestore().doc('preprod/data/finvisionFixtures/' + owner.uid);
+    await source.create({accepting:true,limit:1,enrolled:0});
+    await source.collection('Financial_Plans').doc('example').create({name:'Release scenario',goals:[goal],activeSavings:[]});
+    const preview = previewSchema.parse(await (await get('/adoption',owner.session)).json());
+    assert.equal(preview.source,'scenario:example');
+    const input = {source:preview.source,fingerprint:preview.fingerprint,links:[]};
+    for (let i=0;i<2;i++) assert.equal((await get('/adoption',owner.session,'POST',input)).status,200,'Synthetic transfer or replay failed');
+    assert.equal((await source.get()).get('enrolled'),1);
+  } else {
+    // Exercise a production owner read/write without enrolling any family or reading a legacy profile.
+    await getFirestore().doc('prod/data/finvisionPlans/' + owner.uid).create({revision:1,
+      goals:[{id:'reserve', name:'Release reserve',targetPaise:12000000,targetMonth:'2028-12',allocations:[]}],schedules:[]});
+  }
+  const changed = await get('/goals/reserve',owner.session,'PATCH',{name:'Release current goal'},'1');
+  assert.equal(changed.status,200);
+  assert.equal(planSchema.parse(await changed.json()).revision,2);
+  assert.equal((await get('/goals/reserve',owner.session,'PATCH',{name:'Stale'},'1')).status,409);
+  const inputs = await (await get('/projection',owner.session)).json() as {goals:{name:string}[]};
+  assert.equal(inputs.goals[0].name,'Release current goal');
+  const second = await (await get('/projection',other.session)).json() as {adopted:boolean};
+  assert.equal(second.adopted,false);
+  return [...(fixture.namespace === 'preprod' ? ['planning-scenario-transfer-and-replay'] : []),'planning-owner-projection-conflict-and-isolation'];
 }
 
 export async function exerciseNamespaceBoundary(fixture: LiveFixture, apiKey: string): Promise<string[]> {

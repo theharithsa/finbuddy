@@ -1,5 +1,5 @@
 import { Fragment, useState, type ReactNode, type RefObject } from 'react';
-import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Settings, Shapes, Sparkles, Users, Wallet } from '@/components/brand/Icons';
+import { CalendarDays, ChartNoAxesCombined, ChevronRight, CircleHelp, House, Landmark, LayoutDashboard, LogOut, Menu, Plus, ReceiptText, Repeat2, Settings, Shapes, Target, Sparkles, Users, Wallet } from '@/components/brand/Icons';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,6 +15,7 @@ const mainPages = [
 ] as const;
 
 const moneyPages = [
+  { id: 'finvision', label: 'FinVision', description: 'Plan a goal and track its savings', icon: Target },
   { id: 'bills', label: 'Bills & EMIs', description: 'See payments still due', icon: CalendarDays },
   { id: 'budgets', label: 'Budgets', description: 'Set category spending limits', icon: Wallet },
   { id: 'dashboard', label: 'Overview', description: 'Review your spending by month', icon: LayoutDashboard },
@@ -37,7 +38,11 @@ const moreGroups = [
 
 export type WorkspacePage = (typeof mainPages)[number]['id'] | (typeof morePages)[number]['id'];
 
-const demoDestinations = new Set<WorkspacePage>(['bills', 'dashboard', 'settings', 'explorer']);
+const demoDestinations = new Set<WorkspacePage>(['bills', 'dashboard', 'settings', 'explorer', 'finvision']);
+
+export function isWorkspacePage(value: unknown): value is WorkspacePage {
+  return [...mainPages, ...morePages].some(p => p.id === value);
+}
 
 interface WorkspaceShellProps {
   page: WorkspacePage;

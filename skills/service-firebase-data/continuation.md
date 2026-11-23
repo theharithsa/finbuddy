@@ -18,3 +18,5 @@ Inspected `22fdc36bf8e6f7aa2f2a31f9b394dcb04575b115` on 10 November 2026. The Fi
 - Storage uses the existing receipt compatibility path. Before any rules release, verify owner and second-account outcomes with synthetic receipts, including older records. Audit overlaps and provider policy before claiming isolation.
 - The latest Hosting workflow deployed the web artifact. It did not publish Firestore or Storage rules. The Rules API read was denied with HTTP 403 during this audit, so deployed rule parity remains unverified.
 - Next verification for a rules change is a read-back of the target releases, emulator coverage for owner, second-account and signed-out access, and an approved rollback source. See [release plan](../../docs/release-plan.md).
+
+A server-owned planner root and overlapping-rule checks protect adopted goals and schedules. Preprod source fixtures live under its own namespace. [FinVision pilot](../../docs/finvision.md).

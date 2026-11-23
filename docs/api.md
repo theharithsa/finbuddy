@@ -44,3 +44,5 @@ npx --yes firebase-tools@15.37.0 emulators:exec --config firebase.api.json --onl
 ```
 
 See the [release procedure](release-plan.md) for the first API deployment and Hosting cutover.
+
+FinVision resources are documented in Swagger. Include the planning scope for personal tokens. Session-only adoption and projection routes bind identity to Firebase Auth. Read the current revision before writing. [FinVision pilot](finvision.md).

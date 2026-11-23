@@ -144,6 +144,30 @@
           "note": "FinBuddy shows recorded values. Keep cash-flow entries in Income and Expenses, and balances in Savings."
         },
         {
+          "id": "plan-a-goal",
+          "title": "Plan a goal with the savings you already track",
+          "paragraphs": [
+            "A family wants ₹1,20,000 in ten months. Half of an ₹80,000 fixed deposit gives them ₹40,000 toward that goal. They need ₹8,000 each month to close the gap. A ₹5,000 SIP is a monthly instruction and contributes to the recorded balance only when they update their holding."
+          ],
+          "steps": [
+            "Open Savings → Plan a goal or More → FinVision. In the demo, choose Add goal and try a name, a target amount in rupees, and a target month.",
+            "Open Link savings to choose a holding. The share starts at its available percentage. Use 50 for half. Save the goal and check the amount still to set aside.",
+            "Choose Add SIP to record the intended amount each month. You can link the instruction to a goal. Compare Needed each month with Left after bills. Add income received on Home if that comparison has no income yet.",
+            "If you already have FinVision data and the pilot has space, review the working plan or choose one saved scenario. Resolve any flagged SIP links, check the future cost and confirm Move this plan to FinBuddy. Your individual FinVision projections will pick up later edits."
+          ],
+          "figure": [
+            "finvision.jpg",
+            "Sample family emergency goal showing the saved balance, monthly pace and money left after bills",
+            "The sample goal separates the balance already held from the amount the family still needs to save."
+          ],
+          "links": [
+            [
+              "Try the sample goals page",
+              "https://finbuddy-2025.web.app/finvision?demo=1"
+            ]
+          ]
+        },
+        {
           "id": "categories-and-people",
           "title": "Organize expenses with categories and people",
           "steps": [
@@ -444,6 +468,25 @@
             [
               "See token defaults, expiry and revocation",
               "settings.html#token-scope-and-expiration"
+            ]
+          ]
+        },
+        {
+          "id": "planning-api",
+          "title": "Read a private plan through the API",
+          "steps": [
+            "Open Settings → Developer Options, choose Read only, select Include private FinVision goals and SIPs, and generate a token. Existing tokens need an explicit replacement for planner access.",
+            "Open the Swagger reference. Authorize with your own token and run GET /finvision/summary for the current savings gap. The response uses integer paise. An empty goals array means this account has no adopted goals.",
+            "For a write, read GET /finvision first. Use its revision as the If-Match header. A 409 means another edit won. Reload the plan and review the change before retrying. Creating and adopting a plan requires a signed-in owner in the web app."
+          ],
+          "links": [
+            [
+              "Open the API reference",
+              "https://finbuddy-2025.web.app/api/v1/docs"
+            ],
+            [
+              "Read the ownership and recovery procedure",
+              "https://github.com/theharithsa/finbuddy/blob/main/docs/finvision.md"
             ]
           ]
         },
@@ -815,23 +858,23 @@
       ]
     },
     "roadmap": {
-      "intro": "Track which features you can use today and what needs to happen before FinVision can appear in FinBuddy. FinVision is in discovery and has no scheduled release date.",
+      "intro": "Follow the goals and recurring savings pilot from the public demo to an owner-approved plan transfer. The pilot is limited to personal plans.",
       "stages": [
         [
-          "Agree on account and data ownership",
-          "Current stage. Map how the two apps identify the same user and agree on which data FinBuddy can show."
+          "Try the native planner",
+          "Open the sample goal from Savings or More and compare the goal with recorded cash flow."
         ],
         [
-          "Define the first page",
-          "After approval of the data boundary, pick the first view and specify how updates and conflicts are handled."
+          "Move a personal plan",
+          "During the pilot, each owner previews one plan and chooses when to move editing to FinBuddy."
         ],
         [
-          "Verify and pilot",
-          "When the slice is ready, test identity, permissions, sync and recovery with fictional accounts before a limited pilot."
+          "Verify the pilot",
+          "Compare source totals, confirm projection updates and review recovery with synthetic households before expanding access."
         ],
         [
-          "Review the pilot",
-          "Decide on wider access after the pilot confirms the behaviour. Set a target window at that stage."
+          "Extend family planning",
+          "Partner invitations, visibility and revocation follow personal planning. Native retirement scenarios and reporting follow the pilot."
         ]
       ],
       "sections": [
@@ -854,30 +897,22 @@
         },
         {
           "id": "finvision-integration-in-discovery",
-          "title": "FinVision discovery",
+          "title": "FinVision goals and savings pilot",
           "paragraphs": [
-            "The first slice is intended for signed-in FinBuddy users who also use FinVision. Its goal is a clear view of the agreed FinVision records inside FinBuddy. Discovery targets 13 December 2026 and covers identity, the first page and its sync contract, and verification and recovery. Implementation will get a separate pre-production pilot after discovery. Wider availability has no target window yet."
+            "FinBuddy owns adopted goals and SIP schedules. The standalone site reads current inputs for individual retirement projections. Partners keep their previous shared view. The original scenarios remain in FinVision."
           ],
           "links": [
             [
-              "FinVision discovery milestone",
-              "https://github.com/theharithsa/finbuddy/milestone/4"
+              "Pilot tracking and verification",
+              "https://github.com/theharithsa/finbuddy/issues/190"
             ],
             [
-              "Discovery brief and scope",
-              "https://github.com/theharithsa/finbuddy/issues/125"
+              "Walk through a savings goal",
+              "product.html#plan-a-goal"
             ],
             [
-              "Gate 1 · Agree on identity and who owns each record",
-              "https://github.com/theharithsa/finbuddy/issues/141"
-            ],
-            [
-              "Gate 2 · Define the first page and sync behaviour",
-              "https://github.com/theharithsa/finbuddy/issues/142"
-            ],
-            [
-              "Gates 3 and 4 · Define verification, pilot and rollout",
-              "https://github.com/theharithsa/finbuddy/issues/143"
+              "Try the sample plan",
+              "https://finbuddy-2025.web.app/finvision?demo=1"
             ]
           ]
         },
@@ -950,6 +985,22 @@
         }
       ],
       "releases": [
+        {
+          "version": "3.2.0",
+          "status": "Opt-in goals and savings pilot",
+          "title": "Plan goals with existing savings",
+          "summary": "Link a share of your savings to a goal, compare the monthly pace with recorded cash flow and bring over one FinVision plan. The sample is open to everyone.",
+          "links": [
+            [
+              "Use the planner",
+              "product.html#plan-a-goal"
+            ],
+            [
+              "Follow pilot verification",
+              "https://github.com/theharithsa/finbuddy/issues/190"
+            ]
+          ]
+        },
         {
           "version": "3.1.2",
           "status": "Release controls and maintenance · November 2026",

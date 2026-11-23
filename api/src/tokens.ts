@@ -33,14 +33,14 @@ export function digest(value: string): string {
 }
 
 export async function sessionUser(auth: Auth, token: string): Promise<DecodedIdToken> {
-  if (token.split('.').length !== 3) throw new ApiError(401, 'sign_in_required', 'Sign in to FinBuddy to manage tokens.');
+  if (token.split('.').length !== 3) throw new ApiError(401, 'sign_in_required', 'Sign in with your account to use this operation.');
   try {
     const session = await auth.verifyIdToken(token, true);
     if (!documentId.safeParse(session.uid).success) throw new Error('Invalid UID');
     if (!accountCanAccess(environment, session)) throw new Error('Account cannot use this environment');
     return session;
   } catch {
-    throw new ApiError(401, 'sign_in_required', 'Sign in to FinBuddy to manage tokens.');
+    throw new ApiError(401, 'sign_in_required', 'Sign in with your account to use this operation.');
   }
 }
 
@@ -50,12 +50,13 @@ export function requireRecentSignIn(session: DecodedIdToken, now = Date.now()): 
   }
 }
 
-export async function authenticate(db: Firestore, auth: Auth, token: string, write: boolean): Promise<UserRecord> {
+export async function authenticate(db: Firestore, auth: Auth, token: string, write: boolean, planning = false): Promise<UserRecord> {
   const parts = tokenPattern.exec(token);
   if (!parts) throw invalidToken();
   const row = storedToken.safeParse((await db.collection(`${dataNamespace}/finbuddyApiTokens`).doc(parts[1]).get()).data());
   if (!row.success || isExpired(row.data, Date.now()) ||
       !timingSafeEqual(Buffer.from(row.data.digest, 'hex'), Buffer.from(digest(token), 'hex'))) throw invalidToken();
+  if (planning && row.data.planning !== true) throw new ApiError(403, 'planning_scope_required', 'This token needs explicit planning access.');
   if (write && row.data.access !== 'read-write') {
     throw new ApiError(403, 'insufficient_access', 'This API token is read-only.');
   }
@@ -89,7 +90,7 @@ export async function createToken(db: Firestore, uid: string, input: z.infer<typ
   const now = Date.now();
   const access: Access = input.access;
   const expiresAt = input.days === null ? null : new Date(now + input.days * 86_400_000).toISOString();
-  const info = { id, name: input.name, access, createdAt: new Date(now).toISOString(), expiresAt };
+  const info = { id, name: input.name, access, ...(input.planning && { planning: true }), createdAt: new Date(now).toISOString(), expiresAt };
   const owner = db.collection(`${dataNamespace}/finbuddyDeveloper`).doc(uid);
   const lookup = db.collection(`${dataNamespace}/finbuddyApiTokens`);
   await db.runTransaction(async (tx) => {
