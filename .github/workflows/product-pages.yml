@@ -6,6 +6,7 @@ on:
       - 'site/**'
       - 'docs/public-guides.json'
       - 'scripts/build_public_docs.py'
+      - 'scripts/public_site.py'
       - '.github/workflows/product-pages.yml'
   workflow_call:
     inputs:

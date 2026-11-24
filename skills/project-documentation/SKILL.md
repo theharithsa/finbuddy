@@ -5,7 +5,7 @@ description: Update FinBuddy user help, service references, and release records 
 
 # FinBuddy documentation
 
-Use the [service inventory](../../docs/services.md) and current source to identify the owning document. Update the user help under `public/docs/` when behavior changes, and update the relevant skills and continuation for operational changes.
+Use the [service inventory](../../docs/services.md) and current source to identify the owning document. Edit `docs/public-guides.json` for handbook and policy content, `site/` for the homepage and shared styles, and `scripts/public_site.py` for shared navigation, old page addresses and error views. Build both public sites with `python scripts/build_public_docs.py` and follow changed links on desktop and phone, and update the relevant skills and continuation for operational changes.
 
 - Distinguish available web features, the synthetic demo and planned capabilities. Check named routes, field defaults, screenshots and release labels against the actual UI before publication.
 - Use the [product launch procedure](../../.agents/skills/app-launchpad/references/product-launch.md) to refresh the public README, sample household media, and GitHub Pages site.

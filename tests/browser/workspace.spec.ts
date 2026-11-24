@@ -5,6 +5,7 @@ import { shiftMonth } from '../../src/lib/finance-period';
 
 async function createAccount(page: Page, openLedger = true) {
   await page.goto('/');
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await page.getByLabel('Name').fill('Test account');
   await page.getByLabel('Email', { exact: true }).fill(`workspace-${randomUUID()}@example.test`);
@@ -497,6 +498,7 @@ test('Settings separates Preferences and Developer Options and supports revocabl
 test('visitors can explore sample spending without Firebase account requests', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Sign in', exact: true }).click();
   const demo = page.getByRole('link', { name: 'Explore demo' });
   await expect(demo).toBeVisible();
   const productHunt = page.getByRole('link', { name: /FinBuddy.*Product Hunt/ });

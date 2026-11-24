@@ -2,9 +2,9 @@
 
 FinBuddy is an INR-first household finance workspace. See what came in this month, review what went out, check bills and EMIs, and keep dated records of savings and investments.
 
-[Open FinBuddy](https://finbuddy-2025.web.app/) · [Try the sample household](https://finbuddy-2025.web.app/?demo=1) · [Watch the product tour](https://theharithsa.github.io/finbuddy/#tour) · [Help center](https://finbuddy-2025.web.app/docs/) · [Project handbook](https://theharithsa.github.io/finbuddy/docs/product.html)
+[Product homepage](https://finbuddy-2025.web.app/) · [Sign in](https://finbuddy-2025.web.app/signin) · [Try the sample household](https://finbuddy-2025.web.app/app?demo=1) · [Watch the product tour](https://theharithsa.github.io/finbuddy/#tour) · [Help center](https://finbuddy-2025.web.app/docs/) · [Project handbook](https://theharithsa.github.io/finbuddy/docs/product.html)
 
-[Roadmap](https://theharithsa.github.io/finbuddy/docs/roadmap.html) · [Release history](https://theharithsa.github.io/finbuddy/docs/releases.html)
+[Roadmap](https://theharithsa.github.io/finbuddy/docs/roadmap.html) · [Release history](https://theharithsa.github.io/finbuddy/docs/releases.html) · [Privacy](https://finbuddy-2025.web.app/docs/privacy-policy.html) · [Terms](https://finbuddy-2025.web.app/docs/terms-and-conditions.html) · [Security](https://finbuddy-2025.web.app/docs/security.html)
 
 
 **Plan a family goal.** Open **Home → FinVision dashboard**. Set a target month, link existing savings and add a monthly recurring deposit. Check the amount deposited, estimated interest and any gap at your goal date. [Try the sample dashboard](https://finbuddy-2025.web.app/finvision?demo=1) · [Follow the walkthrough](https://theharithsa.github.io/finbuddy/docs/product.html#plan-a-goal)
@@ -25,6 +25,7 @@ The signed-in workspace adds expense entry and receipts, category budgets, recur
 
 | Layer | Implementation |
 | --- | --- |
+| Public website | Firebase and GitHub Pages publish the same homepage and Help center. The static generator checks links and anchors across the site. It reads `site/` and `docs/public-guides.json`. |
 | Web app | React, TypeScript, and Vite with Material 3 styles. Feature routes live in `src/features/`. |
 | Account and data | Firebase Authentication, Firestore for financial records, and Cloud Storage for receipt attachments. |
 | REST API | Firebase Functions serve `/api/v1` through Firebase Hosting. Developer Options issues scoped personal tokens. OpenAPI and Swagger describe the supported operations. |
@@ -42,7 +43,7 @@ npm ci
 npm run dev
 ```
 
-Open the address printed by Vite and add `?demo=1`. Use the testing guide for emulator commands and the API's Node.js 22 runtime. [Testing guide](docs/testing.md)
+Open the address printed by Vite and choose **Try the demo**. Returning users can bookmark `/app`. Visit a missing address to see the squirrel 404 page, or open [error recovery help](https://finbuddy-2025.web.app/docs/troubleshooting.html#error-pages) for the other status codes. Use the testing guide for emulator commands and the API's Node.js 22 runtime. [Testing guide](docs/testing.md)
 
 ## Contribute and report issues
 

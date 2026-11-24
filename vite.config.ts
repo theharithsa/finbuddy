@@ -4,12 +4,14 @@ import { defineConfig } from "vite";
 
 import { resolve } from 'path'
 import packageJson from './package.json';
+import { publicWebsite } from './scripts/public-website';
 
 const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
+    publicWebsite(projectRoot, mode),
     react(),
     tailwindcss(),
     {
@@ -43,6 +45,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      input: resolve(projectRoot, 'app.html'),
       output: {
         manualChunks: {
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],

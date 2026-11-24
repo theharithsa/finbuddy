@@ -12,7 +12,7 @@ npm run test:run
 npm run build
 ```
 
-The foundation check validates the PR's **Documentation impact** section in CI and builds the public handbook with its internal links and anchors. For a local handbook check, run `python scripts/build_public_docs.py`. Use the [FinBuddy SDLC](sdlc.md) to map the change to the required CI and release checks.
+The foundation check validates the PR's **Documentation impact** section in CI and builds the homepage, handbook, policies, legacy routes and error pages for both Firebase Hosting and the GitHub Pages project path, and checks their internal links and anchors. For a local handbook check, run `python scripts/build_public_docs.py`. Use the [FinBuddy SDLC](sdlc.md) to map the change to the required CI and release checks.
 
 The [release-control tests](../tests/release-control.test.mts) reject failed/missing/stale acceptance, wrong source/tree/project, untrusted workflow/fork/PR runs, rerun attempts, changed artifacts and wrong acceptance actors. Root, API and historical Functions audits block on any reported vulnerability. The Functions build uses Node 22 and does not deploy the historical callable.
 
@@ -29,6 +29,7 @@ For an installed Chrome channel, set `FINBUDDY_BROWSER_CHANNEL=chrome`. Browser 
 
 | Case | Check |
 | --- | --- |
+| Public entry and help | Follow the product homepage to sign-in, the demo and FinVision. Open an old guide, check recovery from a nested 404 and confirm the squirrel animation respects reduced motion. Run `npx --no-install playwright test public-site.spec.ts` for these public checks. |
 | FIN-01 | Create an account, validate quick entry and save with today’s date |
 | FIN-05 | Save an expense with platform and synthetic receipt, reload, navigate months, search, edit, view the receipt and confirm deletion |
 | FIN-02 | Open each workspace destination, verify reduced motion and keyboard dismissal, toggle and restore dark mode, and sign out at 390 × 844 |

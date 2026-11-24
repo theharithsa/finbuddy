@@ -125,10 +125,10 @@ export function WorkspaceShell({ page, mainRef, onNavigate, onAddExpense, addExp
       <main id="workspace" className="m3-workspace" tabIndex={-1} ref={mainRef}>
         {!account && <div className="m3-demo-banner">
           <div><strong>FinBuddy demo</strong><span>Sample household data</span></div>
-          <Button asChild variant="outline" size="sm"><a href="/">Back to sign in</a></Button>
+          <Button asChild variant="outline" size="sm"><a href="/signin">Back to sign in</a></Button>
         </div>}
         <div key={page} className="m3-route">{children}</div>
-        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/index.html">Help</a><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a></footer>
+        <footer className="m3-footer"><span>FinBuddy {APP_VERSION_DISPLAY}</span><a href="/docs/index.html">Help</a><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/security.html">Security</a></footer>
       </main>
     </div>
   );

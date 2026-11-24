@@ -1,5 +1,7 @@
 # FinBuddy web continuation
 
+[Public site and help (#215)](https://github.com/theharithsa/finbuddy/issues/215) brings the product homepage to both Hosting targets. Check the homepage, sign-in, demo, legacy help links and a nested missing address against the accepted revision. Browse the same guides under the GitHub Pages project path. Policies and error actions share the site navigation.
+
 Current architecture correction, [#184](https://github.com/theharithsa/finbuddy/issues/184), supersedes the two-project plan below. Both branches deploy to `finbuddy-2025`, Hosting targets `prod` and `preprod`, with `prod/data` and `preprod/data` roots and environment-bound backend/token/receipt paths. FinVision is explicitly preserved. Follow [consolidation](../../docs/firebase-consolidation.md) and current issue evidence; historical deployments below are not acceptance of this migration. The owner authorised the configured India CS MCP credential for the production ingest secret; do not treat a new credential as a prerequisite.
 
 

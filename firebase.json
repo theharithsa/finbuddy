@@ -20,8 +20,8 @@
           }
         },
         {
-          "source": "**",
-          "destination": "/index.html"
+          "source": "/{signin,app,finvision}{,/}",
+          "destination": "/app.html"
         }
       ],
       "headers": [
@@ -54,6 +54,15 @@
         },
         {
           "source": "/sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/app.html",
           "headers": [
             {
               "key": "Cache-Control",
@@ -80,8 +89,8 @@
           }
         },
         {
-          "source": "**",
-          "destination": "/index.html"
+          "source": "/{signin,app,finvision}{,/}",
+          "destination": "/app.html"
         }
       ],
       "headers": [
@@ -114,6 +123,15 @@
         },
         {
           "source": "/sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/app.html",
           "headers": [
             {
               "key": "Cache-Control",

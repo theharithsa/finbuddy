@@ -89,7 +89,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
           break;
         case 'complete-link':
           await observeOperation('auth.magic_link', () => signInWithMagicLink(address));
-          window.history.replaceState(null, '', window.location.pathname);
+          window.history.replaceState(null, '', window.location.pathname.startsWith('/finvision') ? '/finvision' : '/app');
           break;
       }
     });
@@ -139,7 +139,7 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
             </div>
             {mode === 'signin' && <div className="m3-demo-invite">
               <p>{isPreProduction ? 'Explore an example with sample household data.' : 'See a sample household before making an account.'}</p>
-              <Button variant="secondary" asChild><a href="/?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
+              <Button variant="secondary" asChild><a href="/app?demo=1">Explore demo <ArrowRight size={17} /></a></Button>
               <div className="m3-login-links"><a href="/finvision?demo=1">Try a sample savings goal</a> · <a href="/docs/index.html">Open the Help Center</a></div>
             </div>}
           </div>
@@ -147,9 +147,11 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
       </div>
       <footer className="m3-login-legal">
         <div className="m3-login-legal-links">
+          <a href="/">FinBuddy home</a>
           <a href="/docs/privacy-policy.html">Privacy</a>
           <a href="/docs/terms-and-conditions.html">Terms</a>
           <a href="/docs/index.html">Help</a>
+          <a href="/docs/security.html">Security</a>
           <UsageAnalytics />
         </div>
         {mode === 'signin' && (

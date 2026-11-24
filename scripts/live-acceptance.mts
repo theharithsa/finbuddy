@@ -39,6 +39,8 @@ try {
       page.on('request', request => { if (request.url().startsWith('https://js-cdn.dynatrace.com/jstag/')) rumRequests.push('rum-tag'); });
       await page.goto(fixture.origin, { waitUntil: 'networkidle' });
       assert.equal(rumRequests.length, 0, 'RUM loaded before opt-in');
+      await expect(page.getByRole('heading', { level: 1 })).toContainText('Know where your');
+      await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Sign in', exact: true }).click();
       const google = page.getByRole('button', { name: 'Continue with Google', exact: true });
       await expect(google).toBeVisible();
       // Explicit opt-in belongs only to this disposable synthetic browser context.

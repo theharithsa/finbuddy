@@ -167,7 +167,7 @@ export async function resetPassword(email: string): Promise<void> {
 }
 
 export async function sendMagicLink(email: string): Promise<void> {
-  await sendSignInLinkToEmail(auth, email, { url: window.location.origin, handleCodeInApp: true });
+  await sendSignInLinkToEmail(auth, email, { url: new URL('/signin', window.location.origin).href, handleCodeInApp: true });
   localStorage.setItem('emailForSignIn', email);
 }
 
