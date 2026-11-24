@@ -73,3 +73,18 @@ test('visitors can reach the policies without JavaScript', async ({ browser, bas
     await visitor.close();
   }
 });
+
+
+test('the narrated product tour can be navigated without watching from the start', async ({ page }) => {
+  await page.goto('/#tour');
+  const film = page.getByLabel('FinBuddy product tour', { exact: true });
+  await expect(film.locator('track[kind="captions"][srclang="en"]')).toHaveCount(1);
+  await page.getByText('Jump to a chapter', { exact: true }).click();
+  const chapter = page.getByRole('link', { name: /Forecast twelve deposits/ });
+  const start = Number(await chapter.getAttribute('data-start'));
+  await chapter.click();
+  await expect.poll(() => film.evaluate((video: HTMLVideoElement) => video.currentTime)).toBeGreaterThanOrEqual(start - 0.5);
+  await expect.poll(() => film.evaluate((video: HTMLVideoElement) => video.duration)).toBeGreaterThan(175);
+  await page.getByText('Read the transcript', { exact: true }).click();
+  await expect(page.locator('#tour-transcript')).toContainText('sixty-two thousand three hundred and ten');
+});

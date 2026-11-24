@@ -60,6 +60,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
         env:
           VITE_RELEASE_REVISION: ${{ github.sha }}
+          FINBUDDY_PUBLIC_ORIGIN: ${{ vars.FINBUDDY_PUBLIC_ORIGIN }}
           PREPROD_RUM_URL: ${{ vars.FINBUDDY_PREPROD_RUM_URL }}
           PRODUCTION_RUM_URL: ${{ vars.FINBUDDY_PROD_RUM_URL }}
         run: |

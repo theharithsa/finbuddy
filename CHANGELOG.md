@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-25
+
+- Follow a household from salary and everyday expenses through bills, budgets, savings and a FinVision goal on the public homepage. Jump to the handbook task for each feature.
+- Watch a three-minute narrated product tour, select any of its ten chapters, enable English captions or read the transcript.
+- Adopt the public-site guidance from App Launchpad v1.14.3. The hosting checks accept the production and pre-production custom domains and verify each environment separately.
+
 ## [3.4.0] - 2026-11-25
 
 - The product homepage now opens before sign-in on Firebase. Explore the sample household and the FinVision goal dashboard, or go directly to `/signin` and `/app`.

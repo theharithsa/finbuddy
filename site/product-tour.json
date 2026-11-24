@@ -1,0 +1,102 @@
+[
+  {
+    "id": "welcome",
+    "title": "Meet the sample household",
+    "start": 0,
+    "end": 14.88,
+    "transcript": [
+      "Open FinBuddy and choose Try the demo. The sample household shows income received, money spent and the bills still due this month.",
+      "You can explore without an account. We’ll switch to a fictional signed-in household to record a month of its own."
+    ]
+  },
+  {
+    "id": "income",
+    "title": "Record salary on payday",
+    "start": 14.88,
+    "end": 31.84,
+    "transcript": [
+      "Asha has received eighty thousand rupees. On Home, she chooses Add income, enters the amount and calls it Salary.",
+      "After she saves, Left after bills shows eighty thousand rupees. This is income she has received, so she can plan with it now."
+    ]
+  },
+  {
+    "id": "expense",
+    "title": "Log the weekly groceries",
+    "start": 31.84,
+    "end": 51.48,
+    "transcript": [
+      "In Expenses, Asha adds twelve hundred and fifty rupees, chooses Food and Dining, and writes Weekly groceries. More details lets her add a person, platform or receipt.",
+      "She saves, then reopens Expenses. The groceries are still there, and the monthly expense total includes the purchase."
+    ]
+  },
+  {
+    "id": "bill",
+    "title": "Pay a bill once",
+    "start": 51.48,
+    "end": 72.16,
+    "transcript": [
+      "Asha adds her nine hundred rupee internet bill, sets it to repeat monthly and saves it. In Manage bills, she selects Record payment.",
+      "Saving the payment adds it to Expenses. Groceries and internet now total two thousand one hundred and fifty rupees. If she had already logged the expense, she could link it instead."
+    ]
+  },
+  {
+    "id": "overview",
+    "title": "Review the month",
+    "start": 72.16,
+    "end": 88.28,
+    "transcript": [
+      "Overview shows the daily average, largest expense, top category and comparison with last month. Here, groceries are the largest expense.",
+      "If a category looks high, open the underlying expenses before deciding whether to change its monthly budget."
+    ]
+  },
+  {
+    "id": "savings",
+    "title": "Update a savings balance",
+    "start": 88.28,
+    "end": 105.64,
+    "transcript": [
+      "Under Savings, Asha records the latest value of her emergency fund, fifty thousand rupees. She can enter the date she checked the balance.",
+      "Next time she checks, she updates the same holding. It stays separate from the income and expenses she recorded this month."
+    ]
+  },
+  {
+    "id": "goal",
+    "title": "Set a school-fees goal",
+    "start": 105.64,
+    "end": 124.32,
+    "transcript": [
+      "Now try FinVision with the public sample. Add a school-fees goal of one lakh twenty thousand rupees and choose May twenty twenty-eight as its target month.",
+      "Select the new goal to see its outlook. This example starts at zero. In your own plan, you can link savings you have already set aside."
+    ]
+  },
+  {
+    "id": "deposit",
+    "title": "Forecast twelve deposits",
+    "start": 124.32,
+    "end": 143.2,
+    "transcript": [
+      "Add a recurring deposit for five thousand rupees per month. Choose January twenty twenty-seven as the first month, twelve instalments and an annual interest estimate of seven percent.",
+      "The preview separates sixty thousand rupees in deposits from the interest estimate. Save the schedule to include it in the goal."
+    ]
+  },
+  {
+    "id": "outlook",
+    "title": "Read the gap and act",
+    "start": 143.2,
+    "end": 162.56,
+    "transcript": [
+      "The projected balance is sixty-two thousand three hundred and ten rupees and sixty-six paise. The remaining gap is fifty-seven thousand six hundred and eighty-nine rupees and thirty-four paise.",
+      "Open See the balance along the way for the dates and estimates. You can change the deposit or the deadline and see whether the goal becomes achievable."
+    ]
+  },
+  {
+    "id": "preferences",
+    "title": "Choose your next step",
+    "start": 162.56,
+    "end": 180.28,
+    "transcript": [
+      "Settings holds the appearance choices and, for signed-in accounts, Developer Options. The technical guide explains how a scoped token works with the API.",
+      "To try the same journey, open the sample household or the FinVision demo. Sign in when you want to keep your own records."
+    ]
+  }
+]

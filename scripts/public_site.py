@@ -1,7 +1,11 @@
 """Shared navigation, compatibility addresses and error views for FinBuddy's public site."""
 from html import escape
+import os
 
-APP_ORIGIN = 'https://finbuddy-2025.web.app'
+PROVIDER_ORIGIN = 'https://finbuddy-2025.web.app'
+APP_ORIGIN = os.environ.get('FINBUDDY_PUBLIC_ORIGIN') or PROVIDER_ORIGIN
+if APP_ORIGIN not in (PROVIDER_ORIGIN, 'https://myfinbuddy.app'):
+    raise ValueError('Select a configured FinBuddy production site.')
 
 # These addresses appeared in previously published help and developer guides.
 LEGACY = {

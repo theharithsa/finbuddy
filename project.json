@@ -4,8 +4,8 @@
   "name": "FinBuddy",
   "template": {
     "repository": "theharithsa/app-launchpad-template",
-    "revision": "aabff5c415e37b0d446f5998ecff760206a2ca4d",
-    "version": "1.14.1"
+    "revision": "6e8427c1f1066561d7f10970fb9a0ebc266697c6",
+    "version": "1.14.3"
   },
   "decisions": {
     "product": {
