@@ -1,6 +1,6 @@
 import { useWorkspaceNavigation } from './useWorkspaceNavigation';
 import { indiaDate, monthlyCash } from '../../../api/shared/planning';
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { Trash2 } from '@/components/brand/Icons';
 import { toast } from 'sonner';
@@ -151,6 +151,13 @@ function Workspace({ user }: { user: User }) {
 
 function AppContent() {
   const { user, loading, redirectError } = useAuth();
+  useEffect(() => {
+    if (loading) return;
+    const url = new URL(location.href);
+    if (user && url.pathname.replace(/\/$/, '') === '/signin' && !url.searchParams.has('oobCode')) {
+      history.replaceState(history.state, '', '/app' + url.search + url.hash);
+    }
+  }, [user, loading]);
   if (loading) return <div className="m3-loading m3-fullscreen" role="status">Opening FinBuddy…</div>;
   return user ? <Workspace key={user.uid} user={user} /> : <LoginPage redirectError={redirectError} />;
 }

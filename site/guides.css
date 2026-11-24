@@ -83,3 +83,36 @@
   .guide-flow, .guide-index ul { grid-template-columns: minmax(0,1fr); }
   .guide th, .guide td { padding: .5rem .4rem; }
 }
+
+.guide-sidebar { max-height: calc(100svh - 2rem); overflow-y: auto; padding: .35rem .75rem .5rem .25rem; }
+.guide-nav-group p { letter-spacing: .055em; text-transform: uppercase; }
+.guide h1 { text-wrap: balance; }
+.guide-table { overflow-x: auto; }
+.guide-table table { width: 100%; }
+.guide-index a, .related a { line-height: 1.6; }
+.guide-index a:hover, .related a:hover { text-decoration-thickness: 2px; }
+
+.error-layout { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, .85fr); align-content: center; align-items: center; gap: clamp(2rem, 7vw, 7rem); padding-block: clamp(3rem, 8vw, 7rem); }
+.error-copy h1 { max-width: 13ch; }
+.error-copy .actions { margin-top: 1.6rem; }
+.trail-map { position: relative; overflow: hidden; isolation: isolate; width: 100%; aspect-ratio: 4 / 3; border: 1px solid var(--border); border-radius: 2rem; background-color: #eee8f3; background-image: linear-gradient(#ded4e6 1px, transparent 1px), linear-gradient(90deg, #ded4e6 1px, transparent 1px); background-size: 13% 16%; }
+.trail { position: absolute; width: 53%; height: 30%; left: 16%; bottom: 17%; border: 3px dashed #998aaa; border-top: none; border-right: none; border-radius: 0 0 0 5rem; transform: rotate(-12deg); }
+.trail-end { position: absolute; inset: auto 20% 13% auto; color: #74618e; font: 700 clamp(2rem, 5vw, 4.5rem)/1 system-ui; }
+.trail-buddy { position: absolute; inset: auto auto 27% 28%; width: 38%; aspect-ratio: 1; background: var(--accent); mask: url("media/buddy-mark-v2.png") center / contain no-repeat; transform-origin: 53% 88%; }
+.moved { flex: 1; padding-block: 4rem; }
+@keyframes buddy-looks-around {
+  0% { transform: translate(-32%, 4%) rotate(-8deg); }
+  30% { transform: translate(-12%, -7%) rotate(4deg); }
+  48% { transform: translate(0, 0) rotate(0); }
+  64% { transform: rotate(9deg); }
+  82% { transform: rotate(-5deg); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .trail-buddy { animation: buddy-looks-around 2.6s ease-in-out 1; }
+}
+@media (max-width: 760px) {
+  .guide-sidebar { max-height: none; overflow: visible; padding: 0; }
+  .error-layout { grid-template-columns: minmax(0, 1fr); }
+  .trail-map { max-width: 26rem; aspect-ratio: 1.8; }
+}

@@ -11,7 +11,7 @@
             "The sample household opens without an account and shows fictional records. Use it to get familiar with Home, Expenses, Savings, Bills & EMIs, and Overview before you log your own records."
           ],
           "steps": [
-            "Open the sample household. On Home, find Left after bills and the three amounts under How it adds up.",
+            "Open FinBuddy and choose Try the demo. On Home, find Left after bills and expand How it adds up.",
             "Select Expenses to inspect the sample transactions. Open More to find Bills & EMIs and Overview.",
             "Use Back to sign in when you’re ready to start your own household. Sample records stay in the demo."
           ],
@@ -24,7 +24,7 @@
           "links": [
             [
               "Open the sample household",
-              "https://finbuddy-2025.web.app/?demo=1"
+              "https://finbuddy-2025.web.app/app?demo=1"
             ]
           ]
         },
@@ -35,7 +35,7 @@
             "You’ll need a signed-in account to save financial records, upload receipts, or generate an API token."
           ],
           "steps": [
-            "Open FinBuddy. Use Continue with Google, or choose Create account to set up an email and password.",
+            "On the product homepage select Sign in. Use Continue with Google, or select Create account to set up an email address and password.",
             "If you already use email, enter the address and password, or choose Email me a sign-in link. Use the same account and method you started with to return to your records.",
             "After signing in, Home is your starting page. Use More → Sign out when you’re done on a shared device."
           ],
@@ -43,7 +43,7 @@
           "links": [
             [
               "Open FinBuddy sign-in",
-              "https://finbuddy-2025.web.app/"
+              "https://finbuddy-2025.web.app/signin"
             ]
           ]
         },
@@ -333,11 +333,11 @@
           ],
           "code": "git clone https://github.com/theharithsa/finbuddy.git\ncd finbuddy\nnpm ci\nnpm run dev",
           "steps": [
-            "Open the Local URL Vite prints, then add ?demo=1. You should see Sample household data on Home.",
+            "Open the local URL Vite prints. Choose Try the demo. Home shows Sample household data.",
             "From the demo’s footer, choose Help. The Help Center should open on the same local origin. Its direct route is /docs/index.html.",
             "Keep the Vite terminal open while testing. Press Ctrl+C to stop the dev server."
           ],
-          "note": "The sample path runs without Firebase credentials or a sign-in. Use the emulator instructions below to test sign-in or writes on a local machine.",
+          "note": "Use the Firebase emulators for signed-in testing. The public homepage and sample household work without an account.",
           "links": [
             [
               "Troubleshoot local setup",
@@ -633,7 +633,7 @@
           "id": "public-documentation",
           "title": "Preview a handbook change",
           "paragraphs": [
-            "Update the guide source when a change affects what a visitor sees. Use an empty output directory for Pages."
+            "The Pages site and Firebase website share a single generator. Change the homepage in site/index.html, handbook and policy content in docs/public-guides.json, and shared navigation, old addresses and error views in scripts/public_site.py. Run python scripts/build_public_docs.py to check both builds and their internal links."
           ],
           "code": "python scripts/build_public_docs.py --output dist/public-docs\npython -m http.server 8080 --directory dist/public-docs",
           "links": [
@@ -644,6 +644,28 @@
             [
               "CI/CD pipeline",
               "pipeline.html"
+            ]
+          ]
+        },
+        {
+          "id": "web-components",
+          "title": "Public website and workspace entry points",
+          "paragraphs": [
+            "The public homepage, Help Center and error documents are static HTML built from the site directory and docs/public-guides.json. GitHub Pages and Firebase use the same content, navigation and styles. Firebase keeps sign-in and demo links on the current environment.",
+            "The React workspace uses app.html at /signin, /app and /finvision. AccountApp restores the Firebase session. DemoWorkspace loads fictional household data independently. The workspace navigation hook keeps Home under /app and goals under /finvision. Old homepage demo, shortcut and email sign-in URLs are forwarded to their matching entry point."
+          ],
+          "links": [
+            [
+              "Product homepage",
+              "https://finbuddy-2025.web.app/"
+            ],
+            [
+              "Try the sample household",
+              "https://finbuddy-2025.web.app/app?demo=1"
+            ],
+            [
+              "HTTP error help",
+              "troubleshooting.html#error-pages"
             ]
           ]
         }
@@ -888,7 +910,7 @@
           "links": [
             [
               "Try the sample household",
-              "https://finbuddy-2025.web.app/?demo=1"
+              "https://finbuddy-2025.web.app/app?demo=1"
             ],
             [
               "Follow a monthly check-in",
@@ -990,6 +1012,22 @@
         }
       ],
       "releases": [
+        {
+          "version": "3.4.0",
+          "status": "Website · November 2026",
+          "title": "One front door for FinBuddy",
+          "summary": "Start at the product homepage, try the sample household or choose Sign in. Help, privacy, terms, security and illustrated error pages now share the same navigation.",
+          "links": [
+            [
+              "Visit the Help center",
+              "index.html"
+            ],
+            [
+              "Understand an error page",
+              "troubleshooting.html#error-pages"
+            ]
+          ]
+        },
         {
           "version": "3.3.4",
           "status": "Website · November 2026",
@@ -1213,7 +1251,7 @@
           "links": [
             [
               "Earlier release notes",
-              "https://finbuddy-2025.web.app/docs/release-notes.html"
+              "https://github.com/theharithsa/finbuddy/blob/v3.3.4/public/docs/release-notes.html"
             ]
           ],
           "title": "The first Metrics Explorer beta"
@@ -1267,6 +1305,18 @@
           "title": "Achievement display and scoring"
         },
         {
+          "version": "2.5.2",
+          "status": "Historical release",
+          "title": "Charts after switching tabs",
+          "summary": "Fixed charts disappearing after switching between tabs.",
+          "links": [
+            [
+              "Original archived release notes",
+              "https://github.com/theharithsa/finbuddy/blob/v3.3.4/public/docs/release-notes.html"
+            ]
+          ]
+        },
+        {
           "version": "2.5.1",
           "status": "Tagged history",
           "summary": "Updated authentication and Firebase integration.",
@@ -1277,6 +1327,30 @@
             ]
           ],
           "title": "Authentication updates"
+        },
+        {
+          "version": "2.3.0",
+          "status": "Historical release",
+          "title": "Typography and navigation polish",
+          "summary": "Updated typography, card styles and the sticky header.",
+          "links": [
+            [
+              "Original archived release notes",
+              "https://github.com/theharithsa/finbuddy/blob/v3.3.4/public/docs/release-notes.html"
+            ]
+          ]
+        },
+        {
+          "version": "2.2.2",
+          "status": "Historical release",
+          "title": "Bottom navigation on mobile",
+          "summary": "Introduced bottom navigation for the earlier mobile workspace.",
+          "links": [
+            [
+              "Original archived release notes",
+              "https://github.com/theharithsa/finbuddy/blob/v3.3.4/public/docs/release-notes.html"
+            ]
+          ]
         }
       ],
       "links": [
@@ -1292,6 +1366,578 @@
           "See what’s planned",
           "roadmap.html"
         ]
+      ]
+    },
+    "index": {
+      "intro": "Start with what you want to do. You can follow the handbook with a sample household before you save any money records of your own.",
+      "sections": [
+        {
+          "id": "getting-started",
+          "title": "Set up your first month",
+          "aliases": [
+            "overview",
+            "household-heading",
+            "start-title",
+            "features"
+          ],
+          "paragraphs": [
+            "Try the demo to see income, expenses and bills for a fictional household. When you are ready to keep your own records, choose Sign in on the homepage."
+          ],
+          "links": [
+            [
+              "Explore the sample household",
+              "https://finbuddy-2025.web.app/app?demo=1"
+            ],
+            [
+              "Create an account or sign in",
+              "product.html#create-account"
+            ],
+            [
+              "Record your first salary",
+              "product.html#record-income"
+            ],
+            [
+              "Log an expense and find its receipt",
+              "product.html#log-your-first-expense"
+            ]
+          ]
+        },
+        {
+          "id": "bills-and-goals",
+          "title": "Understand what is left",
+          "links": [
+            [
+              "Record a bill without counting it twice",
+              "product.html#pay-a-bill-without-counting-it-twice"
+            ],
+            [
+              "Review spending against a budget",
+              "product.html#see-how-spending-fits-your-plan"
+            ],
+            [
+              "Project monthly deposits towards a goal",
+              "product.html#plan-a-goal"
+            ],
+            [
+              "Use FinBuddy on your phone",
+              "mobile.html"
+            ]
+          ]
+        },
+        {
+          "id": "account-and-help",
+          "title": "Manage your account",
+          "aliases": [
+            "faq",
+            "help-title",
+            "user-guide"
+          ],
+          "links": [
+            [
+              "Change appearance or manage API tokens",
+              "settings.html"
+            ],
+            [
+              "Get help with a missing entry or broken link",
+              "troubleshooting.html"
+            ],
+            [
+              "Request a copy or deletion of your data",
+              "privacy-policy.html#your-choices"
+            ],
+            [
+              "Report a security problem privately",
+              "security.html#report-privately"
+            ]
+          ]
+        },
+        {
+          "id": "follow-the-project",
+          "title": "Build with FinBuddy",
+          "aliases": [
+            "whats-new",
+            "follow-title"
+          ],
+          "links": [
+            [
+              "Set up a local copy or call the API",
+              "technical.html"
+            ],
+            [
+              "See available and planned features",
+              "feature-availability.html"
+            ],
+            [
+              "Follow the roadmap",
+              "roadmap.html"
+            ],
+            [
+              "Browse release history",
+              "releases.html"
+            ]
+          ]
+        }
+      ]
+    },
+    "privacy-policy": {
+      "intro": "This policy explains how FinBuddy handles the information you enter, which features share data and how to reach the maintainer. Effective 25 November 2026.",
+      "sections": [
+        {
+          "id": "who-and-what",
+          "title": "Who handles your information",
+          "paragraphs": [
+            "FinBuddy is a household finance project maintained by Vishruth Harithsa. This policy covers the public website, the signed-in FinBuddy workspace, its FinVision planning features and the FinBuddy API.",
+            "You can read the guides and explore fictional demo records without creating an account. To save your own household data, sign in."
+          ],
+          "links": [
+            [
+              "Email the maintainer",
+              "mailto:me@theharithsa.com"
+            ]
+          ]
+        },
+        {
+          "id": "what-we-use",
+          "title": "What FinBuddy uses and why",
+          "table": [
+            [
+              "Information",
+              "How it is used"
+            ],
+            [
+              "Account and profile",
+              "Firebase Authentication identifies your account. FinBuddy uses its account ID to find your records and can display your name, email address and Google profile photo."
+            ],
+            [
+              "Household records",
+              "The amounts, dates, descriptions, people labels and categories you enter support your ledger, bills, budgets and summaries."
+            ],
+            [
+              "Savings and FinVision",
+              "Balances, goals, contributions, planned deposits, rates and dates are used for your savings history and projections."
+            ],
+            [
+              "Receipt files",
+              "Files you choose to attach are stored so you can reopen them with the expense. Include only the information you need."
+            ],
+            [
+              "Developer tokens",
+              "FinBuddy stores a digest of the token with its name, scope and expiry so the API can check access and you can revoke it."
+            ]
+          ]
+        },
+        {
+          "id": "service-providers",
+          "title": "Where information goes",
+          "paragraphs": [
+            "Google Firebase provides Hosting, Authentication, Firestore and file storage. GitHub Pages also hosts the public product site. Like other web services, these providers receive technical information such as the IP address needed to deliver a page or sign-in request.",
+            "The public homepage and sign-in page display a badge supplied by Product Hunt. Your browser connects to Product Hunt to load that image. Following a link to Product Hunt, Google sign-in or GitHub opens that provider’s service."
+          ],
+          "links": [
+            [
+              "Google Firebase privacy and security information",
+              "https://firebase.google.com/support/privacy"
+            ],
+            [
+              "GitHub privacy statement",
+              "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+            ],
+            [
+              "Product Hunt privacy policy",
+              "https://www.producthunt.com/legal"
+            ]
+          ]
+        },
+        {
+          "id": "sharing",
+          "title": "What other people can see",
+          "paragraphs": [
+            "Household records are tied to your account. Choosing Share with community for a category or Share publicly for others to use for a person label makes that label available to other signed-in users. Use a generic label when you choose to share.",
+            "Anyone holding an active developer token can perform the operations its scope permits. Only share a token with an integration you trust. If you connect an existing FinVision plan, review the records offered for transfer before confirming."
+          ]
+        },
+        {
+          "id": "usage-analytics",
+          "title": "Device storage and usage analytics",
+          "paragraphs": [
+            "FinBuddy remembers appearance settings and analytics choices on your device. Firebase may keep a sign-in session in browser storage. Sign out when you finish on a shared device.",
+            "Browser usage analytics are optional. Use the Usage analytics control on sign-in or in the workspace, where configured, to change the preference for this browser. When enabled, Dynatrace receives performance and selected interaction or error information. FinBuddy disables session replay in its integration.",
+            "The service also records operational telemetry and expense change events to diagnose failures and verify delivery. The optional browser preference controls browser monitoring. The product guides and public policy pages do not load the browser analytics agent."
+          ],
+          "links": [
+            [
+              "Settings reference",
+              "settings.html"
+            ],
+            [
+              "How production telemetry is used",
+              "technical.html#observability-and-release-boundaries"
+            ]
+          ]
+        },
+        {
+          "id": "your-choices",
+          "title": "Access, correction and deletion",
+          "paragraphs": [
+            "Sign in with the account you used to create an entry. Open an expense, bill, saving or goal to review it and use the available edit or remove action. You can revoke an integration’s token in Settings → Developer Options.",
+            "For a copy, correction or deletion of account data, email me@theharithsa.com from the address associated with your account. State what you want done and which records it concerns. The maintainer may ask you to verify control of the account before acting. Keep receipts, passwords and tokens out of the initial message.",
+            "Saved records remain available while stored for your account. Operational logs and provider backups can follow separate retention schedules. Ask for the scope and status of your request if you need confirmation. Signing out or clearing a browser does not delete cloud records."
+          ],
+          "links": [
+            [
+              "Send a private data request",
+              "mailto:me@theharithsa.com"
+            ],
+            [
+              "Report accidental disclosure",
+              "security.html#report-privately"
+            ]
+          ]
+        },
+        {
+          "id": "policy-updates",
+          "title": "Policy changes",
+          "paragraphs": [
+            "The effective date identifies the current policy. Changes to the service or the handling of data will be reflected here. Contact the maintainer if you have questions about a change."
+          ]
+        }
+      ]
+    },
+    "terms-and-conditions": {
+      "intro": "These terms cover use of the FinBuddy website, household workspace, integrated FinVision planning tools and developer API. Effective 25 November 2026.",
+      "sections": [
+        {
+          "id": "use-of-service",
+          "title": "Using FinBuddy",
+          "paragraphs": [
+            "FinBuddy is maintained by Vishruth Harithsa. By using it, you agree to these terms. Use the public demo to explore with fictional data. Sign in to record your own household’s finances.",
+            "You retain your rights to the records and files you provide. You allow FinBuddy and its service providers to store and process them to deliver the features you use. Only enter information you are entitled to provide."
+          ],
+          "links": [
+            [
+              "How FinBuddy handles data",
+              "privacy-policy.html"
+            ]
+          ]
+        },
+        {
+          "id": "financial-projections",
+          "title": "Estimates and financial decisions",
+          "paragraphs": [
+            "FinBuddy helps you record money and plan. Totals depend on the completeness of your entries. FinVision projections depend on the dates, rates, contributions and assumptions you supply.",
+            "Check estimates against your bank or investment provider before acting. Recording a bill payment or adding a deposit here does not move money, place an investment or guarantee a return. For advice specific to your circumstances, consult a qualified adviser."
+          ]
+        },
+        {
+          "id": "account-and-api",
+          "title": "Your account and integrations",
+          "paragraphs": [
+            "Use an account you control. Protect your sign-in method and keep developer tokens private. Give an integration only the scope and duration it needs. You can revoke a token in Settings → Developer Options.",
+            "Use the service lawfully and respect other people’s records and privacy. Attempts to access another household’s data, disrupt the service or misuse shared labels are grounds to restrict access."
+          ],
+          "links": [
+            [
+              "Token controls",
+              "settings.html#token-scope-and-expiration"
+            ],
+            [
+              "Report an access concern",
+              "security.html#report-privately"
+            ]
+          ]
+        },
+        {
+          "id": "availability",
+          "title": "Availability and responsibilities",
+          "paragraphs": [
+            "Features may change, be paused or become unavailable. Keep your own copies of records you need for tax, accounting or other formal purposes. Providers linked from FinBuddy have their own terms.",
+            "FinBuddy is provided as available. These terms do not exclude rights or protections that applicable law gives you. The repository describes licensing for code and third-party assets separately."
+          ],
+          "links": [
+            [
+              "Source and licensing",
+              "https://github.com/theharithsa/finbuddy"
+            ],
+            [
+              "Features available today",
+              "feature-availability.html"
+            ]
+          ]
+        },
+        {
+          "id": "contact",
+          "title": "Ending use, questions and changes",
+          "paragraphs": [
+            "You may stop using FinBuddy at any time. To request account or data deletion, email the maintainer from the address associated with your account. The privacy policy describes how requests are handled.",
+            "Changes are published on this page with an updated effective date. Send questions about these terms privately to me@theharithsa.com."
+          ],
+          "links": [
+            [
+              "Email about the terms",
+              "mailto:me@theharithsa.com"
+            ],
+            [
+              "Request account deletion",
+              "privacy-policy.html#your-choices"
+            ]
+          ]
+        }
+      ]
+    },
+    "security": {
+      "intro": "Use this guide to protect your household records and report a problem directly to the FinBuddy maintainer.",
+      "sections": [
+        {
+          "id": "report-privately",
+          "title": "Report a vulnerability privately",
+          "paragraphs": [
+            "Use GitHub’s private vulnerability reporting form for suspected access-control problems, leaked credentials or unintended data exposure. If you cannot use GitHub, email me@theharithsa.com privately."
+          ],
+          "steps": [
+            "Include the page or feature, approximate time and timezone, the version if known, and what you expected compared with what happened.",
+            "Use synthetic records to illustrate the issue. Remove identifying details, receipts, passwords, sign-in links and tokens from attachments.",
+            "If you see another household’s information, stop there. Describe the affected area privately without copying the information."
+          ],
+          "links": [
+            [
+              "Open the private security report",
+              "https://github.com/theharithsa/finbuddy/security/advisories/new"
+            ],
+            [
+              "Email the maintainer privately",
+              "mailto:me@theharithsa.com"
+            ]
+          ]
+        },
+        {
+          "id": "control-access",
+          "title": "How access is controlled",
+          "paragraphs": [
+            "Firebase Authentication identifies the account. Firestore rules limit access to private household records, and receipt access is checked against the owner. Shared category and person labels are a separate opt-in feature.",
+            "Personal API tokens have scopes. The secret is shown at creation and a digest is stored. A token can be revoked even if you selected Never expires."
+          ],
+          "links": [
+            [
+              "Manage developer tokens",
+              "settings.html#copy-or-revoke-a-token"
+            ],
+            [
+              "Repository security policy",
+              "https://github.com/theharithsa/finbuddy/security/policy"
+            ]
+          ]
+        },
+        {
+          "id": "lost-access",
+          "title": "If a token or device is lost",
+          "steps": [
+            "For an exposed integration token, open Settings → Developer Options, revoke it and create a replacement if needed.",
+            "For a sign-in concern, secure the Google account or use Forgot password? on the FinBuddy sign-in page for an email-password account.",
+            "If unexpected changes remain, send a private report with the time and affected feature. For a routine data or deletion request, use the privacy contact."
+          ],
+          "links": [
+            [
+              "Open sign-in",
+              "https://finbuddy-2025.web.app/signin"
+            ],
+            [
+              "Privacy requests",
+              "privacy-policy.html#your-choices"
+            ]
+          ]
+        }
+      ]
+    },
+    "mobile": {
+      "intro": "Use FinBuddy in your phone browser or add it to the home screen for quicker access.",
+      "sections": [
+        {
+          "id": "open-on-mobile",
+          "title": "Start from your phone",
+          "steps": [
+            "Open the homepage and choose Try the demo to explore. Choose Sign in when you want to record your own expenses.",
+            "After signing in, use the bottom navigation and More to reach bills, savings, settings and help. On a guide, open Browse guides to move between topics."
+          ],
+          "links": [
+            [
+              "Open the workspace",
+              "https://finbuddy-2025.web.app/app"
+            ],
+            [
+              "Record an expense",
+              "product.html#log-your-first-expense"
+            ]
+          ]
+        },
+        {
+          "id": "home-screen",
+          "title": "Add FinBuddy to the home screen",
+          "paragraphs": [
+            "On a supported Android browser, open the browser menu and choose Install app or Add to Home screen. On iPhone, open the site in Safari and use Share → Add to Home Screen. Menu labels vary by browser and version.",
+            "The installed shortcut opens the workspace. A connection is needed for sign-in, saving and syncing records. After an interruption, reopen the ledger to check whether a save arrived before trying again."
+          ]
+        }
+      ]
+    },
+    "feature-availability": {
+      "intro": "See which tasks you can use now and what the older guide names refer to.",
+      "sections": [
+        {
+          "id": "current",
+          "title": "Available today",
+          "paragraphs": [
+            "Track income and expenses, manage bills and budgets, record savings and plan goals with FinVision. The demo lets you explore one fictional household."
+          ],
+          "links": [
+            [
+              "Product handbook",
+              "product.html"
+            ],
+            [
+              "Try the FinVision dashboard",
+              "https://finbuddy-2025.web.app/finvision?demo=1"
+            ]
+          ]
+        },
+        {
+          "id": "kautilya",
+          "title": "KautilyaAI",
+          "paragraphs": [
+            "The KautilyaAI entry in More is marked Coming soon. For a goal projection today, open FinVision and enter a monthly deposit, term and rate."
+          ],
+          "links": [
+            [
+              "Project a savings goal",
+              "product.html#plan-a-goal"
+            ]
+          ]
+        },
+        {
+          "id": "metrics-explorer",
+          "title": "Metrics Explorer",
+          "paragraphs": [
+            "Metrics Explorer is marked Coming soon. Use Overview for the daily average, largest expense and spending comparisons available for the selected period."
+          ],
+          "links": [
+            [
+              "Review spending and budgets",
+              "product.html#see-how-spending-fits-your-plan"
+            ]
+          ]
+        },
+        {
+          "id": "earlier-features",
+          "title": "Achievements and platform categories",
+          "paragraphs": [
+            "Older guides described achievement scores and an app-platform catalog. The current workspace organizes expenses with Categories and People. Use Overview for spending insights."
+          ],
+          "links": [
+            [
+              "Organize expenses",
+              "product.html#categories-and-people"
+            ],
+            [
+              "View the roadmap",
+              "roadmap.html"
+            ]
+          ]
+        }
+      ]
+    },
+    "troubleshooting": {
+      "intro": "Find the next step for a sign-in problem, a missing transaction or a page that will not open.",
+      "sections": [
+        {
+          "id": "account",
+          "title": "Sign-in or account problems",
+          "aliases": [
+            "critical-issues"
+          ],
+          "steps": [
+            "Open Sign in on the homepage. If the Google window is blocked, allow the sign-in window for this site or use the email method you set up.",
+            "For a password reset, choose Forgot password?. For an email sign-in link, open the latest message and confirm the same address.",
+            "If the ledger is empty, check which account is signed in and clear the date range or category filters before entering anything again."
+          ],
+          "links": [
+            [
+              "Open FinBuddy sign-in",
+              "https://finbuddy-2025.web.app/signin"
+            ],
+            [
+              "Find an expense",
+              "product.html#manage-expenses-and-receipts"
+            ]
+          ]
+        },
+        {
+          "id": "error-pages",
+          "title": "Understand an error page",
+          "aliases": [
+            "performance-issues",
+            "general-issues"
+          ],
+          "table": [
+            [
+              "Code",
+              "Next step"
+            ],
+            [
+              "404 · Page not found",
+              "Check the address or start again in Help. Older guide addresses lead to the matching topic."
+            ],
+            [
+              "500 · Something went wrong",
+              "Reopen the workspace. Check the ledger before repeating a save."
+            ],
+            [
+              "501 · Not implemented",
+              "Check whether the feature or API operation is supported. Repeating the same request will not implement it."
+            ],
+            [
+              "503 · Service unavailable",
+              "Wait a moment and try again. For an interrupted save, confirm the result first."
+            ]
+          ],
+          "links": [
+            [
+              "View the 404 page",
+              "../errors/404.html"
+            ],
+            [
+              "View the 500 page",
+              "../errors/500.html"
+            ],
+            [
+              "View the 501 page",
+              "../errors/501.html"
+            ],
+            [
+              "View the 503 page",
+              "../errors/503.html"
+            ]
+          ]
+        },
+        {
+          "id": "ask-for-help",
+          "title": "Contact the right channel",
+          "paragraphs": [
+            "For a routine issue, describe the page, browser and what you saw using sample data. Keep account details out of public issues. For security or privacy concerns, use the private contacts below."
+          ],
+          "links": [
+            [
+              "Open a public bug report",
+              "https://github.com/theharithsa/finbuddy/issues/new/choose"
+            ],
+            [
+              "Report a security concern privately",
+              "security.html#report-privately"
+            ],
+            [
+              "Contact about privacy",
+              "privacy-policy.html#your-choices"
+            ]
+          ]
+        }
       ]
     }
   }

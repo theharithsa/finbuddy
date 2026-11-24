@@ -19,7 +19,7 @@ export function useWorkspaceNavigation(initial: WorkspacePage, main: RefObject<H
   function navigate(next: WorkspacePage) {
     if (next !== page) {
       const url = new URL(location.href);
-      url.pathname = next === 'finvision' ? '/finvision' : '/';
+      url.pathname = next === 'finvision' ? '/finvision' : '/app';
       url.searchParams.delete('action');
       history.pushState({ finbuddyPage: next }, '', url);
       setPage(next);

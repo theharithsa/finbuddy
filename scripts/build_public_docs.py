@@ -11,8 +11,11 @@ import shutil
 import tempfile
 from urllib.parse import unquote, urlsplit
 
+from public_site import APP_ORIGIN, ERRORS, LEGACY, document, error_page, footer, header, moved_page
+
 ROOT = Path(__file__).resolve().parents[1]
 GUIDES = {
+    'index': 'Help center',
     'product': 'Product handbook',
     'technical': 'Technical guide',
     'settings': 'Settings reference',
@@ -20,14 +23,20 @@ GUIDES = {
     'pipeline': 'CI/CD pipeline',
     'roadmap': 'Roadmap',
     'releases': 'Release history',
+    'privacy-policy': 'Privacy policy',
+    'terms-and-conditions': 'Terms of use',
+    'security': 'Security',
+    'troubleshooting': 'Troubleshooting',
+    'mobile': 'FinBuddy on your phone',
+    'feature-availability': 'Feature availability',
 }
 MEDIA_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.avif', '.mp4', '.webm', '.vtt', '.woff2'}
 MEDIA_LICENSES = {'google-sans-OFL.txt'}
-HANDBOOK_MEDIA = {'buddy-mark-v2.png', 'google-sans-latin-wght-normal.woff2', *MEDIA_LICENSES}
 GUIDE_GROUPS = {
-    'Using FinBuddy': ('product', 'settings'),
+    'Using FinBuddy': ('index', 'product', 'settings', 'mobile', 'troubleshooting'),
     'For developers': ('technical', 'sdlc', 'pipeline'),
-    'Project updates': ('roadmap', 'releases'),
+    'Project updates': ('feature-availability', 'roadmap', 'releases'),
+    'Privacy and support': ('privacy-policy', 'terms-and-conditions', 'security'),
 }
 
 
@@ -54,19 +63,27 @@ class Page(HTMLParser):
             self.template_depth -= 1
 
 
-def validate_links(output, selected=None):
+def validate_links(output, hosting=False):
     pages = {file: Page(file.read_text(encoding='utf-8')) for file in output.rglob('*.html')}
     for file, page in pages.items():
-        if selected is not None and file not in selected:
-            continue
         for link in page.links:
             url = urlsplit(link)
             if url.scheme or url.netloc:
                 continue
             path = unquote(url.path)
-            target = (file.parent / path).resolve() if path else file
-            if path.startswith('/') or not target.is_relative_to(output):
-                raise ValueError(f'{file.relative_to(output)}: use a relative site link for {link}')
+            if not hosting and path.startswith('/finbuddy/'):
+                target = (output / path.removeprefix('/finbuddy/')).resolve()
+            elif path.startswith('/') and hosting:
+                target = (output / path.lstrip('/')).resolve()
+            elif path.startswith('/'):
+                raise ValueError(f'{file.relative_to(output)}: link escapes the project site: {link}')
+            else:
+                target = (file.parent / path).resolve() if path else file
+            if not target.is_relative_to(output):
+                raise ValueError(f'{file.relative_to(output)}: link leaves the output: {link}')
+            relative = target.relative_to(output).as_posix()
+            if hosting and (relative in {'app', 'signin', 'finvision'} or relative.startswith('api/v1/')):
+                continue
             if target.is_dir():
                 target /= 'index.html'
             if not target.is_file():
@@ -103,7 +120,7 @@ def render_section(section, assets):
         headings, *rows = section['table']
         header = ''.join(f'<th scope="col">{escape(item)}</th>' for item in headings)
         cells = ''.join('<tr>' + ''.join(f'<td>{escape(item)}</td>' for item in row) + '</tr>' for row in rows)
-        body += f'<table><thead><tr>{header}</tr></thead><tbody>{cells}</tbody></table>'
+        body += f'<div class="guide-table"><table><thead><tr>{header}</tr></thead><tbody>{cells}</tbody></table></div>'
     if section.get('code'):
         body += f'<pre><code>{escape(section["code"])}</code></pre>'
     if section.get('links'):
@@ -125,8 +142,8 @@ def render_flow(title, stages):
 
 def render(slug, data, hosting=False):
     title = GUIDES[slug]
-    assets = './' if hosting else '../'
-    home = '../index.html' if hosting else '../'
+    assets = '../'
+    app = '../' if hosting else APP_ORIGIN + '/'
     menu = []
     for group, guides in GUIDE_GROUPS.items():
         links = ''.join(f'<li><a href="{key}.html"' + (' aria-current="page"' if key == slug else '')
@@ -145,39 +162,17 @@ def render(slug, data, hosting=False):
         sections += render_releases(data['releases'])
     if data.get('links'):
         sections += f'<section><h2>Related links</h2><ul class="related">{render_links(data["links"])}</ul></section>'
-    return f'''<!doctype html>
-<html lang="en-IN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{title} | {escape(data['project'])}</title>
-  <link rel="icon" href="{assets}media/buddy-mark-v2.png" type="image/png">
-  <link rel="stylesheet" href="{assets}landing.css">
-  <link rel="stylesheet" href="{assets}guides.css">
-</head>
-<body>
-  <a class="skip" href="#main">Skip to content</a>
-  <header class="wrap header guide-header">
-    <a class="wordmark" href="{home}"><span class="mark" aria-hidden="true"></span>{escape(data['project'])}</a>
-    <a class="button small outline" href="https://finbuddy-2025.web.app/">Open FinBuddy</a>
-  </header>
-  <div class="wrap guide-layout">
-    <nav class="guide-sidebar" aria-label="Documentation"><div class="guide-nav-desktop">{menu}</div>
-      <details class="guide-nav-mobile"><summary>Browse guides</summary>{menu}</details>
-    </nav>
-    <main id="main" class="guide" tabindex="-1">
-      <h1>{title}</h1>
-      <p class="lead">{escape(data['intro'])}</p>
-      {index}
-      {sections}
-    </main>
-  </div>
-  <footer class="footer wrap"><a href="{home}">{escape(data['project'])}</a><nav aria-label="Footer">
-    <a href="https://finbuddy-2025.web.app/docs/">Help Center</a><a href="https://github.com/theharithsa/finbuddy">Source code</a>
-  </nav></footer>
-</body>
-</html>
-'''
+    content = f'''<div class="wrap guide-layout">
+      <nav class="guide-sidebar" aria-label="Documentation"><div class="guide-nav-desktop">{menu}</div>
+        <details class="guide-nav-mobile"><summary>Browse guides</summary>{menu}</details></nav>
+      <main id="main" class="guide" tabindex="-1">
+        <h1>{escape(title)}</h1><p class="lead">{escape(data['intro'])}</p>{index}{sections}
+      </main></div>'''
+    content = content.replace('href="' + APP_ORIGIN + '/docs/"', 'href="index.html"')
+    content = content.replace('href="' + APP_ORIGIN + '/docs/', 'href="')
+    if hosting:
+        content = content.replace('href="' + APP_ORIGIN + '/', 'href="../')
+    return document(title, data['intro'], assets, app, content)
 
 
 def validate_guide(slug, data):
@@ -221,76 +216,98 @@ def validate_guide(slug, data):
             links.extend(release['links'])
     for _, url in links:
         target = urlsplit(url)
+        if target.scheme == 'mailto' and re.fullmatch(r'[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}', target.path) and not target.query and not target.fragment:
+            continue
         if (target.scheme or target.netloc) and (target.scheme != 'https' or not target.netloc):
             raise ValueError(f'{slug}: expected a local link or HTTPS URL')
 
 
-def build(root, output, hosting=False):
+def build(root, output, hosting=False, environment='prod'):
     config = json.loads((root / 'docs/public-guides.json').read_text(encoding='utf-8'))
-    if not config['project'].strip() or set(config['guides']) != set(GUIDES):
-        raise ValueError('Public guide slugs must match the handbook, roadmap and release history.')
-    guide_media = {section['figure'][0] for data in config['guides'].values()
-                   for section in data['sections'] if section.get('figure')}
-    revision = os.getenv('FINBUDDY_SOURCE_REVISION') or os.getenv('GITHUB_SHA') or (os.getenv('VITE_RELEASE_REVISION') if hosting else None)
+    guides = config['guides']
+    if set(guides) != set(GUIDES):
+        raise ValueError('The public guide catalog and navigation must match.')
+    revision = os.getenv('FINBUDDY_SOURCE_REVISION') or os.getenv('VITE_RELEASE_REVISION') or os.getenv('GITHUB_SHA')
     if revision and not re.fullmatch('[0-9a-f]{40}', revision):
-        raise ValueError('Invalid GitHub source revision')
+        raise ValueError('Invalid source revision')
     if output.is_symlink():
         raise ValueError(f'Use a regular build output directory: {output}')
     output = output.resolve()
-    with tempfile.TemporaryDirectory(prefix='app-launchpad-docs-') as scratch:
+    app = '' if hosting else APP_ORIGIN + '/'
+    marker = f'<meta name="source-revision" content="{revision}">' if revision else ''
+    with tempfile.TemporaryDirectory(prefix='finbuddy-site-') as scratch:
         staged = Path(scratch).resolve()
-        guides = staged / 'docs'
-        assets = staged
-        static_files = ('index.html', 'landing.css', 'guides.css')
+
+        def write(relative, html):
+            path = staged / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(html.replace('</head>', marker + '</head>'), encoding='utf-8')
+
         if hosting:
-            shutil.copytree(root / 'public/docs', guides, ignore=shutil.ignore_patterns('handbook'))
-            shutil.copyfile(root / 'index.html', staged / 'index.html')
-            guides /= 'handbook'
-            assets = guides
-            static_files = ('landing.css', 'guides.css')
-        guides.mkdir()
-        for asset in static_files:
-            source = root / 'site' / asset
-            if not source.is_file() or source.is_symlink():
-                raise ValueError(f'Expected a regular site file at {asset}')
-            shutil.copyfile(source, assets / asset)
-        media = root / 'site/media'
-        if media.is_dir() and not media.is_symlink():
-            for source in sorted(media.iterdir()):
-                allowed = source.suffix.lower() in MEDIA_SUFFIXES or source.name in MEDIA_LICENSES
-                if hosting:
-                    allowed = source.name in HANDBOOK_MEDIA or source.name in guide_media
-                if allowed and source.is_file() and not source.is_symlink():
-                    destination = assets / 'media' / source.name
-                    destination.parent.mkdir(exist_ok=True)
-                    shutil.copyfile(source, destination)
-        for slug, data in config['guides'].items():
+            for name in ('icons', 'icon-licenses', 'font-licenses'):
+                shutil.copytree(root / 'public' / name, staged / name)
+            for name in ('manifest.json', 'sw.js', 'favicon.ico'):
+                shutil.copyfile(root / 'public' / name, staged / name)
+        for name in ('landing.css', 'guides.css', 'guide-redirect.js', *(('entry.js',) if hosting else ())):
+            shutil.copyfile(root / 'site' / name, staged / name)
+        (staged / 'media').mkdir()
+        for source in (root / 'site/media').iterdir():
+            if source.is_file() and not source.is_symlink() and (source.suffix in MEDIA_SUFFIXES or source.name in MEDIA_LICENSES):
+                shutil.copyfile(source, staged / 'media' / source.name)
+        home = (root / 'site/index.html').read_text(encoding='utf-8')
+        home = home.replace('<!-- public-header -->', header('', app)).replace('<!-- public-footer -->', footer(''))
+        if hosting:
+            platform = (f'<meta name="finbuddy-environment" content="{environment}"><meta name="finbuddy-firebase-project" content="finbuddy-2025">'
+                        f'<meta name="finbuddy-revision" content="{revision or "local"}"><meta name="referrer" content="no-referrer">'
+                        '<link rel="manifest" href="/manifest.json"><link rel="icon" type="image/png" href="/icons/buddy-favicon-v2.png">'
+                        '<link rel="apple-touch-icon" href="/icons/buddy-touch-v2.png"><script src="/entry.js"></script>')
+            if environment == 'preprod':
+                home = home.replace('<body>', '<body><aside class="public-preprod">Pre-production · Synthetic data only</aside>')
+                platform += '<meta name="robots" content="noindex">'
+        else:
+            platform = '<link rel="icon" href="media/buddy-mark-v2.png" type="image/png">'
+            for route in ('app?demo=1', 'signin', 'finvision?demo=1'):
+                home = home.replace(f'href="{route}"', f'href="{app}{route}"')
+        write('index.html', home.replace('<!-- platform-head -->', platform))
+        for slug, data in guides.items():
             validate_guide(slug, data)
-            page = render(slug, {**data, 'project': config['project']}, hosting)
-            if revision:
-                page = page.replace('</head>', f'  <meta name="source-revision" content="{revision}">\n</head>')
-            (guides / (slug + '.html')).write_text(page, encoding='utf-8')
-        validate_links(staged, {*guides.glob('*.html'), staged / 'docs/index.html'} if hosting else None)
-        if not hosting and output.exists() and (not output.is_dir() or any(output.iterdir())):
+            write('docs/' + slug + '.html', render(slug, {**data, 'project': config['project']}, hosting))
+        aliases = {**LEGACY, **{f'docs/handbook/{key}.html': f'docs/{key}.html' for key in guides}}
+        for name, target in aliases.items():
+            prefix = '../' * name.count('/')
+            write(name, moved_page(target, prefix, prefix if hosting else app))
+        # Old hosted handbooks linked directly to their screenshots and local font.
+        legacy_assets = staged / 'docs/handbook/media'
+        legacy_assets.mkdir()
+        for name in ('home.jpg', 'expenses.jpg', 'bills.jpg', 'savings.jpg', 'finvision.jpg',
+                     'buddy-mark-v2.png', 'google-sans-latin-wght-normal.woff2', 'google-sans-OFL.txt'):
+            shutil.copyfile(staged / 'media' / name, legacy_assets / name)
+        for name in ('landing.css', 'guides.css'):
+            (legacy_assets.parent / name).write_text(f'@import url("../../{name}");\n', encoding='utf-8')
+        for code in ERRORS:
+            write(f'errors/{code}.html', error_page(code, '../', '../' if hosting else app))
+        # The host returns this document for a missing URL at any depth.
+        mount = '/' if hosting else '/finbuddy/'
+        write('404.html', error_page(404, mount, mount if hosting else app))
+        validate_links(staged, hosting)
+        if output.exists() and (not output.is_dir() or any(output.iterdir())):
             raise ValueError(f'Use an empty build output directory: {output}')
-        shutil.copytree(guides if hosting else staged, output, dirs_exist_ok=True)
+        shutil.copytree(staged, output, dirs_exist_ok=True)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument('--output', type=Path, help='Build GitHub Pages in an empty directory.')
-    mode.add_argument('--hosting', action='store_true', help='Generate the Firebase handbook in public/docs/handbook.')
+    parser.add_argument('--output', type=Path, help='Write the verified site to an empty directory.')
+    parser.add_argument('--hosting', action='store_true', help='Use same-origin workspace and API links.')
+    parser.add_argument('--environment', choices=('prod', 'preprod'), default='prod')
     args = parser.parse_args()
     try:
         if args.output:
-            build(ROOT, args.output)
-        elif args.hosting:
-            build(ROOT, ROOT / 'public/docs/handbook', hosting=True)
+            build(ROOT, args.output, args.hosting, args.environment)
         else:
-            with tempfile.TemporaryDirectory(prefix='app-launchpad-docs-check-') as scratch:
+            with tempfile.TemporaryDirectory(prefix='finbuddy-docs-check-') as scratch:
                 build(ROOT, Path(scratch) / 'pages')
-                build(ROOT, Path(scratch) / 'hosting', hosting=True)
-        print('Public documentation build and local links passed.')
+                build(ROOT, Path(scratch) / 'hosting', True)
+        print('Public site, documentation and local links passed.')
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
-        raise SystemExit(f'Public documentation build failed: {error}')
+        raise SystemExit(f'Public site build failed: {error}')

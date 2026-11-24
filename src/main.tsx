@@ -21,7 +21,13 @@ const root = document.getElementById('root');
 if (!root) throw new Error('Missing FinBuddy application root');
 
 createRoot(root).render(
-  <ErrorBoundary onError={reportRuntimeFailure} fallback={<main className="m3-empty m3-fullscreen"><h1>FinBuddy couldn’t open</h1><Button onClick={() => location.reload()}>Reload FinBuddy</Button></main>}>
+  <ErrorBoundary
+    onError={() => {
+      reportRuntimeFailure();
+      window.location.replace('/errors/500.html');
+    }}
+    fallback={<main className="m3-empty m3-fullscreen"><h1>FinBuddy couldn’t open</h1><Button asChild><a href="/errors/500.html">Open recovery options</a></Button></main>}
+  >
     <ThemeProvider defaultTheme="light" storageKey="finbuddy-ui-theme">
       {import.meta.env.MODE === 'preprod' && <div className="finbuddy-preprod-banner">Pre-production · Synthetic data only</div>}
       <App />

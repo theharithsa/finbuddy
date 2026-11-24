@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-25
+
+- The product homepage now opens before sign-in on Firebase. Explore the sample household and the FinVision goal dashboard, or go directly to `/signin` and `/app`.
+- Published one Help center on Firebase and GitHub Pages, including privacy, terms, security and troubleshooting. Earlier guide links lead to their current topics.
+- Added illustrated recovery pages for 404, 500, 501 and 503. A missing web address returns HTTP 404 and Buddy’s search animation respects reduced motion.
+
 ## [3.3.4] - 2026-11-24
 
 - Added the official Product Hunt badge below the demo and tour on the public homepage and in the app’s sign-in footer.

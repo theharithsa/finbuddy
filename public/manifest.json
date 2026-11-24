@@ -2,7 +2,7 @@
   "name": "FinBuddy - Personal Finance Tracker",
   "short_name": "FinBuddy",
   "description": "Track household income, expenses, bills and savings.",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#fcf8ff",
   "theme_color": "#5b4ba3",
@@ -39,7 +39,7 @@
       "name": "Add Expense",
       "short_name": "Add Expense",
       "description": "Quickly add a new expense",
-      "url": "/?action=add-expense",
+      "url": "/app?action=add-expense",
       "icons": [
         {
           "src": "/icons/buddy-add-expense-v3.png",
@@ -52,7 +52,7 @@
       "name": "View Budget",
       "short_name": "Budget",
       "description": "Check your budget status",
-      "url": "/?action=view-budget",
+      "url": "/app?action=view-budget",
       "icons": [
         {
           "src": "/icons/buddy-view-budget-v3.png",
@@ -61,5 +61,6 @@
         }
       ]
     }
-  ]
+  ],
+  "id": "/"
 }
