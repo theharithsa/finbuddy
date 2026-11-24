@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [3.3.4] - 2026-11-24
+
+- Added the official Product Hunt badge below the demo and tour on the public homepage and in the app’s sign-in footer.
+
 ## [3.3.3] - 2026-11-24
 
 - Updated the Firebase web SDK to 13.4.0 for sign-in, saved expenses, receipts and FinVision goals. The web toolchain continues to use the Node 24 types matching CI.
