@@ -1,7 +1,7 @@
 {
     "name": "finbuddy",
     "private": true,
-    "version": "3.3.3",
+    "version": "3.3.4",
     "type": "module",
     "scripts": {
         "predev": "python scripts/build_public_docs.py --hosting",

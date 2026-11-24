@@ -52,6 +52,7 @@ h1 { max-width: 11ch; font-size: clamp(3.65rem, 6.2vw, 6.2rem); line-height: .99
 h1 em { color: var(--accent); font-weight: inherit; }
 .lead { max-width: 38ch; font-size: clamp(1.05rem, 1.5vw, 1.24rem); line-height: 1.55; color: var(--muted); }
 .hero-copy .actions { margin-top: 28px; }
+.product-hunt-badge { display: block; width: fit-content; max-width: 100%; margin-top: 20px; }
 .hero-figure { background: #e9dff4; border: 1px solid #d9cce8; border-radius: 32px; padding: clamp(13px, 2vw, 26px) clamp(13px, 2vw, 26px) 16px; }
 .hero-image { border: 1px solid #d4c6e3; border-radius: 17px; overflow: hidden; background: #fff; box-shadow: 0 14px 38px #32224420; }
 .hero-image img { width: 100%; }
