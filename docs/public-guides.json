@@ -25,6 +25,10 @@
             [
               "Open the sample household",
               "https://finbuddy-2025.web.app/app?demo=1"
+            ],
+            [
+              "Watch the ten-chapter household walkthrough",
+              "../index.html#tour"
             ]
           ]
         },
@@ -1012,6 +1016,22 @@
         }
       ],
       "releases": [
+        {
+          "version": "3.5.0",
+          "status": "Product walkthrough · November 2026",
+          "title": "See a household month from payday to a goal",
+          "summary": "Follow ten chapters through an income entry, groceries, a paid bill, spending insights, savings and a FinVision projection. Each chapter has captions and a transcript. The homepage links each task to its handbook steps.",
+          "links": [
+            [
+              "Watch the full tour",
+              "../index.html#tour"
+            ],
+            [
+              "Plan a recurring deposit",
+              "product.html#plan-a-goal"
+            ]
+          ]
+        },
         {
           "version": "3.4.0",
           "status": "Website · November 2026",

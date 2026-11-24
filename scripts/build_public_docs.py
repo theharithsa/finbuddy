@@ -11,7 +11,7 @@ import shutil
 import tempfile
 from urllib.parse import unquote, urlsplit
 
-from public_site import APP_ORIGIN, ERRORS, LEGACY, document, error_page, footer, header, moved_page
+from public_site import APP_ORIGIN, PROVIDER_ORIGIN, ERRORS, LEGACY, document, error_page, footer, header, moved_page
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDES = {
@@ -92,6 +92,27 @@ def validate_links(output, hosting=False):
                 raise ValueError(f'{file.relative_to(output)}: missing anchor {link}')
 
 
+def tour_navigation(chapters):
+    links = []
+    transcript = []
+    previous_end = 0
+    for chapter in chapters:
+        start, end = chapter['start'], chapter['end']
+        if start != previous_end or end <= start or not chapter['transcript']:
+            raise ValueError('Tour chapters must cover the film in order.')
+        previous_end = end
+        title = escape(chapter['title'])
+        stamp = f'{int(start) // 60}:{int(start) % 60:02d}'
+        links.append(f'<li><a data-start="{start}" href="media/finbuddy-tour.mp4#t={start}"><time>{stamp}</time>{title}</a></li>')
+        paragraphs = ''.join(f'<p>{escape(line)}</p>' for line in chapter['transcript'])
+        transcript.append(f'<section><h3>{title}</h3>{paragraphs}</section>')
+    if not links:
+        raise ValueError('The product tour needs at least one chapter.')
+    return ('<details id="tour-chapters"><summary>Jump to a chapter</summary><ol>' + ''.join(links)
+            + '</ol></details><details id="tour-transcript"><summary>Read the transcript</summary>'
+            + ''.join(transcript) + '</details>')
+
+
 def render_links(links):
     return ''.join(f'<li><a href="{escape(url)}">{escape(text)}</a></li>' for text, url in links)
 
@@ -168,6 +189,7 @@ def render(slug, data, hosting=False):
       <main id="main" class="guide" tabindex="-1">
         <h1>{escape(title)}</h1><p class="lead">{escape(data['intro'])}</p>{index}{sections}
       </main></div>'''
+    content = content.replace(PROVIDER_ORIGIN + '/', APP_ORIGIN + '/')
     content = content.replace('href="' + APP_ORIGIN + '/docs/"', 'href="index.html"')
     content = content.replace('href="' + APP_ORIGIN + '/docs/', 'href="')
     if hosting:
@@ -248,13 +270,16 @@ def build(root, output, hosting=False, environment='prod'):
                 shutil.copytree(root / 'public' / name, staged / name)
             for name in ('manifest.json', 'sw.js', 'favicon.ico'):
                 shutil.copyfile(root / 'public' / name, staged / name)
-        for name in ('landing.css', 'guides.css', 'guide-redirect.js', *(('entry.js',) if hosting else ())):
+        for name in ('landing.css', 'guides.css', 'guide-redirect.js', 'tour.js', *(('entry.js',) if hosting else ())):
             shutil.copyfile(root / 'site' / name, staged / name)
         (staged / 'media').mkdir()
         for source in (root / 'site/media').iterdir():
             if source.is_file() and not source.is_symlink() and (source.suffix in MEDIA_SUFFIXES or source.name in MEDIA_LICENSES):
                 shutil.copyfile(source, staged / 'media' / source.name)
         home = (root / 'site/index.html').read_text(encoding='utf-8')
+        home = home.replace(PROVIDER_ORIGIN + '/', APP_ORIGIN + '/')
+        chapters = json.loads((root / 'site/product-tour.json').read_text(encoding='utf-8'))
+        home = home.replace('<!-- tour-chapters -->', tour_navigation(chapters))
         home = home.replace('<!-- public-header -->', header('', app)).replace('<!-- public-footer -->', footer(''))
         if hosting:
             platform = (f'<meta name="finbuddy-environment" content="{environment}"><meta name="finbuddy-firebase-project" content="finbuddy-2025">'

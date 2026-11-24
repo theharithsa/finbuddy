@@ -7,7 +7,9 @@ if (!url || !/^[a-f0-9]{40}$/.test(revision ?? '')) {
 }
 const origin = new URL(url);
 assert.equal(origin.protocol, 'https:');
-assert.match(origin.hostname, /^(?:finbuddy-2025(?:--[a-z0-9-]+)?|finbuddy-2025-preprod)\.web\.app$/);
+const customSites = new Set(['myfinbuddy.app', 'preprod.myfinbuddy.app']);
+const providerSite = /^(?:finbuddy-2025(?:--[a-z0-9-]+)?|finbuddy-2025-preprod)\.web\.app$/;
+assert.ok(customSites.has(origin.hostname) || providerSite.test(origin.hostname), 'Use a FinBuddy Hosting origin.');
 const waits = mode === '--wait-for-revision' ? [0, 5_000, 10_000, 15_000] : [0];
 async function readLiveIndex() {
   let servedRevision;
@@ -26,7 +28,7 @@ async function readLiveIndex() {
 }
 
 const html = await readLiveIndex();
-const expectedEnvironment = origin.hostname === 'finbuddy-2025-preprod.web.app' ? 'preprod' : 'prod';
+const expectedEnvironment = ['finbuddy-2025-preprod.web.app', 'preprod.myfinbuddy.app'].includes(origin.hostname) ? 'preprod' : 'prod';
 assert.ok(html.includes(`name="finbuddy-environment" content="${expectedEnvironment}"`), 'Wrong Hosting environment');
 assert.ok(html.includes('name="finbuddy-firebase-project" content="finbuddy-2025"'), 'Wrong shared Firebase project');
 assert.match(html, /Know where your/);
