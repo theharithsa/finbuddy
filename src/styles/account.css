@@ -30,7 +30,10 @@
 .m3-login-links, .m3-login-legal { display: flex; flex-wrap: wrap; gap: 4px 12px; font: var(--m3-body-medium); margin-top: 14px; color: var(--m3-primary); }
 .m3-login-links button { min-height: 36px; text-align: left; }
 .m3-login-links button:hover { text-decoration: underline; }
-.m3-login-legal { width: 100%; max-width: 1320px; margin-inline: auto; border-top: 1px solid var(--m3-outline-variant); padding-top: 14px; color: var(--m3-on-surface-variant); }
+.m3-login-legal { align-items: center; justify-content: space-between; row-gap: 12px; width: 100%; max-width: 1320px; margin-inline: auto; border-top: 1px solid var(--m3-outline-variant); padding-top: 14px; color: var(--m3-on-surface-variant); }
+.m3-login-legal-links { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; }
+.m3-product-hunt-badge, .m3-product-hunt-badge img { display: block; max-width: 100%; }
+.m3-product-hunt-badge img { height: auto; }
 .m3-demo-invite {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
   margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--m3-outline-variant); color: var(--m3-on-surface-variant); font: var(--m3-body-medium);

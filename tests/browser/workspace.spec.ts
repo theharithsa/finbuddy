@@ -499,6 +499,10 @@ test('visitors can explore sample spending without Firebase account requests', a
   await page.goto('/');
   const demo = page.getByRole('link', { name: 'Explore demo' });
   await expect(demo).toBeVisible();
+  const productHunt = page.getByRole('link', { name: /FinBuddy.*Product Hunt/ });
+  await expect(productHunt).toBeVisible();
+  await expect(productHunt).toHaveAttribute('href', 'https://www.producthunt.com/products/finbuddy-4?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-finbuddy-4');
+  await expect(productHunt).toHaveAttribute('target', '_blank');
   const backendRequests: string[] = [];
   page.on('request', (request) => {
     const url = request.url();
@@ -506,6 +510,7 @@ test('visitors can explore sample spending without Firebase account requests', a
   });
   await demo.click();
   await expect(page.getByText('Sample household data')).toBeVisible();
+  await expect(productHunt).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Your money, in view.' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Monthly money summary' })).toContainText('₹45,560.00');
   await expect(page.getByRole('button', { name: 'Add income' })).toHaveCount(0);

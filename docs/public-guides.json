@@ -991,6 +991,18 @@
       ],
       "releases": [
         {
+          "version": "3.3.4",
+          "status": "Website · November 2026",
+          "title": "Find FinBuddy on Product Hunt",
+          "summary": "Open FinBuddy’s Product Hunt listing from the badge below the homepage demo or in the app’s sign-in footer.",
+          "links": [
+            [
+              "FinBuddy on Product Hunt",
+              "https://www.producthunt.com/products/finbuddy-4"
+            ]
+          ]
+        },
+        {
           "version": "3.3.3",
           "status": "Maintenance · November 2026",
           "title": "Updated Firebase client",

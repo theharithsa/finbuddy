@@ -145,7 +145,31 @@ export function LoginPage({ redirectError }: { redirectError: boolean }) {
           </div>
         </section>
       </div>
-      <footer className="m3-login-legal"><a href="/docs/privacy-policy.html">Privacy</a><a href="/docs/terms-and-conditions.html">Terms</a><a href="/docs/index.html">Help</a><UsageAnalytics /></footer>
+      <footer className="m3-login-legal">
+        <div className="m3-login-legal-links">
+          <a href="/docs/privacy-policy.html">Privacy</a>
+          <a href="/docs/terms-and-conditions.html">Terms</a>
+          <a href="/docs/index.html">Help</a>
+          <UsageAnalytics />
+        </div>
+        {mode === 'signin' && (
+          <a
+            className="m3-product-hunt-badge"
+            href="https://www.producthunt.com/products/finbuddy-4?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-finbuddy-4"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1329568&amp;theme=neutral&amp;t=1795544099542"
+              width={250}
+              height={54}
+              alt="FinBuddy - Track household spending and savings goals in rupees | Product Hunt"
+              referrerPolicy="no-referrer"
+              loading="lazy"
+            />
+          </a>
+        )}
+      </footer>
     </main>
   );
 }
