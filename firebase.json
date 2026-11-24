@@ -20,7 +20,7 @@
           }
         },
         {
-          "regex": "^/(signin|app|finvision)/?$",
+          "source": "/{signin,app,finvision}{,/}",
           "destination": "/app.html"
         }
       ],
@@ -71,24 +71,7 @@
           ]
         }
       ],
-      "target": "prod",
-      "redirects": [
-        {
-          "source": "/docs/handbook/media/:asset",
-          "destination": "/media/:asset",
-          "type": 301
-        },
-        {
-          "source": "/docs/handbook/landing.css",
-          "destination": "/landing.css",
-          "type": 301
-        },
-        {
-          "source": "/docs/handbook/guides.css",
-          "destination": "/guides.css",
-          "type": 301
-        }
-      ]
+      "target": "prod"
     },
     {
       "public": "release/preprod",
@@ -106,7 +89,7 @@
           }
         },
         {
-          "regex": "^/(signin|app|finvision)/?$",
+          "source": "/{signin,app,finvision}{,/}",
           "destination": "/app.html"
         }
       ],
@@ -157,24 +140,7 @@
           ]
         }
       ],
-      "target": "preprod",
-      "redirects": [
-        {
-          "source": "/docs/handbook/media/:asset",
-          "destination": "/media/:asset",
-          "type": 301
-        },
-        {
-          "source": "/docs/handbook/landing.css",
-          "destination": "/landing.css",
-          "type": 301
-        },
-        {
-          "source": "/docs/handbook/guides.css",
-          "destination": "/guides.css",
-          "type": 301
-        }
-      ]
+      "target": "preprod"
     }
   ],
   "storage": {

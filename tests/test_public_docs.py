@@ -51,6 +51,8 @@ class PublicDocsTests(unittest.TestCase):
                     self.assertIn('aria-label="Footer"', guide)
                     alias = (output / 'docs/handbook' / (name + '.html')).read_text(encoding='utf-8')
                     self.assertIn('href="../../docs/' + name + '.html"', alias)
+                self.assertEqual((output / 'docs/handbook/media/home.jpg').read_bytes(),
+                                 (output / 'media/home.jpg').read_bytes())
                 for old, current in LEGACY.items():
                     self.assertIn('id="guide-destination" href="../' + current + '"',
                                   (output / old).read_text(encoding='utf-8'))

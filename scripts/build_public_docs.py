@@ -276,6 +276,14 @@ def build(root, output, hosting=False, environment='prod'):
         for name, target in aliases.items():
             prefix = '../' * name.count('/')
             write(name, moved_page(target, prefix, prefix if hosting else app))
+        # Old hosted handbooks linked directly to their screenshots and local font.
+        legacy_assets = staged / 'docs/handbook/media'
+        legacy_assets.mkdir()
+        for name in ('home.jpg', 'expenses.jpg', 'bills.jpg', 'savings.jpg', 'finvision.jpg',
+                     'buddy-mark-v2.png', 'google-sans-latin-wght-normal.woff2', 'google-sans-OFL.txt'):
+            shutil.copyfile(staged / 'media' / name, legacy_assets / name)
+        for name in ('landing.css', 'guides.css'):
+            (legacy_assets.parent / name).write_text(f'@import url("../../{name}");\n', encoding='utf-8')
         for code in ERRORS:
             write(f'errors/{code}.html', error_page(code, '../', '../' if hosting else app))
         # The host returns this document for a missing URL at any depth.
