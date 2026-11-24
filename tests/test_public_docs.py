@@ -11,7 +11,8 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 
-from build_public_docs import build
+from build_public_docs import GUIDES, build
+from public_site import ERRORS, LEGACY
 from check_docs_impact import has_decision
 
 
@@ -21,11 +22,10 @@ class PublicDocsTests(unittest.TestCase):
         shutil.copytree(ROOT / 'site', root / 'site')
         (root / 'docs').mkdir()
         shutil.copyfile(ROOT / 'docs/public-guides.json', root / 'docs/public-guides.json')
-        shutil.copyfile(ROOT / 'index.html', root / 'index.html')
-        shutil.copytree(ROOT / 'public/docs', root / 'public/docs', ignore=shutil.ignore_patterns('handbook'))
+        shutil.copytree(ROOT / 'public', root / 'public')
         return root
 
-    def test_build_publishes_only_curated_content_with_revision(self):
+    def test_build_publishes_only_curated_pages_and_preserves_legacy_links(self):
         with tempfile.TemporaryDirectory() as scratch:
             parent = Path(scratch)
             root = self.scaffold(parent)
@@ -35,46 +35,48 @@ class PublicDocsTests(unittest.TestCase):
             data = json.loads(config.read_text(encoding='utf-8'))
             data['guides']['settings']['intro'] = '<b>Example</b>'
             config.write_text(json.dumps(data), encoding='utf-8')
-            output = parent / 'out'
-            with patch.dict(os.environ, {'GITHUB_SHA': 'a' * 40}):
-                build(root, output)
-            self.assertEqual(
-                {path.name for path in (output / 'docs').iterdir()},
-                {'product.html', 'technical.html', 'settings.html', 'sdlc.html', 'pipeline.html',
-                 'roadmap.html', 'releases.html'},
-            )
-            self.assertFalse((output / 'internal.html').exists())
-            self.assertFalse((output / 'docs/private-runbook.md').exists())
-            for asset in ('google-sans-latin-wght-normal.woff2', 'google-sans-OFL.txt', 'finbuddy-tour.mp4'):
-                self.assertTrue((output / 'media' / asset).is_file(), asset)
-            guide = (output / 'docs/settings.html').read_text(encoding='utf-8')
-            self.assertIn('&lt;b&gt;Example&lt;/b&gt;', guide)
-            self.assertIn('name="source-revision" content="' + 'a' * 40, guide)
+            for hosting in (True, False):
+                output = parent / ('hosting' if hosting else 'pages')
+                revision = 'a' * 40
+                with patch.dict(os.environ, {'FINBUDDY_SOURCE_REVISION': revision}):
+                    build(root, output, hosting=hosting)
+                self.assertFalse((output / 'internal.html').exists())
+                self.assertFalse((output / 'docs/private-runbook.md').exists())
+                for asset in ('google-sans-latin-wght-normal.woff2', 'google-sans-OFL.txt', 'finbuddy-tour.mp4'):
+                    self.assertTrue((output / 'media' / asset).is_file(), asset)
+                for name in GUIDES:
+                    guide = (output / 'docs' / (name + '.html')).read_text(encoding='utf-8')
+                    self.assertIn('name="source-revision" content="' + revision, guide)
+                    self.assertIn('aria-label="Main"', guide)
+                    self.assertIn('aria-label="Footer"', guide)
+                    alias = (output / 'docs/handbook' / (name + '.html')).read_text(encoding='utf-8')
+                    self.assertIn('href="../../docs/' + name + '.html"', alias)
+                for old, current in LEGACY.items():
+                    self.assertIn('id="guide-destination" href="../' + current + '"',
+                                  (output / old).read_text(encoding='utf-8'))
+                settings = (output / 'docs/settings.html').read_text(encoding='utf-8')
+                self.assertIn('&lt;b&gt;Example&lt;/b&gt;', settings)
+                home = (output / 'index.html').read_text(encoding='utf-8')
+                self.assertIn('href="' + ('' if hosting else 'https://finbuddy-2025.web.app/') + 'signin"', home)
+                self.assertEqual('/entry.js' in home, hosting)
+                self.assertNotIn('id="root"', home)
+                for code in ERRORS:
+                    self.assertIn('id="error-' + str(code) + '"',
+                                  (output / 'errors' / (str(code) + '.html')).read_text(encoding='utf-8'))
+                missing = (output / '404.html').read_text(encoding='utf-8')
+                self.assertIn('href="' + ('/' if hosting else '/finbuddy/') + 'landing.css"', missing)
 
-    def test_hosting_build_checks_help_hub_and_release_anchors(self):
+    def test_check_rejects_existing_output_and_keeps_its_contents(self):
         with tempfile.TemporaryDirectory() as scratch:
             parent = Path(scratch)
             root = self.scaffold(parent)
-            output = root / 'public/docs/handbook'
-            with patch.dict(os.environ, {'GITHUB_SHA': 'b' * 40}):
-                build(root, output, hosting=True)
-            releases = (output / 'releases.html').read_text(encoding='utf-8')
-            self.assertIn('id="v3-1-1"', releases)
-            self.assertIn('href="#v3-1-1"', releases)
-            self.assertIn('name="source-revision" content="' + 'b' * 40, releases)
-            self.assertFalse((output / 'media/finbuddy-tour.mp4').exists())
-            self.assertTrue((output / 'media/google-sans-latin-wght-normal.woff2').is_file())
-            product = (output / 'product.html').read_text(encoding='utf-8')
-            self.assertIn('id="record-income"', product)
-            self.assertIn('class="task-steps"', product)
-            self.assertTrue((output / 'media/home.jpg').is_file())
-            technical = (output / 'technical.html').read_text(encoding='utf-8')
-            self.assertIn('<pre><code>git clone ', technical)
-            hub = root / 'public/docs/index.html'
-            hub.write_text(hub.read_text(encoding='utf-8').replace('#troubleshooting', '#missing'), encoding='utf-8')
-            with self.assertRaisesRegex(ValueError, 'missing anchor'):
-                build(root, output, hosting=True)
-            self.assertEqual(releases, (output / 'releases.html').read_text(encoding='utf-8'))
+            output = parent / 'out'
+            output.mkdir()
+            existing = output / 'keep.txt'
+            existing.write_text('Original')
+            with self.assertRaisesRegex(ValueError, 'empty build output directory'):
+                build(root, output)
+            self.assertEqual(existing.read_text(), 'Original')
 
     def test_build_rejects_missing_anchor_without_touching_output(self):
         with tempfile.TemporaryDirectory() as scratch:

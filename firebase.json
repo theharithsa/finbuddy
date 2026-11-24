@@ -20,8 +20,8 @@
           }
         },
         {
-          "source": "**",
-          "destination": "/index.html"
+          "regex": "^/(signin|app|finvision)/?$",
+          "destination": "/app.html"
         }
       ],
       "headers": [
@@ -60,9 +60,35 @@
               "value": "no-cache"
             }
           ]
+        },
+        {
+          "source": "/app.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
         }
       ],
-      "target": "prod"
+      "target": "prod",
+      "redirects": [
+        {
+          "source": "/docs/handbook/media/:asset",
+          "destination": "/media/:asset",
+          "type": 301
+        },
+        {
+          "source": "/docs/handbook/landing.css",
+          "destination": "/landing.css",
+          "type": 301
+        },
+        {
+          "source": "/docs/handbook/guides.css",
+          "destination": "/guides.css",
+          "type": 301
+        }
+      ]
     },
     {
       "public": "release/preprod",
@@ -80,8 +106,8 @@
           }
         },
         {
-          "source": "**",
-          "destination": "/index.html"
+          "regex": "^/(signin|app|finvision)/?$",
+          "destination": "/app.html"
         }
       ],
       "headers": [
@@ -120,9 +146,35 @@
               "value": "no-cache"
             }
           ]
+        },
+        {
+          "source": "/app.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
         }
       ],
-      "target": "preprod"
+      "target": "preprod",
+      "redirects": [
+        {
+          "source": "/docs/handbook/media/:asset",
+          "destination": "/media/:asset",
+          "type": 301
+        },
+        {
+          "source": "/docs/handbook/landing.css",
+          "destination": "/landing.css",
+          "type": 301
+        },
+        {
+          "source": "/docs/handbook/guides.css",
+          "destination": "/guides.css",
+          "type": 301
+        }
+      ]
     }
   ],
   "storage": {
