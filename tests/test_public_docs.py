@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 
 from build_public_docs import GUIDES, build
-from public_site import ERRORS, LEGACY
+from public_site import APP_ORIGIN, ERRORS, LEGACY
 from check_docs_impact import has_decision
 
 
@@ -59,7 +59,7 @@ class PublicDocsTests(unittest.TestCase):
                 settings = (output / 'docs/settings.html').read_text(encoding='utf-8')
                 self.assertIn('&lt;b&gt;Example&lt;/b&gt;', settings)
                 home = (output / 'index.html').read_text(encoding='utf-8')
-                self.assertIn('href="' + ('' if hosting else 'https://finbuddy-2025.web.app/') + 'signin"', home)
+                self.assertIn('href="' + ('' if hosting else APP_ORIGIN + '/') + 'signin"', home)
                 self.assertEqual('/entry.js' in home, hosting)
                 self.assertNotIn('id="root"', home)
                 for code in ERRORS:

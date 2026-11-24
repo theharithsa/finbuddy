@@ -2,7 +2,7 @@
 
 FinBuddy is an INR-first household finance workspace. See what came in this month, review what went out, check bills and EMIs, and keep dated records of savings and investments.
 
-[Product homepage](https://finbuddy-2025.web.app/) · [Sign in](https://finbuddy-2025.web.app/signin) · [Try the sample household](https://finbuddy-2025.web.app/app?demo=1) · [Watch the product tour](https://theharithsa.github.io/finbuddy/#tour) · [Help center](https://finbuddy-2025.web.app/docs/) · [Project handbook](https://theharithsa.github.io/finbuddy/docs/product.html)
+[Product homepage](https://finbuddy-2025.web.app/) · [Sign in](https://finbuddy-2025.web.app/signin) · [Try the sample household](https://finbuddy-2025.web.app/app?demo=1) · [Watch the three-minute household tour](https://finbuddy-2025.web.app/#tour) · [Help center](https://finbuddy-2025.web.app/docs/) · [Project handbook](https://theharithsa.github.io/finbuddy/docs/product.html)
 
 [Roadmap](https://theharithsa.github.io/finbuddy/docs/roadmap.html) · [Release history](https://theharithsa.github.io/finbuddy/docs/releases.html) · [Privacy](https://finbuddy-2025.web.app/docs/privacy-policy.html) · [Terms](https://finbuddy-2025.web.app/docs/terms-and-conditions.html) · [Security](https://finbuddy-2025.web.app/docs/security.html)
 
@@ -49,7 +49,7 @@ Open the address printed by Vite and choose **Try the demo**. Returning users ca
 
 Start with a linked GitHub issue, keep changes focused, and include verification in your PR. Use synthetic data in public artifacts. Report suspected security issues privately through the repository's Security tab. [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Issue forms](https://github.com/theharithsa/finbuddy/issues/new/choose) · [Project board](https://github.com/users/theharithsa/projects/1)
 
-Licensed under [MIT](LICENSE). Template version: **1.14.1** · [App Launchpad provenance](project.json)
+Licensed under [MIT](LICENSE). Template version: **1.14.3** · [App Launchpad provenance](project.json)
 
 ## Firebase environments
 

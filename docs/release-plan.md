@@ -8,6 +8,12 @@ Production and persistent pre-production share Firebase project `finbuddy-2025` 
 
 The [Hosting workflow](../.github/workflows/finbuddy.yml) builds the Help Center into the verified app artifact. After Hosting and API checks succeed, it calls the [Pages workflow](../.github/workflows/product-pages.yml) to publish the same revision. Verify the changed pages from the [live product site](https://theharithsa.github.io/finbuddy/) and the [live Help Center](https://finbuddy-2025.web.app/docs/), including the `source-revision` meta tag, links, and affected product media at desktop and phone widths. If a publication needs recovery, revert the scoped site or guide change through a PR and verify the replacement deployment.
 
+### Custom domain verification
+
+The production binding is `myfinbuddy.app`. The `www` binding redirects there. The `preprod.myfinbuddy.app` binding belongs to the existing pre-production site. The app, sign-in, FinVision, handbook, policies, video and API use the current Hosting origin. The GitHub Pages mirror stays at its repository URL.
+
+Keep the DNS confirmation, certificate status and Firebase Authentication allowed-domain list in the issue. On each custom origin run the hosting and API verifiers with its accepted revision, open Google sign-in, and check a demo and a nested missing URL. Once the apex serves the production application over HTTPS, set the repository variable `FINBUDDY_PUBLIC_ORIGIN` to `https://myfinbuddy.app` before building the next candidate and publishing the Pages mirror. With the variable unset the mirror sends visitors to the working Firebase hostname. Revert the variable and republish the accepted revision if the custom origin needs recovery.
+
 ## Web Hosting
 
 1. Open an issue-linked PR and run the [checks](testing.md) for the exact head. Obtain the review required by GitHub and verify the merge commit.
